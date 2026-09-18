@@ -83,6 +83,13 @@ main.wrap {
 main.wrap.tight { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
 button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
+/* версия сборки: тихая подпись над панелью вкладок */
+.ver {
+  position: fixed; right: 10px; z-index: 29; pointer-events: none;
+  bottom: calc(62px + env(safe-area-inset-bottom));
+  font-size: 10px; letter-spacing: .02em; color: var(--text-dim); opacity: .45;
+}
+
 /* ---------- нижняя панель вкладок (как в iOS) ---------- */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
@@ -380,7 +387,8 @@ details.theory .gram { padding: 0 14px 14px; }
 .vhost { display: flex; flex-direction: column; margin: auto 0; }   /* карточка по центру */
 
 .vstage { perspective: 1100px; margin: 10px 0 6px; }
-.vdrag { position: relative; will-change: transform; touch-action: pan-y; cursor: grab; }
+/* на экране карточек страница не прокручивается, поэтому жест целиком наш */
+.vdrag { position: relative; will-change: transform; touch-action: none; cursor: grab; }
 .vdrag:active { cursor: grabbing; }
 .vflip { position: relative; transform-style: preserve-3d; transition: transform .45s cubic-bezier(.2,.75,.3,1); }
 .vflip.flipped { transform: rotateY(180deg); }

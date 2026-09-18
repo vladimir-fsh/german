@@ -433,6 +433,12 @@
     step();
   }
 
+  /* версия сборки — чтобы было видно, доехала ли до устройства свежая публикация */
+  (function () {
+    var e = document.getElementById("ver");
+    if (e) e.textContent = window.APP_VERSION || "";
+  })();
+
   /* ---------- нижние вкладки ---------- */
   var tabs = document.querySelectorAll(".tab");
 
@@ -808,7 +814,7 @@
        Порог низкий, плюс засчитывается быстрый флик — листать можно вяло. */
     function bindCard(drag, flip, tint) {
       var x0 = 0, y0 = 0, dx = 0, on = false, axis = "", moved = false;
-      var lastX = 0, lastT = 0, vx = 0;
+      var lastX = 0, lastT = 0, vx = 0, dyLast = 0;
       var W = Math.max(46, Math.min(90, window.innerWidth * 0.15));
 
       drag.addEventListener("pointerdown", function (e) {
@@ -824,16 +830,23 @@
         if (!on) return;
         dx = e.clientX - x0;
         var dy = e.clientY - y0;
+        dyLast = dy;
         if (!axis) {
           if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-          axis = Math.abs(dy) > Math.abs(dx) ? "y" : "x";
-          if (axis === "y") { on = false; return; }   /* вертикаль отдаём странице */
+          /* Свайп пальцем идёт по дуге, вертикальная составляющая почти всегда
+             есть. Жест считается вертикальным, только если он явно вертикальный:
+             вдвое длиннее по вертикали и уже заметной длины. Всё остальное —
+             свайп карточки, даже если он ушёл вверх. */
+          axis = (Math.abs(dy) > Math.abs(dx) * 2 && Math.abs(dy) > 36) ? "y" : "x";
+          if (axis === "y") { on = false; return; }
         }
         moved = true;
         var now = Date.now(), dt = now - lastT;
         if (dt > 0) { vx = (e.clientX - lastX) / dt; lastX = e.clientX; lastT = now; }
         var k = Math.max(-1, Math.min(1, dx / W));
-        drag.style.transform = "translateX(" + dx + "px) rotate(" + (k * 7).toFixed(2) + "deg)";
+        /* карточка едет и чуть вверх за пальцем — иначе дуга ощущается как рывок */
+        drag.style.transform = "translate(" + dx + "px," + (dy * 0.35).toFixed(1) +
+          "px) rotate(" + (k * 7).toFixed(2) + "deg)";
         tint.className = "vtint " + (dx > 0 ? "good" : "bad");
         tint.firstChild.textContent = dx > 0 ? "Знаю" : "Не помню";
         tint.style.opacity = Math.min(0.92, Math.abs(k));
@@ -847,8 +860,8 @@
         if (moved && (Math.abs(dx) >= W || flick)) {
           var know = dx > 0;
           busy = true;
-          drag.style.transform = "translateX(" + (know ? 1 : -1) * (window.innerWidth + 240) +
-            "px) rotate(" + (know ? 14 : -14) + "deg)";
+          drag.style.transform = "translate(" + (know ? 1 : -1) * (window.innerWidth + 240) +
+            "px," + (dyLast * 0.35).toFixed(1) + "px) rotate(" + (know ? 14 : -14) + "deg)";
           drag.style.opacity = "0";
           setTimeout(function () { busy = false; answer(know); }, 200);
           return;
