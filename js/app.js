@@ -775,10 +775,27 @@
 
     var i = startI, revealed = false, busy = false;
 
+    var nextSlot = null;   /* карточка, лежащая под верхней */
+
+    function faceFront(it) {
+      var f = el("div", "vface vfront");
+      f.appendChild(el("div", "vword", esc(it.dir === "de" ? it.w.de : it.w.ru)));
+      return f;
+    }
+
+    function faceBack(it) {
+      var de2ru = it.dir === "de";
+      var b = el("div", "vface vback");
+      b.innerHTML = '<div class="vword vsmall">' + esc(de2ru ? it.w.ru : it.w.de) + "</div>" +
+        (it.w.ex ? '<div class="vex">' + esc(it.w.ex) +
+          (it.w.exru ? "<i>" + esc(it.w.exru) + "</i>" : "") + "</div>" : "") +
+        (it.w.reg ? '<div class="vreg">' + esc(it.w.reg) + "</div>" : "");
+      return b;
+    }
+
     function step() {
       if (i >= list.length) return finish();
       var it = list[i];
-      var de2ru = it.dir === "de";
       revealed = false;
 
       pl.querySelector(".cnt").textContent = doneCnt + " / " + total;
@@ -786,44 +803,79 @@
 
       host.innerHTML = "";
       var stage = el("div", "vstage");
+      var deck = el("div", "vdeck");
+
+      /* следующая карточка видна из-под текущей: колода, а не мигающий слайд */
+      nextSlot = null;
+      if (list[i + 1]) {
+        nextSlot = el("div", "vslot vnext");
+        nextSlot.appendChild(faceFront(list[i + 1]));
+        deck.appendChild(nextSlot);
+      }
+
+      var slot = el("div", "vslot vtop");
       var drag = el("div", "vdrag");
       var flip = el("div", "vflip");
-
-      var front = el("div", "vface vfront");
-      front.appendChild(el("div", "vword", esc(de2ru ? it.w.de : it.w.ru)));
-
-      var back = el("div", "vface vback");
-      back.innerHTML = '<div class="vword vsmall">' + esc(de2ru ? it.w.ru : it.w.de) + "</div>" +
-        (it.w.ex ? '<div class="vex">' + esc(it.w.ex) +
-          (it.w.exru ? "<i>" + esc(it.w.exru) + "</i>" : "") + "</div>" : "") +
-        (it.w.reg ? '<div class="vreg">' + esc(it.w.reg) + "</div>" : "");
-
-      flip.appendChild(front); flip.appendChild(back);
+      flip.appendChild(faceFront(it));
+      flip.appendChild(faceBack(it));
       var tint = el("div", "vtint", "<b></b>");
       drag.appendChild(flip); drag.appendChild(tint);
-      stage.appendChild(drag);
+      slot.appendChild(drag);
+      deck.appendChild(slot);
+
+      stage.appendChild(deck);
       host.appendChild(stage);
       host.appendChild(el("div", "vlegend",
         '<span class="l">← не помню</span><span class="r">знаю →</span>'));
 
       bindCard(drag, flip, tint);
+
+      /* Верхняя карточка въезжает из положения нижней — будто вышла из колоды.
+         Через принудительный пересчёт, а не requestAnimationFrame: в фоновой
+         вкладке кадры не выдаются, и карточка застряла бы полупрозрачной. */
+      drag.style.transition = "none";
+      drag.style.transform = "scale(.94) translateY(12px)";
+      drag.style.opacity = "0.6";
+      void drag.offsetWidth;
+      drag.style.transition = "transform .2s cubic-bezier(.2,.8,.3,1), opacity .2s linear";
+      drag.style.transform = "";
+      drag.style.opacity = "1";
     }
 
-    /* тап — переворот, свайп вправо — «знаю», влево — «не помню».
-       Карточка красится по ходу жеста, чтобы решение было видно до отпускания.
-       Порог низкий, плюс засчитывается быстрый флик — листать можно вяло. */
+    /* Жесты и физика.
+       Тап — переворот. Свайп вправо — «знаю», влево — «не помню».
+       Угол наклона зависит от точки захвата: держишь карточку за низ —
+       уводит в другую сторону, как настоящую бумагу вокруг опоры.
+       За порогом ход сжимается (резина), при отпускании либо вылет со
+       скоростью броска, либо возврат пружиной с лёгким перелётом. */
     function bindCard(drag, flip, tint) {
       var x0 = 0, y0 = 0, dx = 0, on = false, axis = "", moved = false;
-      var lastX = 0, lastT = 0, vx = 0, dyLast = 0;
+      var lastX = 0, lastT = 0, vx = 0, dyLast = 0, anchor = 1;
       var W = Math.max(46, Math.min(90, window.innerWidth * 0.15));
+      var LIMIT = W * 2.2;   /* дальше хода почти нет, карточка упирается */
+
+      function damp(v) {
+        var a = Math.abs(v);
+        if (a <= LIMIT) return v;
+        return (v < 0 ? -1 : 1) * (LIMIT + (a - LIMIT) * 0.32);
+      }
+
+      function paint(ox, oy, rot, lift) {
+        drag.style.transform = "translate(" + ox.toFixed(1) + "px," + oy.toFixed(1) +
+          "px) rotate(" + rot.toFixed(2) + "deg) scale(" + lift.toFixed(3) + ")";
+      }
 
       drag.addEventListener("pointerdown", function (e) {
         if (busy) return;
         on = true; axis = ""; moved = false; dx = 0; vx = 0;
         x0 = e.clientX; y0 = e.clientY;
         lastX = e.clientX; lastT = Date.now();
+        /* точка захвата: выше середины — поворот в сторону движения, ниже — против */
+        var r = drag.getBoundingClientRect();
+        anchor = e.clientY < r.top + r.height / 2 ? 1 : -1;
         try { drag.setPointerCapture(e.pointerId); } catch (err) {}
         drag.style.transition = "none";
+        drag.classList.add("held");
       });
 
       drag.addEventListener("pointermove", function (e) {
@@ -835,39 +887,72 @@
           if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
           /* Свайп пальцем идёт по дуге, вертикальная составляющая почти всегда
              есть. Жест считается вертикальным, только если он явно вертикальный:
-             вдвое длиннее по вертикали и уже заметной длины. Всё остальное —
-             свайп карточки, даже если он ушёл вверх. */
+             вдвое длиннее по вертикали и уже заметной длины. */
           axis = (Math.abs(dy) > Math.abs(dx) * 2 && Math.abs(dy) > 36) ? "y" : "x";
-          if (axis === "y") { on = false; return; }
+          if (axis === "y") { on = false; drag.classList.remove("held"); return; }
         }
         moved = true;
         var now = Date.now(), dt = now - lastT;
         if (dt > 0) { vx = (e.clientX - lastX) / dt; lastX = e.clientX; lastT = now; }
-        var k = Math.max(-1, Math.min(1, dx / W));
-        /* карточка едет и чуть вверх за пальцем — иначе дуга ощущается как рывок */
-        drag.style.transform = "translate(" + dx + "px," + (dy * 0.35).toFixed(1) +
-          "px) rotate(" + (k * 7).toFixed(2) + "deg)";
+
+        var ox = damp(dx), p = Math.min(1, Math.abs(dx) / W);
+        paint(ox, dy * 0.35, (ox / W) * 7 * anchor, 1.03);
+
+        /* содержимое отстаёт от карточки — появляется глубина */
+        flip.style.transform = "translateX(" + (-ox * 0.05).toFixed(1) + "px)";
+
         tint.className = "vtint " + (dx > 0 ? "good" : "bad");
         tint.firstChild.textContent = dx > 0 ? "Знаю" : "Не помню";
-        tint.style.opacity = Math.min(0.92, Math.abs(k));
+        tint.style.opacity = Math.min(0.92, p);
+        tint.firstChild.style.transform = "rotate(" + (dx > 0 ? -13 : 13) +
+          "deg) scale(" + (0.65 + 0.35 * p).toFixed(2) + ")";
+
+        /* нижняя карточка подтягивается к переднему плану */
+        if (nextSlot) {
+          nextSlot.style.transition = "none";
+          nextSlot.style.transform = "scale(" + (0.94 + 0.06 * p).toFixed(3) +
+            ") translateY(" + (12 - 12 * p).toFixed(1) + "px)";
+          nextSlot.style.opacity = (0.72 + 0.28 * p).toFixed(2);
+        }
       });
 
       function release() {
         if (!on) return;
         on = false;
-        drag.style.transition = "transform .24s ease, opacity .24s ease";
+        drag.classList.remove("held");
         var flick = Math.abs(vx) > 0.4 && Math.abs(dx) > 22 && (vx > 0) === (dx > 0);
+
         if (moved && (Math.abs(dx) >= W || flick)) {
           var know = dx > 0;
           busy = true;
-          drag.style.transform = "translate(" + (know ? 1 : -1) * (window.innerWidth + 240) +
-            "px," + (dyLast * 0.35).toFixed(1) + "px) rotate(" + (know ? 14 : -14) + "deg)";
+          /* чем резче бросок, тем быстрее улетает */
+          var speed = Math.min(2.2, Math.max(0.35, Math.abs(vx)));
+          var ms = Math.round(Math.max(150, 420 - speed * 140));
+          drag.style.transition = "transform " + ms + "ms cubic-bezier(.3,.1,.5,1), opacity " + ms + "ms linear";
+          drag.style.transform = "translate(" + (know ? 1 : -1) * (window.innerWidth + 260) +
+            "px," + (dyLast * 0.35 - 30).toFixed(1) + "px) rotate(" +
+            (know ? 16 : -16) * anchor + "deg)";
           drag.style.opacity = "0";
-          setTimeout(function () { busy = false; answer(know); }, 200);
+          if (nextSlot) {
+            nextSlot.style.transition = "transform " + ms + "ms cubic-bezier(.2,.8,.3,1), opacity " + ms + "ms linear";
+            nextSlot.style.transform = "scale(1) translateY(0)";
+            nextSlot.style.opacity = "1";
+          }
+          setTimeout(function () { busy = false; answer(know); }, Math.min(ms, 220));
           return;
         }
+
+        /* не дотянул — возврат пружиной с небольшим перелётом */
+        drag.style.transition = "transform .42s cubic-bezier(.18,.89,.32,1.28)";
         drag.style.transform = "";
+        flip.style.transition = "transform .42s cubic-bezier(.18,.89,.32,1.28)";
+        flip.style.transform = "";
         tint.style.opacity = 0;
+        if (nextSlot) {
+          nextSlot.style.transition = "transform .3s ease, opacity .3s ease";
+          nextSlot.style.transform = "";
+          nextSlot.style.opacity = "";
+        }
         if (!moved) flipCard();
       }
 

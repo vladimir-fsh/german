@@ -387,24 +387,45 @@ details.theory .gram { padding: 0 14px 14px; }
 .vhost { display: flex; flex-direction: column; margin: auto 0; }   /* карточка по центру */
 
 .vstage { perspective: 1100px; margin: 10px 0 6px; }
+
+/* колода: под верхней карточкой видна следующая */
+.vdeck { position: relative; height: 320px; }
+.vslot { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+.vnext {
+  transform: scale(.94) translateY(12px); opacity: .72; pointer-events: none;
+  transition: transform .24s ease, opacity .24s ease;
+}
+
 /* на экране карточек страница не прокручивается, поэтому жест целиком наш */
-.vdrag { position: relative; will-change: transform; touch-action: none; cursor: grab; }
+.vdrag {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  will-change: transform; touch-action: none; cursor: grab;
+}
 .vdrag:active { cursor: grabbing; }
-.vflip { position: relative; transform-style: preserve-3d; transition: transform .45s cubic-bezier(.2,.75,.3,1); }
+.vflip {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  transform-style: preserve-3d; transition: transform .45s cubic-bezier(.2,.75,.3,1);
+}
 .vflip.flipped { transform: rotateY(180deg); }
 
 .vface {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
   border: 0; background: var(--surface); border-radius: 20px; box-shadow: var(--shadow);
-  padding: 34px 22px; text-align: center; min-height: 300px;
+  padding: 30px 22px; text-align: center;
   display: flex; flex-direction: column; justify-content: center; gap: 12px;
+  transition: box-shadow .2s ease;
 }
-.vback { position: absolute; top: 0; left: 0; right: 0; bottom: 0; transform: rotateY(180deg); }
+.vback { transform: rotateY(180deg); }
+
+/* поднятая карточка отбрасывает тень сильнее — будто её оторвали от стола */
+.vdrag.held .vface { box-shadow: 0 18px 40px rgba(0,0,0,.22), 0 2px 6px rgba(0,0,0,.12); }
+
 .vword { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25; }
 .vword.vsmall { font-size: 24px; color: var(--accent); }
 .vex { font-size: 15px; line-height: 1.55; }
 .vex i { display: block; font-style: normal; font-size: 13.5px; color: var(--text-dim); margin-top: 2px; }
-.vmeta { font-size: 12px; color: var(--text-dim); }
+.vmeta { display: block; margin-top: 10px; font-size: 12px; color: var(--text-dim); }
 /* пометка регистра: слово не из бытовой речи */
 .vreg {
   align-self: center; font-size: 12px; line-height: 1.4; color: var(--accent);
@@ -415,7 +436,12 @@ details.theory .gram { padding: 0 14px 14px; }
   position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 20px;
   pointer-events: none; opacity: 0; display: grid; place-items: center;
 }
-.vtint b { font-size: 15px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+/* решение читается как штамп, а не как надпись */
+.vtint b {
+  font-size: 22px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+  border: 3px solid currentColor; border-radius: 12px; padding: 6px 14px;
+  transform: rotate(-13deg); transition: transform .08s linear;
+}
 .vtint.good { background: var(--ok-soft); box-shadow: inset 0 0 0 2px var(--ok); }
 .vtint.good b { color: var(--ok); }
 .vtint.bad { background: var(--bad-soft); box-shadow: inset 0 0 0 2px var(--bad); }
@@ -426,7 +452,8 @@ details.theory .gram { padding: 0 14px 14px; }
 .vlegend .r { color: var(--ok); }
 
 @media (max-width: 700px) {
-  .vface { min-height: 340px; padding: 30px 18px; }
+  .vdeck { height: 360px; }
+  .vface { padding: 30px 18px; }
 }
 @media (max-width: 560px) {
   .vword { font-size: 30px; }
