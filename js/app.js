@@ -497,6 +497,8 @@
       'Верных ответов<span class="val">' + acc + "% из " + S.totalTried + "</span>"));
     rows.appendChild(el("div", "row static",
       'Ступень частотности<span class="val">' + (S.vocabLevel || 1) + " из " + V_LEVELS + "</span>"));
+    rows.appendChild(el("div", "row static",
+      'Очки за слова<span class="val">' + (S.vocabScore || 0) + "</span>"));
 
     var resetRow = el("button", "row danger", "Сбросить весь прогресс");
     resetRow.onclick = function () {
@@ -688,8 +690,8 @@
   function vocabPending() { return vocabPlan().length; }
 
   /* firstTry === false — ответ-повтор внутри сессии, расписание не трогаем */
-  function vocabGrade(it, ok, firstTry) {
-    if (firstTry) S = Store.mutate("vocabGrade", { key: it.key, ok: ok });
+  function vocabGrade(it, ok, firstTry, pts) {
+    if (firstTry) S = Store.mutate("vocabGrade", { key: it.key, ok: ok, pts: pts || 0 });
   }
 
   /* слово выучено, только когда оба направления прошли всю лестницу интервалов */
@@ -795,7 +797,8 @@
 
     var card = el("div", "vscreen");
     var pl = el("div", "progline");
-    pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>';
+    pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>' +
+      '<span class="pts" id="ptsnow"></span>';
     card.appendChild(pl);
     var host = el("div", "vhost");
     card.appendChild(host);
@@ -816,6 +819,46 @@
     var i = startI, revealed = false, busy = false;
 
     var nextSlot = null;   /* карточка, лежащая под верхней */
+
+    /* Очки за скорость: вспомнил сразу — дороже. Отсчёт идёт с показа карточки.
+       Если переворачивал, чтобы подсмотреть перевод, — засчитывается минимум:
+       это уже не «знал», а «узнал». */
+    var PTS = [
+      { ms: 2000, pts: 10 },
+      { ms: 4000, pts: 8 }
+    ];
+    var PTS_SLOW = 7;
+    var shownAt = 0, ptsTimer = null, sessionPts = 0, peeked = false;
+
+    function ptsNow() {
+      if (peeked) return PTS_SLOW;
+      var el = Date.now() - shownAt;
+      for (var k = 0; k < PTS.length; k++) if (el <= PTS[k].ms) return PTS[k].pts;
+      return PTS_SLOW;
+    }
+
+    function paintPts() {
+      var b = document.getElementById("ptsnow");
+      if (!b) return;
+      var p = ptsNow();
+      b.textContent = "+" + p;
+      b.className = "pts" + (p === 10 ? " hot" : p === 8 ? " warm" : "");
+    }
+
+    function startTimer() {
+      shownAt = Date.now();
+      peeked = false;
+      clearInterval(ptsTimer);
+      paintPts();
+      ptsTimer = setInterval(paintPts, 250);
+    }
+
+    function flyPts(n) {
+      if (!n) return;
+      var f = el("div", "ptsfly", "+" + n);
+      host.appendChild(f);
+      setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 700);
+    }
 
     function faceFront(it) {
       var f = el("div", "vface vfront");
@@ -842,6 +885,7 @@
       pl.querySelector("i").style.width = Math.round((doneCnt / total) * 100) + "%";
 
       host.innerHTML = "";
+      startTimer();
       var stage = el("div", "vstage");
       var deck = el("div", "vdeck");
 
@@ -858,7 +902,7 @@
       var flip = el("div", "vflip");
       flip.appendChild(faceFront(it));
       flip.appendChild(faceBack(it));
-      var tint = el("div", "vtint", "<b></b>");
+      var tint = el("div", "vtint");
       drag.appendChild(flip); drag.appendChild(tint);
       slot.appendChild(drag);
       deck.appendChild(slot);
@@ -942,10 +986,7 @@
         flip.style.transform = "translateX(" + (-ox * 0.05).toFixed(1) + "px)";
 
         tint.className = "vtint " + (dx > 0 ? "good" : "bad");
-        tint.firstChild.textContent = dx > 0 ? "Знаю" : "Не помню";
-        tint.style.opacity = Math.min(0.92, p);
-        tint.firstChild.style.transform = "rotate(" + (dx > 0 ? -13 : 13) +
-          "deg) scale(" + (0.65 + 0.35 * p).toFixed(2) + ")";
+        tint.style.opacity = Math.min(0.8, p);
 
         /* нижняя карточка подтягивается к переднему плану */
         if (nextSlot) {
@@ -1004,6 +1045,8 @@
       var flip = host.querySelector(".vflip");
       if (!flip) return;
       revealed = true;
+      peeked = true;   /* подсмотрел перевод — очки минимальные */
+      paintPts();
       flip.classList.toggle("flipped");
     }
 
@@ -1013,7 +1056,10 @@
       var first = !firstAnswered[it.key];
       firstAnswered[it.key] = true;
       if (first && it.isNew) { newSeen++; if (ok) newKnown++; }
-      vocabGrade(it, ok, first);
+      var pts = ok ? ptsNow() : 0;
+      clearInterval(ptsTimer);
+      if (first) { sessionPts += pts; flyPts(pts); }
+      vocabGrade(it, ok, first, pts);
       syncTabs();
       if (ok) {
         doneCnt++;
@@ -1036,13 +1082,15 @@
 
     function finish() {
       document.onkeydown = null;
+      clearInterval(ptsTimer);
       sessionClear();
       var moved = vocabTuneLevel(newSeen, newKnown);
       var sp = vocabSplit();
       app.innerHTML = "";
       var ws = vocabWordStats();
       var c = el("div", "card hero");
-      c.innerHTML = '<div class="kicker">Сессия закрыта</div><h1>' + total + " карточек пройдено</h1>" +
+      c.innerHTML = '<div class="kicker">Сессия закрыта</div><h1>' + sessionPts + " очков</h1>" +
+        '<div class="muted">Карточек пройдено: ' + total + ". Всего очков: " + (S.vocabScore || 0) + ".</div>" +
         '<div class="muted">Ступень частотности: ' + S.vocabLevel + " из " + V_LEVELS +
         (moved === "up" ? " — новые слова шли легко, дальше беру менее частотные."
           : moved === "down" ? " — новые слова буксовали, возвращаюсь к более ходовым." : "") +

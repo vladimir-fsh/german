@@ -384,7 +384,7 @@ details.theory .gram { padding: 0 14px 14px; }
 /* ---------- карточки слов ---------- */
 /* Экран карточек без обёрток: одна большая карточка по центру экрана. */
 .vscreen { display: flex; flex-direction: column; margin: 10px 0 0; overflow: hidden; }
-.vhost { display: flex; flex-direction: column; margin: auto 0; }   /* карточка по центру */
+.vhost { position: relative; display: flex; flex-direction: column; margin: auto 0; }   /* карточка по центру */
 
 .vstage { perspective: 1100px; margin: 10px 0 6px; }
 
@@ -436,16 +436,27 @@ details.theory .gram { padding: 0 14px 14px; }
   position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 20px;
   pointer-events: none; opacity: 0; display: grid; place-items: center;
 }
-/* решение читается как штамп, а не как надпись */
-.vtint b {
-  font-size: 22px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
-  border: 3px solid currentColor; border-radius: 12px; padding: 6px 14px;
-  transform: rotate(-13deg); transition: transform .08s linear;
-}
 .vtint.good { background: var(--ok-soft); box-shadow: inset 0 0 0 2px var(--ok); }
-.vtint.good b { color: var(--ok); }
 .vtint.bad { background: var(--bad-soft); box-shadow: inset 0 0 0 2px var(--bad); }
-.vtint.bad b { color: var(--bad); }
+
+/* очки за скорость: сколько стоит ответ прямо сейчас */
+.pts {
+  flex: none; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--text-dim); min-width: 28px; text-align: right;
+}
+.pts.hot { color: var(--ok); }
+.pts.warm { color: var(--accent); }
+
+.ptsfly {
+  position: absolute; left: 50%; top: 40%; transform: translateX(-50%);
+  font-size: 30px; font-weight: 800; color: var(--ok); pointer-events: none;
+  animation: ptsfly .7s ease-out forwards;
+}
+@keyframes ptsfly {
+  0%   { opacity: 0; transform: translate(-50%, 10px) scale(.8); }
+  25%  { opacity: 1; transform: translate(-50%, -6px) scale(1.05); }
+  100% { opacity: 0; transform: translate(-50%, -54px) scale(1); }
+}
 
 .vlegend { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); padding: 0 4px; }
 .vlegend .l { color: var(--bad); }

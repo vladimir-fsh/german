@@ -38,7 +38,7 @@ window.Store = (function () {
   function blank() {
     return {
       v: SCHEMA, done: {}, srs: {}, vocab: {},
-      vocabLevel: 1, streak: 0, lastDay: null,
+      vocabLevel: 1, vocabScore: 0, streak: 0, lastDay: null,
       totalCorrect: 0, totalTried: 0, resetAt: 0
     };
   }
@@ -105,6 +105,8 @@ window.Store = (function () {
         }
         v.t = op.t;
         s.vocab[op.key] = v;
+        /* очки за скорость ответа; старые операции без поля просто ничего не дают */
+        s.vocabScore = (s.vocabScore || 0) + (op.pts || 0);
         return s;
 
       case "vocabLevel":
