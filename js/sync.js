@@ -38,7 +38,7 @@ window.Store = (function () {
   function blank() {
     return {
       v: SCHEMA, done: {}, srs: {}, vocab: {},
-      vocabLevel: 1, vocabScore: 0, calibrated: false, streak: 0, lastDay: null,
+      vocabLevel: 1, calibrated: false, streak: 0, lastDay: null,
       totalCorrect: 0, totalTried: 0, resetAt: 0
     };
   }
@@ -97,12 +97,13 @@ window.Store = (function () {
         v = s.vocab[op.key] || { box: 0, due: 0, learned: false, lapses: 0 };
         if (op.ok) {
           if (v.box >= LADDER.length) { v.learned = true; v.due = 0; }
-          else if (v.box === 0 && (op.pts || 0) >= 10) {
-            /* новое слово названо меньше чем за две секунды — оно уже знакомо,
-               незачем гонять его по всей лестнице: сразу неделя */
-            v.box = 3;
-            v.due = op.t + LADDER[2] * 864e5;
-          } else { v.box++; v.due = op.t + LADDER[v.box - 1] * 864e5; }
+          else {
+            /* ответил быстро — перескакиваем через ступеньку: знакомое слово
+               незачем гонять по всей лестнице. op.pts — от старых операций. */
+            var jump = (op.fast || (op.pts || 0) >= 10) ? 2 : 1;
+            v.box = Math.min(LADDER.length, v.box + jump);
+            v.due = op.t + LADDER[v.box - 1] * 864e5;
+          }
         } else {
           v.box = Math.max(0, v.box - 1);
           v.lapses = (v.lapses || 0) + 1;
@@ -110,8 +111,6 @@ window.Store = (function () {
         }
         v.t = op.t;
         s.vocab[op.key] = v;
-        /* очки за скорость ответа; старые операции без поля просто ничего не дают */
-        s.vocabScore = (s.vocabScore || 0) + (op.pts || 0);
         return s;
 
       case "vocabLevel":
