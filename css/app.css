@@ -440,6 +440,19 @@ details.theory .gram { padding: 0 14px 14px; }
 }
 .vtint.good { background: var(--ok-soft); box-shadow: inset 0 0 0 2px var(--ok); }
 .vtint.bad { background: var(--bad-soft); box-shadow: inset 0 0 0 2px var(--bad); }
+.vtint.known { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+
+/* таймер ставки: волосяная линия на карточке, утекает за четыре секунды */
+.vtimer {
+  position: absolute; top: 14px; left: 22px; right: 22px; height: 3px;
+  border-radius: 999px; background: var(--surface-2); overflow: hidden;
+  pointer-events: none; transition: opacity .2s ease;
+}
+.vtimer i { display: block; height: 100%; transform-origin: left center; border-radius: 999px; background: var(--text-dim); }
+.vtimer.hot i { background: var(--ok); }
+.vtimer.warm i { background: var(--accent); }
+.vtimer.cold { opacity: 0; }
+.vtimer.off { opacity: 0; }
 
 /* очки за скорость: сколько стоит ответ прямо сейчас */
 .pts {
@@ -460,7 +473,8 @@ details.theory .gram { padding: 0 14px 14px; }
   100% { opacity: 0; transform: translate(-50%, -54px) scale(1); }
 }
 
-.vlegend { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); padding: 0 4px; }
+.vlegend { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-dim); padding: 0 4px; }
+.vlegend .u { color: var(--accent); }
 .vlegend .l { color: var(--bad); }
 .vlegend .r { color: var(--ok); }
 

@@ -38,7 +38,7 @@ window.Store = (function () {
   function blank() {
     return {
       v: SCHEMA, done: {}, srs: {}, vocab: {},
-      vocabLevel: 1, vocabScore: 0, streak: 0, lastDay: null,
+      vocabLevel: 1, vocabScore: 0, calibrated: false, streak: 0, lastDay: null,
       totalCorrect: 0, totalTried: 0, resetAt: 0
     };
   }
@@ -97,7 +97,12 @@ window.Store = (function () {
         v = s.vocab[op.key] || { box: 0, due: 0, learned: false, lapses: 0 };
         if (op.ok) {
           if (v.box >= LADDER.length) { v.learned = true; v.due = 0; }
-          else { v.box++; v.due = op.t + LADDER[v.box - 1] * 864e5; }
+          else if (v.box === 0 && (op.pts || 0) >= 10) {
+            /* новое слово названо меньше чем за две секунды — оно уже знакомо,
+               незачем гонять его по всей лестнице: сразу неделя */
+            v.box = 3;
+            v.due = op.t + LADDER[2] * 864e5;
+          } else { v.box++; v.due = op.t + LADDER[v.box - 1] * 864e5; }
         } else {
           v.box = Math.max(0, v.box - 1);
           v.lapses = (v.lapses || 0) + 1;
@@ -111,6 +116,24 @@ window.Store = (function () {
 
       case "vocabLevel":
         s.vocabLevel = op.level;
+        return s;
+
+      /* «уже знаю»: слово закрывается целиком, оба направления */
+      case "vocabKnown":
+        ["|de", "|ru"].forEach(function (dir) {
+          var e = s.vocab[op.key + dir] || { box: 0, due: 0, learned: false, lapses: 0 };
+          e.learned = true;
+          e.due = 0;
+          e.box = LADDER.length;
+          e.t = op.t;
+          s.vocab[op.key + dir] = e;
+        });
+        return s;
+
+      /* калибровка на входе: сразу ставит ступень частотности */
+      case "calibrate":
+        s.vocabLevel = op.level;
+        s.calibrated = true;
         return s;
     }
     return s;

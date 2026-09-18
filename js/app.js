@@ -58,6 +58,7 @@
     if (h === "/vocab") return viewVocab();
     if (h === "/vocab/new") return viewVocab("new");
     if (h === "/vocab/repeat") return viewVocab("repeat");
+    if (h === "/vocab/calibrate") return viewVocab("calib");
     if (h === "/more") return viewMore();
     if ((m = h.match(/^\/l(\d+)$/))) return viewLesson(+m[1]);
     if ((m = h.match(/^\/l(\d+)\/g(\d+)$/))) return viewGrammar(+m[1], +m[2]);
@@ -115,8 +116,20 @@
     vcard.innerHTML = "<h2>Словарь</h2>" +
       '<div class="muted">Слово засчитывается выученным, когда прошло всю лестницу интервалов ' +
       "в обе стороны: и с немецкого, и на немецкий.</div>" + vocabBar(ws);
+    if (!S.calibrated) {
+      vcard.appendChild(el("div", "note",
+        "Слова пока берутся с самой ходовой ступени, поэтому попадается лёгкое. " +
+        "Калибровка проходит по четыре слова с каждой ступени: знакомое закрывается сразу, " +
+        "а стартовый уровень выставляется по результату."));
+    }
+
     var vrow = el("div", "btnrow");
-    var vb = el("button", "btn" + (words ? "" : " sec"), words ? "Учить слова (" + words + ")" : "Взять 10 новых слов");
+    if (!S.calibrated) {
+      var vbc = el("button", "btn", "Подобрать уровень");
+      vbc.onclick = function () { go("/vocab/calibrate"); };
+      vrow.appendChild(vbc);
+    }
+    var vb = el("button", "btn" + (words && S.calibrated ? "" : " sec"), words ? "Учить слова (" + words + ")" : "Взять 10 новых слов");
     vb.onclick = function () { go(words ? "/vocab" : "/vocab/new"); };
     vrow.appendChild(vb);
     var rep0 = vocabRepeatPending();
@@ -500,6 +513,11 @@
     rows.appendChild(el("div", "row static",
       'Очки за слова<span class="val">' + (S.vocabScore || 0) + "</span>"));
 
+    var calRow = el("button", "row", 'Подобрать уровень заново<span class="val">' +
+      (S.calibrated ? "ступень " + (S.vocabLevel || 1) : "не проходилась") + "</span>");
+    calRow.onclick = function () { go("/vocab/calibrate"); };
+    rows.appendChild(calRow);
+
     var resetRow = el("button", "row danger", "Сбросить весь прогресс");
     resetRow.onclick = function () {
       if (!confirm("Сбросить весь прогресс? Действие необратимо.")) return;
@@ -641,8 +659,28 @@
 
   function vocabRepeatPending() { return vocabRepeatPlan().length; }
 
+  /* Калибровка: по четыре незнакомых слова с каждой ступени частотности.
+     Ответы не влияют на расписание — знакомое сразу закрывается, незнакомое
+     остаётся нетронутым. По долям знакомого выставляется стартовая ступень. */
+  var CALIB_PER_LEVEL = 4;
+
+  function vocabCalibPlan() {
+    var out = [];
+    for (var lvl = 1; lvl <= V_LEVELS; lvl++) {
+      var bucket = [];
+      (window.VOCAB || []).forEach(function (w) {
+        if ((w.f || 1) !== lvl) return;
+        if (S.vocab["V:" + w.de + "|de"]) return;
+        bucket.push({ n: null, w: w, f: w.f, dir: "de", key: "V:" + w.de + "|de" });
+      });
+      out = out.concat(E.shuffle(bucket).slice(0, CALIB_PER_LEVEL));
+    }
+    return out;
+  }
+
   function vocabSession(mode) {
     if (mode === "repeat") return E.shuffle(vocabRepeatPlan());
+    if (mode === "calib") return vocabCalibPlan();   /* порядок от простого к редкому */
     return E.shuffle(vocabPlan(mode));
   }
 
@@ -733,7 +771,9 @@
     var byKey = {};
     vocabCards().forEach(function (c) { byKey[c.key] = c; });
 
-    var saved = mode === "new" ? null : sessionLoad();
+    var calib = mode === "calib";
+    var calibStat = {};   /* ступень → {показано, знакомо} */
+    var saved = (mode === "new" || calib) ? null : sessionLoad();
     if (saved && (saved.mode || "") !== (mode || "")) saved = null;
     var list, startI = 0, startDone = 0, startFirst = {}, startNewSeen = 0, startNewKnown = 0;
 
@@ -762,7 +802,9 @@
 
       var sp = vocabSplit();
       var ws0 = vocabWordStats();
-      head.appendChild(el("div", "muted", mode === "repeat"
+      head.appendChild(el("div", "muted", calib
+        ? "Все слова словаря уже в работе — калибровать нечего."
+        : mode === "repeat"
         ? "Повторять сейчас нечего: сроки ещё не подошли, свежих промахов нет."
         : sp.fresh.length
           ? "Всё, что пора повторить, пройдено. Можно взять новые слова."
@@ -838,19 +880,34 @@
     }
 
     function paintPts() {
-      var b = document.getElementById("ptsnow");
-      if (!b) return;
       var p = ptsNow();
-      b.textContent = "+" + p;
-      b.className = "pts" + (p === 10 ? " hot" : p === 8 ? " warm" : "");
+      var b = document.getElementById("ptsnow");
+      if (b) {
+        b.textContent = "+" + p;
+        b.className = "pts" + (p === 10 ? " hot" : p === 8 ? " warm" : "");
+      }
+      var line = host.querySelector(".vtimer");
+      if (line) line.className = "vtimer" + (p === 10 ? " hot" : p === 8 ? " warm" : " cold");
+      if (p === PTS_SLOW) clearInterval(ptsTimer);   /* дальше ничего не меняется */
     }
 
+    /* полоса утекает ровно за окно высшей ставки плюс среднее — 4 секунды.
+       Через переход, а не по кадрам: в фоновой вкладке кадры не выдаются. */
     function startTimer() {
       shownAt = Date.now();
       peeked = false;
       clearInterval(ptsTimer);
+      var line = host.querySelector(".vtimer");
+      if (line) {
+        var fill = line.firstChild;
+        fill.style.transition = "none";
+        fill.style.transform = "scaleX(1)";
+        void fill.offsetWidth;
+        fill.style.transition = "transform " + PTS[PTS.length - 1].ms + "ms linear";
+        fill.style.transform = "scaleX(0)";
+      }
       paintPts();
-      ptsTimer = setInterval(paintPts, 250);
+      ptsTimer = setInterval(paintPts, 200);
     }
 
     function flyPts(n) {
@@ -889,7 +946,6 @@
       pl.querySelector("i").style.width = Math.round((doneCnt / total) * 100) + "%";
 
       host.innerHTML = "";
-      startTimer();
       var stage = el("div", "vstage");
       var deck = el("div", "vdeck");
 
@@ -907,16 +963,22 @@
       flip.appendChild(faceFront(it));
       flip.appendChild(faceBack(it));
       var tint = el("div", "vtint");
-      drag.appendChild(flip); drag.appendChild(tint);
+      var timer = el("div", "vtimer", "<i></i>");
+      drag.appendChild(flip); drag.appendChild(tint); drag.appendChild(timer);
       slot.appendChild(drag);
       deck.appendChild(slot);
 
       stage.appendChild(deck);
       host.appendChild(stage);
       host.appendChild(el("div", "vlegend",
-        '<span class="l">← не помню</span><span class="r">знаю →</span>'));
+        '<span class="l">← не помню</span>' +
+        '<span class="u">↑ уже знаю</span>' +
+        '<span class="r">знаю →</span>'));
 
       bindCard(drag, flip, tint);
+
+      if (!calib) startTimer();
+      else { clearInterval(ptsTimer); var pn = document.getElementById("ptsnow"); if (pn) pn.textContent = ""; }
 
       /* Верхняя карточка въезжает из положения нижней — будто вышла из колоды.
          Через принудительный пересчёт, а не requestAnimationFrame: в фоновой
@@ -937,9 +999,10 @@
        За порогом ход сжимается (резина), при отпускании либо вылет со
        скоростью броска, либо возврат пружиной с лёгким перелётом. */
     function bindCard(drag, flip, tint) {
-      var x0 = 0, y0 = 0, dx = 0, on = false, axis = "", moved = false;
+      var x0 = 0, y0 = 0, dx = 0, on = false, axis = "", axisLocked = false, moved = false;
       var lastX = 0, lastT = 0, vx = 0, dyLast = 0, anchor = 1;
       var W = Math.max(46, Math.min(90, window.innerWidth * 0.15));
+      var UP = Math.max(70, Math.min(140, window.innerHeight * 0.12));   /* порог «уже знаю» */
       var LIMIT = W * 2.2;   /* дальше хода почти нет, карточка упирается */
 
       function damp(v) {
@@ -955,7 +1018,7 @@
 
       drag.addEventListener("pointerdown", function (e) {
         if (busy) return;
-        on = true; axis = ""; moved = false; dx = 0; vx = 0;
+        on = true; axis = ""; axisLocked = false; moved = false; dx = 0; vx = 0;
         x0 = e.clientX; y0 = e.clientY;
         lastX = e.clientX; lastT = Date.now();
         /* точка захвата: выше середины — поворот в сторону движения, ниже — против */
@@ -971,13 +1034,24 @@
         dx = e.clientX - x0;
         var dy = e.clientY - y0;
         dyLast = dy;
-        if (!axis) {
+        /* Ось выбирается по соотношению сторон и не фиксируется, пока жест
+           короткий: палец идёт по дуге, и первые пиксели часто вертикальные.
+           Только после сорока пикселей направление считается решённым. */
+        if (!axisLocked) {
           if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-          /* Свайп пальцем идёт по дуге, вертикальная составляющая почти всегда
-             есть. Жест считается вертикальным, только если он явно вертикальный:
-             вдвое длиннее по вертикали и уже заметной длины. */
-          axis = (Math.abs(dy) > Math.abs(dx) * 2 && Math.abs(dy) > 36) ? "y" : "x";
-          if (axis === "y") { on = false; drag.classList.remove("held"); return; }
+          axis = Math.abs(dy) > Math.abs(dx) * 1.4 ? "y" : "x";
+          if (Math.max(Math.abs(dx), Math.abs(dy)) >= 40) axisLocked = true;
+        }
+
+        /* вверх — «уже знаю»: слово закрывается целиком, без лестницы интервалов */
+        if (axis === "y") {
+          moved = true;
+          var up = Math.min(0, dy);
+          var pu = Math.min(1, -up / UP);
+          paint(dx * 0.2, up, 0, 1.03);
+          tint.className = "vtint known";
+          tint.style.opacity = Math.min(0.8, pu);
+          return;
         }
         moved = true;
         var now = Date.now(), dt = now - lastT;
@@ -1010,6 +1084,22 @@
         if (!on) return;
         on = false;
         drag.classList.remove("held");
+
+        if (axis === "y") {
+          if (dyLast <= -UP) {
+            busy = true;
+            drag.style.transition = "transform .26s cubic-bezier(.3,.1,.5,1), opacity .26s linear";
+            drag.style.transform = "translate(0," + -(window.innerHeight + 200) + "px) scale(.9)";
+            drag.style.opacity = "0";
+            setTimeout(function () { busy = false; answerKnown(); }, 200);
+            return;
+          }
+          drag.style.transition = "transform .42s cubic-bezier(.18,.89,.32,1.28)";
+          drag.style.transform = "";
+          tint.style.opacity = 0;
+          return;
+        }
+
         var flick = Math.abs(vx) > 0.4 && Math.abs(dx) > 22 && (vx > 0) === (dx > 0);
 
         if (moved && (Math.abs(dx) >= W || flick)) {
@@ -1058,13 +1148,51 @@
       if (!flip) return;
       revealed = true;
       peeked = true;   /* подсмотрел перевод — очки минимальные */
+      clearInterval(ptsTimer);
+      var line = host.querySelector(".vtimer");
+      if (line) line.className = "vtimer off";
       paintPts();
       flip.classList.toggle("flipped");
+    }
+
+    /* «уже знаю»: слово закрывается целиком, обоими направлениями */
+    function answerKnown() {
+      if (busy) return;
+      var it = list[i];
+      var base = it.key.slice(0, -3);
+      clearInterval(ptsTimer);
+      if (!firstAnswered[it.key] && it.isNew) { newSeen++; newKnown++; }
+      firstAnswered[it.key] = true;
+      if (calib) bumpCalib(it, true);
+      S = Store.mutate("vocabKnown", { key: base });
+      syncTabs();
+      doneCnt++;
+      i++;
+      stash();
+      step();
+    }
+
+    function bumpCalib(it, known) {
+      var lvl = it.f || 1;
+      var st = calibStat[lvl] || (calibStat[lvl] = { shown: 0, known: 0 });
+      st.shown++;
+      if (known) st.known++;
     }
 
     function answer(ok) {
       if (busy) return;
       var it = list[i];
+      if (calib) {
+        /* калибровка ничего не планирует: знакомое закрываем, незнакомое не трогаем */
+        clearInterval(ptsTimer);
+        bumpCalib(it, ok);
+        if (ok) S = Store.mutate("vocabKnown", { key: it.key.slice(0, -3) });
+        doneCnt++;
+        i++;
+        stash();
+        step();
+        return;
+      }
       var first = !firstAnswered[it.key];
       firstAnswered[it.key] = true;
       if (first && it.isNew) { newSeen++; if (ok) newKnown++; }
@@ -1096,6 +1224,9 @@
       document.onkeydown = null;
       clearInterval(ptsTimer);
       sessionClear();
+
+      if (calib) return finishCalib();
+
       var moved = vocabTuneLevel(newSeen, newKnown);
       var sp = vocabSplit();
       app.innerHTML = "";
@@ -1129,6 +1260,42 @@
 
     stash();
     step();
+
+    /* Итог калибровки: ступень — самая высокая, где знакомо хотя бы половину,
+       плюс одна сверху, чтобы было куда расти. */
+    function finishCalib() {
+      var lvl = 1, known = 0, shown = 0;
+      for (var k = 1; k <= V_LEVELS; k++) {
+        var st = calibStat[k];
+        if (!st || !st.shown) continue;
+        known += st.known; shown += st.shown;
+        if (st.known / st.shown >= 0.5) lvl = k;
+      }
+      lvl = Math.min(V_LEVELS, lvl + (known && known === shown ? 2 : 1));
+      S = Store.mutate("calibrate", { level: lvl });
+      syncTabs();
+
+      app.innerHTML = "";
+      var c = el("div", "card hero");
+      var rows = "";
+      for (var m = 1; m <= V_LEVELS; m++) {
+        var s2 = calibStat[m];
+        if (!s2) continue;
+        rows += "<div>Ступень " + m + ": знакомо " + s2.known + " из " + s2.shown + "</div>";
+      }
+      c.innerHTML = '<div class="kicker">Калибровка</div><h1>Ступень ' + lvl + " из " + V_LEVELS + "</h1>" +
+        '<div class="muted">Знакомые слова закрыты сразу и в очередь не попадут — ' +
+        "их " + known + " из " + shown + ".<br>Новые слова теперь берутся с этой ступени.</div>" +
+        '<div class="muted" style="margin-top:10px">' + rows + "</div>";
+      var r = el("div", "btnrow");
+      var b = el("button", "btn", "Учить слова");
+      b.onclick = function () { go("/vocab"); };
+      var b2 = el("button", "btn sec", "На главную");
+      b2.onclick = function () { go("/"); };
+      r.appendChild(b); r.appendChild(b2);
+      c.appendChild(r);
+      app.appendChild(c);
+    }
   }
 
   /* ---------- синхронизация ----------
