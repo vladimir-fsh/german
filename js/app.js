@@ -862,17 +862,21 @@
 
     function faceFront(it) {
       var f = el("div", "vface vfront");
-      f.appendChild(el("div", "vword", esc(it.dir === "de" ? it.w.de : it.w.ru)));
+      var inner = el("div", "vinner");
+      inner.appendChild(el("div", "vword", esc(it.dir === "de" ? it.w.de : it.w.ru)));
+      f.appendChild(inner);
       return f;
     }
 
     function faceBack(it) {
       var de2ru = it.dir === "de";
       var b = el("div", "vface vback");
-      b.innerHTML = '<div class="vword vsmall">' + esc(de2ru ? it.w.ru : it.w.de) + "</div>" +
+      var inner = el("div", "vinner");
+      inner.innerHTML = '<div class="vword vsmall">' + esc(de2ru ? it.w.ru : it.w.de) + "</div>" +
         (it.w.ex ? '<div class="vex">' + esc(it.w.ex) +
           (it.w.exru ? "<i>" + esc(it.w.exru) + "</i>" : "") + "</div>" : "") +
         (it.w.reg ? '<div class="vreg">' + esc(it.w.reg) + "</div>" : "");
+      b.appendChild(inner);
       return b;
     }
 
@@ -982,8 +986,13 @@
         var ox = damp(dx), p = Math.min(1, Math.abs(dx) / W);
         paint(ox, dy * 0.35, (ox / W) * 7 * anchor, 1.03);
 
-        /* содержимое отстаёт от карточки — появляется глубина */
-        flip.style.transform = "translateX(" + (-ox * 0.05).toFixed(1) + "px)";
+        /* содержимое отстаёт от карточки — появляется глубина.
+           Двигаем внутреннюю обёртку: на самом .vflip висит поворот,
+           и запись в его transform распрямила бы перевёрнутую карточку. */
+        var inners = drag.querySelectorAll(".vinner");
+        for (var q = 0; q < inners.length; q++) {
+          inners[q].style.transform = "translateX(" + (-ox * 0.05).toFixed(1) + "px)";
+        }
 
         tint.className = "vtint " + (dx > 0 ? "good" : "bad");
         tint.style.opacity = Math.min(0.8, p);
@@ -1026,8 +1035,11 @@
         /* не дотянул — возврат пружиной с небольшим перелётом */
         drag.style.transition = "transform .42s cubic-bezier(.18,.89,.32,1.28)";
         drag.style.transform = "";
-        flip.style.transition = "transform .42s cubic-bezier(.18,.89,.32,1.28)";
-        flip.style.transform = "";
+        var back = drag.querySelectorAll(".vinner");
+        for (var z = 0; z < back.length; z++) {
+          back[z].style.transition = "transform .42s cubic-bezier(.18,.89,.32,1.28)";
+          back[z].style.transform = "";
+        }
         tint.style.opacity = 0;
         if (nextSlot) {
           nextSlot.style.transition = "transform .3s ease, opacity .3s ease";

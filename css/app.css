@@ -413,9 +413,11 @@ details.theory .gram { padding: 0 14px 14px; }
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
   border: 0; background: var(--surface); border-radius: 20px; box-shadow: var(--shadow);
   padding: 30px 22px; text-align: center;
-  display: flex; flex-direction: column; justify-content: center; gap: 12px;
+  display: flex; flex-direction: column; justify-content: center;
   transition: box-shadow .2s ease;
 }
+/* содержимое лица: его и двигает параллакс, поворот живёт на .vflip */
+.vinner { display: flex; flex-direction: column; justify-content: center; gap: 12px; }
 .vback { transform: rotateY(180deg); }
 
 /* поднятая карточка отбрасывает тень сильнее — будто её оторвали от стола */
@@ -423,8 +425,8 @@ details.theory .gram { padding: 0 14px 14px; }
 
 .vword { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25; }
 .vword.vsmall { font-size: 24px; color: var(--accent); }
-.vex { font-size: 15px; line-height: 1.55; }
-.vex i { display: block; font-style: normal; font-size: 13.5px; color: var(--text-dim); margin-top: 2px; }
+.vex { font-size: 16px; line-height: 1.55; }
+.vex i { display: block; font-style: normal; font-size: 14.5px; color: var(--text-dim); margin-top: 3px; }
 .vmeta { display: block; margin-top: 10px; font-size: 12px; color: var(--text-dim); }
 /* пометка регистра: слово не из бытовой речи */
 .vreg {
