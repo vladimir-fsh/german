@@ -83,6 +83,12 @@ main.wrap {
 main.wrap.tight { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
 button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
+/* Долгое нажатие на карточке не должно выделять слово и звать меню iOS.
+   Теория и примеры остаются выделяемыми — оттуда удобно копировать немецкий. */
+.vdeck, .vlegend, .tabbar, .progline, .btn, .opt, .chip, .pair, .day, .lesson, .row, .ver {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+
 /* версия сборки: тихая подпись над панелью вкладок */
 .ver {
   position: fixed; right: 10px; z-index: 29; pointer-events: none;
@@ -388,13 +394,8 @@ details.theory .gram { padding: 0 14px 14px; }
 
 .vstage { perspective: 1100px; margin: 10px 0 6px; }
 
-/* колода: под верхней карточкой видна следующая */
 .vdeck { position: relative; height: 320px; }
 .vslot { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
-.vnext {
-  transform: scale(.94) translateY(12px); opacity: .72; pointer-events: none;
-  transition: transform .24s ease, opacity .24s ease;
-}
 
 /* на экране карточек страница не прокручивается, поэтому жест целиком наш */
 .vdrag {

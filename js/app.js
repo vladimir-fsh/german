@@ -856,8 +856,6 @@
 
     var i = startI, revealed = false, busy = false;
 
-    var nextSlot = null;   /* карточка, лежащая под верхней */
-
     /* Быстрый ответ — знак того, что слово уже знакомо: оно перескакивает
        ступеньку лестницы интервалов. Подсмотрел перевод — ответ быстрым
        не считается, это уже не «знал», а «узнал». */
@@ -898,14 +896,6 @@
       var stage = el("div", "vstage");
       var deck = el("div", "vdeck");
 
-      /* следующая карточка видна из-под текущей: колода, а не мигающий слайд */
-      nextSlot = null;
-      if (list[i + 1]) {
-        nextSlot = el("div", "vslot vnext");
-        nextSlot.appendChild(faceFront(list[i + 1]));
-        deck.appendChild(nextSlot);
-      }
-
       var slot = el("div", "vslot vtop");
       var drag = el("div", "vdrag");
       var flip = el("div", "vflip");
@@ -918,26 +908,16 @@
 
       stage.appendChild(deck);
       host.appendChild(stage);
-      host.appendChild(el("div", "vlegend",
-        '<span class="l">← не помню</span>' +
-        '<span class="u">↑ уже знаю</span>' +
-        '<span class="r">знаю →</span>'));
+      host.appendChild(el("div", "vlegend", calib
+        ? '<span class="l">← не знаю</span><span class="r">знаю →</span>'
+        : '<span class="l">← не помню</span>' +
+          '<span class="u">↑ уже знаю</span>' +
+          '<span class="r">знаю →</span>'));
 
       bindCard(drag, flip, tint);
 
       shownAt = Date.now();
       peeked = false;
-
-      /* Верхняя карточка въезжает из положения нижней — будто вышла из колоды.
-         Через принудительный пересчёт, а не requestAnimationFrame: в фоновой
-         вкладке кадры не выдаются, и карточка застряла бы полупрозрачной. */
-      drag.style.transition = "none";
-      drag.style.transform = "scale(.94) translateY(12px)";
-      drag.style.opacity = "0.6";
-      void drag.offsetWidth;
-      drag.style.transition = "transform .2s cubic-bezier(.2,.8,.3,1), opacity .2s linear";
-      drag.style.transform = "";
-      drag.style.opacity = "1";
     }
 
     /* Жесты и физика.
@@ -991,8 +971,10 @@
           if (Math.max(Math.abs(dx), Math.abs(dy)) >= 40) axisLocked = true;
         }
 
-        /* вверх — «уже знаю»: слово закрывается целиком, без лестницы интервалов */
+        /* вверх — «уже знаю»: слово закрывается целиком, без лестницы интервалов.
+           В калибровке жеста нет: там «знаю» и так закрывает слово. */
         if (axis === "y") {
+          if (calib) return;
           moved = true;
           var up = Math.min(0, dy);
           var pu = Math.min(1, -up / UP);
@@ -1019,13 +1001,6 @@
         tint.className = "vtint " + (dx > 0 ? "good" : "bad");
         tint.style.opacity = Math.min(0.8, p);
 
-        /* нижняя карточка подтягивается к переднему плану */
-        if (nextSlot) {
-          nextSlot.style.transition = "none";
-          nextSlot.style.transform = "scale(" + (0.94 + 0.06 * p).toFixed(3) +
-            ") translateY(" + (12 - 12 * p).toFixed(1) + "px)";
-          nextSlot.style.opacity = (0.72 + 0.28 * p).toFixed(2);
-        }
       });
 
       function release() {
@@ -1034,7 +1009,7 @@
         drag.classList.remove("held");
 
         if (axis === "y") {
-          if (dyLast <= -UP) {
+          if (!calib && dyLast <= -UP) {
             busy = true;
             drag.style.transition = "transform .26s cubic-bezier(.3,.1,.5,1), opacity .26s linear";
             drag.style.transform = "translate(0," + -(window.innerHeight + 200) + "px) scale(.9)";
@@ -1061,11 +1036,6 @@
             "px," + (dyLast * 0.35 - 30).toFixed(1) + "px) rotate(" +
             (know ? 16 : -16) * anchor + "deg)";
           drag.style.opacity = "0";
-          if (nextSlot) {
-            nextSlot.style.transition = "transform " + ms + "ms cubic-bezier(.2,.8,.3,1), opacity " + ms + "ms linear";
-            nextSlot.style.transform = "scale(1) translateY(0)";
-            nextSlot.style.opacity = "1";
-          }
           setTimeout(function () { busy = false; answer(know); }, Math.min(ms, 220));
           return;
         }
@@ -1079,11 +1049,6 @@
           back[z].style.transform = "";
         }
         tint.style.opacity = 0;
-        if (nextSlot) {
-          nextSlot.style.transition = "transform .3s ease, opacity .3s ease";
-          nextSlot.style.transform = "";
-          nextSlot.style.opacity = "";
-        }
         if (!moved) flipCard();
       }
 
