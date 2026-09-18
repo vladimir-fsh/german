@@ -1,2 +1,2 @@
 /* Печатается скриптом tools/stamp.sh при публикации. Руками не править. */
-window.APP_VERSION = "v19 · 2026-09-18 20:09";
+window.APP_VERSION = "v20";
