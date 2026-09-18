@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deutsch A2 → B1</title>
+<!-- «Добавить на экран Домой»: отдельное окно без адресной строки,
+     своя иконка и цвет фона под тему системы. -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Deutsch">
+<meta name="theme-color" content="#f0f4f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131314" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<main class="wrap" id="app"></main>
+
+<nav class="tabbar" id="tabbar">
+  <button class="tab" data-go="/">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h11a1 1 0 0 1 1 1v15H8a2 2 0 0 1-2-2V4Z"/><path d="M9.5 8.5h5M9.5 12h5M9.5 15.5h3"/></svg></span>
+    <span class="lbl">Курс</span>
+  </button>
+  <button class="tab" data-go="/vocab">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="13" height="11" rx="2.5"/><path d="M7.5 8V6.5A1.5 1.5 0 0 1 9 5h10a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 16h-3"/></svg><i class="tbadge" hidden></i></span>
+    <span class="lbl">Слова</span>
+  </button>
+  <button class="tab" data-go="/review">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3M19.5 12a7.5 7.5 0 0 1-12.8 5.3"/><path d="M17.5 3v4h-4M6.5 21v-4h4"/></svg><i class="tbadge" hidden></i></span>
+    <span class="lbl">Ошибки</span>
+  </button>
+  <button class="tab" data-go="/more">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18.5" cy="12" r="1.6"/></svg></span>
+    <span class="lbl">Ещё</span>
+  </button>
+</nav>
+
+<script src="data/lessons.js"></script>
+<script src="data/vocab.js"></script>
+<script src="data/l18.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
