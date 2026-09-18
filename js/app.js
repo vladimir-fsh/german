@@ -57,6 +57,7 @@
     if (h === "/review") return viewReview();
     if (h === "/vocab") return viewVocab();
     if (h === "/vocab/new") return viewVocab("new");
+    if (h === "/vocab/repeat") return viewVocab("repeat");
     if (h === "/more") return viewMore();
     if ((m = h.match(/^\/l(\d+)$/))) return viewLesson(+m[1]);
     if ((m = h.match(/^\/l(\d+)\/g(\d+)$/))) return viewGrammar(+m[1], +m[2]);
@@ -118,6 +119,12 @@
     var vb = el("button", "btn" + (words ? "" : " sec"), words ? "Учить слова (" + words + ")" : "Взять 10 новых слов");
     vb.onclick = function () { go(words ? "/vocab" : "/vocab/new"); };
     vrow.appendChild(vb);
+    var rep0 = vocabRepeatPending();
+    if (rep0) {
+      var vb2 = el("button", "btn sec", "Повторить слова (" + rep0 + ")");
+      vb2.onclick = function () { go("/vocab/repeat"); };
+      vrow.appendChild(vb2);
+    }
     vcard.appendChild(vrow);
     app.appendChild(vcard);
 
@@ -605,7 +612,37 @@
     return due.concat(fresh);
   }
 
-  function vocabSession(mode) { return E.shuffle(vocabPlan(mode)); }
+  /* Повторение: то, чему пришёл срок, плюс свежие промахи прошлых сессий —
+     слово, на котором споткнулся вчера, незачем ждать сутки.
+     Порядок: слабые ящики вперёд, при равных — что свежее, потом что просрочено
+     дольше. Потолок сессии — 20 слов. */
+  var V_REPEAT = 20;
+  var FRESH_MISS = 3 * 864e5;   /* промах считается свежим трое суток */
+
+  function vocabRepeatPlan() {
+    var now = Date.now(), pool = [], taken = {};
+    vocabCards().forEach(function (it) {
+      var v = S.vocab[it.key];
+      if (!v || v.learned) return;
+      var due = (v.due || 0) <= now;
+      var freshMiss = (v.lapses || 0) > 0 && v.box <= 1 && (now - (v.t || 0)) < FRESH_MISS;
+      if (due || freshMiss) pool.push(it);
+    });
+    pool.sort(function (a, b) {
+      var va = S.vocab[a.key], vb = S.vocab[b.key];
+      if (va.box !== vb.box) return va.box - vb.box;             /* слабые вперёд */
+      if ((vb.t || 0) !== (va.t || 0)) return (vb.t || 0) - (va.t || 0);   /* свежие вперёд */
+      return (va.due || 0) - (vb.due || 0);                      /* дольше просрочено — раньше */
+    });
+    return vocabOnePerWord(pool, taken).slice(0, V_REPEAT);
+  }
+
+  function vocabRepeatPending() { return vocabRepeatPlan().length; }
+
+  function vocabSession(mode) {
+    if (mode === "repeat") return E.shuffle(vocabRepeatPlan());
+    return E.shuffle(vocabPlan(mode));
+  }
 
   /* Незакрытая сессия переживает перезагрузку: очередь, позиция, счётчик
      и слова, которые ещё надо прокрутить, лежат на диске.
@@ -695,6 +732,7 @@
     vocabCards().forEach(function (c) { byKey[c.key] = c; });
 
     var saved = mode === "new" ? null : sessionLoad();
+    if (saved && (saved.mode || "") !== (mode || "")) saved = null;
     var list, startI = 0, startDone = 0, startFirst = {}, startNewSeen = 0, startNewKnown = 0;
 
     if (saved) {
@@ -722,9 +760,11 @@
 
       var sp = vocabSplit();
       var ws0 = vocabWordStats();
-      head.appendChild(el("div", "muted", sp.fresh.length
-        ? "Всё, что пора повторить, пройдено. Можно взять новые слова."
-        : "Слова кончились: весь словарь уже в работе."));
+      head.appendChild(el("div", "muted", mode === "repeat"
+        ? "Повторять сейчас нечего: сроки ещё не подошли, свежих промахов нет."
+        : sp.fresh.length
+          ? "Всё, что пора повторить, пройдено. Можно взять новые слова."
+          : "Слова кончились: весь словарь уже в работе."));
       head.insertAdjacentHTML("beforeend", vocabBar(ws0));
       var r0 = el("div", "btnrow");
       if (sp.fresh.length) {
@@ -1009,8 +1049,14 @@
         (sp.due.length ? "<br>Ждут повторения прямо сейчас: " + sp.due.length + "." : "") + "</div>" +
         vocabBar(ws);
       var r = el("div", "btnrow");
+      var repLeft = vocabRepeatPending();
+      if (repLeft) {
+        var br = el("button", "btn", "Повторить слова (" + repLeft + ")");
+        br.onclick = function () { sessionClear(); location.hash = "/vocab/repeat"; route(); };
+        r.appendChild(br);
+      }
       if (sp.fresh.length) {
-        var bn2 = el("button", "btn", "Ещё 10 новых слов");
+        var bn2 = el("button", "btn" + (repLeft ? " sec" : ""), "Ещё 10 новых слов");
         bn2.onclick = function () { sessionClear(); location.hash = "/vocab/new"; route(); };
         r.appendChild(bn2);
       }
