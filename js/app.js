@@ -4,70 +4,19 @@
   var E = window.Engine, el = E.el, esc = E.esc;
   var app = document.getElementById("app");
 
-  /* ---------- состояние ---------- */
-  var KEY = "de-b1-progress-v1";
+  /* ---------- состояние ----------
+     Живёт в js/sync.js: локальный журнал операций плюс свёртка. Здесь только
+     чтение состояния и вызов мутаций — прямых присваиваний в S больше нет. */
+  var Store = window.Store;
+  var S = Store.state();
 
-  /* Прогресс переживает обновление приложения: он лежит в localStorage браузера
-     и в общем документе синхронизации, а публикация меняет только файлы страницы.
-     Если меняется формат — поднимаем SCHEMA и переносим данные, а не начинаем с нуля.
-     Перед каждым переносом откладываем копию исходных данных. */
-  var SCHEMA = 2;
-  /* 1 — один ящик повторения на слово
-     2 — отдельный ящик на каждое направление: "…|de" и "…|ru" */
-
-  var S = load();
-
-  function load() {
-    try { return migrate(JSON.parse(localStorage.getItem(KEY)) || blank()); }
-    catch (e) { return blank(); }
-  }
-
-  function schemaOf(state) {
-    if (state.v != null) return state.v;
-    for (var k in (state.vocab || {})) {
-      if (k.indexOf("|") === -1) return 1;   /* старые ключи без направления */
-    }
-    return state.vocabAt ? SCHEMA : 1;
-  }
-
-  function migrate(state) {
-    if (!state || typeof state !== "object") return blank();
-    var v = schemaOf(state);
-    if (v >= SCHEMA) { state.v = v; return state; }
-
-    try { localStorage.setItem(KEY + "-backup-v" + v, JSON.stringify(state)); } catch (e) {}
-
-    if (v < 2) {
-      /* v1 → v2: прежний общий ящик слова становится ящиком узнавания */
-      var nv = {}, key;
-      for (key in (state.vocab || {})) {
-        nv[key.indexOf("|") === -1 ? key + "|de" : key] = state.vocab[key];
-      }
-      state.vocab = nv;
-      state.vocabAt = Date.now();
-      v = 2;
-    }
-
-    state.v = v;
-    state.migrated = true;   /* снимается сразу после записи на диск */
-    return state;
-  }
-  function blank() {
-    return { v: SCHEMA, done: {}, srs: {}, srsAt: 0, vocab: {}, vocabAt: 0, vocabLevel: 1, vocabLevelAt: 0,
-             streak: 0, lastDay: null, totalCorrect: 0, totalTried: 0, updated: 0, reset: 0 };
-  }
-  if (!S.vocab) { S.vocab = {}; S.vocabAt = S.vocabAt || 0; }
-  if (!S.vocabLevel) { S.vocabLevel = 1; S.vocabLevelAt = S.vocabLevelAt || 0; }
-
-  if (!S.v) { S.v = SCHEMA; }
-  /* переносить формат при каждой загрузке незачем — сохраняем результат сразу */
-  if (S.migrated) { delete S.migrated; localSave(); }
-  function localSave() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-  function save() {
-    S.updated = Date.now();
-    localSave();
-    schedulePush();
-  }
+  Store.onChange(function (next) {
+    S = next;
+    /* перерисовываем только там, где нет незавершённого прохода */
+    var h = location.hash.replace(/^#/, "") || "/";
+    if (h === "/" || /^\/l\d+$/.test(h) || h === "/more") route();
+    syncTabs();
+  });
 
   function dayKey(n, d) { return "L" + n + "D" + d; }
   function isDayDone(n, d) { return !!S.done[dayKey(n, d)]; }
@@ -81,31 +30,12 @@
   function touchStreak() {
     var today = new Date().toISOString().slice(0, 10);
     if (S.lastDay === today) return;
-    var y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-    S.streak = S.lastDay === y ? S.streak + 1 : 1;
-    S.lastDay = today;
-    save();
+    S = Store.mutate("touchDay", { day: today });
   }
 
   /* очередь повторения: id -> {box, due, ex, lesson} */
-  function srsAdd(id, ex, n) {
-    S.srs[id] = { box: 0, due: Date.now(), ex: ex, n: n };
-    S.srsAt = Date.now();
-    save();
-  }
-  function srsHit(id, ok) {
-    var r = S.srs[id];
-    if (!r) return;
-    S.srsAt = Date.now();
-    if (ok) {
-      r.box++;
-      if (r.box >= 3) { delete S.srs[id]; save(); return; }
-      r.due = Date.now() + [0, 864e5, 3 * 864e5][r.box];
-    } else {
-      r.box = 0; r.due = Date.now();
-    }
-    save();
-  }
+  function srsAdd(id, ex, n) { S = Store.mutate("srsAdd", { id: id, ex: ex, n: n }); }
+  function srsHit(id, ok) { if (S.srs[id]) S = Store.mutate("srsHit", { id: id, ok: ok }); }
   function srsDue() {
     var now = Date.now(), out = [];
     for (var k in S.srs) if (S.srs[k].due <= now) out.push({ id: k, r: S.srs[k] });
@@ -380,10 +310,10 @@
       var ex = list[i];
       api = E.render(ex, host, function (ok) {
         answered = true;
-        S.totalTried++; if (ok) { S.totalCorrect++; correct++; }
+        if (ok) correct++;
+        S = Store.mutate("answer", { ok: ok });
         var id = "L" + n + "D" + di + "-" + i;
         if (!ok) srsAdd(id, ex, n);
-        save();
         /* позиция в дне переживает перезагрузку: день засчитывается только
            на последнем задании, терять 14 ответов из 16 нельзя */
         daySave({ n: n, di: di, i: i + 1, correct: correct, at: Date.now() });
@@ -410,9 +340,8 @@
     function done() {
       document.onkeydown = null;
       dayClear();
-      S.done[dayKey(n, di)] = { at: Date.now(), score: correct, of: list.length };
+      S = Store.mutate("dayDone", { n: n, di: di, score: correct, of: list.length });
       touchStreak();
-      save();
       var pctD = Math.round((correct / list.length) * 100);
       app.innerHTML = "";
       var c = el("div", "card hero");
@@ -485,7 +414,7 @@
       var item = due[i];
       api = E.render(item.r.ex, host, function (ok) {
         answered = true;
-        S.totalTried++; if (ok) S.totalCorrect++;
+        S = Store.mutate("answer", { ok: ok });
         srsHit(item.id, ok);
         check.style.display = "none"; next.style.display = ""; syncBar(); next.focus();
       });
@@ -559,7 +488,9 @@
     var resetRow = el("button", "row danger", "Сбросить весь прогресс");
     resetRow.onclick = function () {
       if (!confirm("Сбросить весь прогресс? Действие необратимо.")) return;
-      S = blank(); S.reset = Date.now(); sessionClear(); dayClear(); save(); viewMore(); syncTabs();
+      sessionClear(); dayClear();
+      S = Store.mutate("reset", {});
+      viewMore(); syncTabs();
     };
     rows.appendChild(resetRow);
 
@@ -577,7 +508,7 @@
      совсем. «Не знаю» с первого раза опускает на ступень вниз, и дальнейшие
      ответы в этой же сессии на интервал уже не влияют — слово просто
      крутится в сессии, пока не вспомнится. */
-  var VLADDER = [1, 3, 7, 14, 30];
+  var VLADDER = Store.LADDER;
   var V_SESSION = 10;   /* потолок всей сессии */
   var V_NEW = 10;       /* столько новых даёт добор по кнопке */
 
@@ -707,7 +638,7 @@
     var lvl = S.vocabLevel || 1, share = known / seen, moved = null;
     if (share >= 0.7 && lvl < V_LEVELS) { lvl++; moved = "up"; }
     else if (share <= 0.3 && lvl > 1) { lvl--; moved = "down"; }
-    if (moved) { S.vocabLevel = lvl; S.vocabLevelAt = Date.now(); save(); }
+    if (moved) S = Store.mutate("vocabLevel", { level: lvl });
     return moved;
   }
 
@@ -715,22 +646,7 @@
 
   /* firstTry === false — ответ-повтор внутри сессии, расписание не трогаем */
   function vocabGrade(it, ok, firstTry) {
-    var now = Date.now();
-    var v = S.vocab[it.key] || { box: 0, due: 0, learned: false, lapses: 0 };
-    if (firstTry) {
-      if (ok) {
-        if (v.box >= VLADDER.length) { v.learned = true; v.due = 0; }
-        else { v.box++; v.due = now + VLADDER[v.box - 1] * 864e5; }
-      } else {
-        v.box = Math.max(0, v.box - 1);
-        v.lapses = (v.lapses || 0) + 1;
-        v.due = now + VLADDER[v.box === 0 ? 0 : v.box - 1] * 864e5;
-      }
-      v.t = now;
-      S.vocab[it.key] = v;
-      S.vocabAt = now;
-      save();
-    }
+    if (firstTry) S = Store.mutate("vocabGrade", { key: it.key, ok: ok });
   }
 
   /* слово выучено, только когда оба направления прошли всю лестницу интервалов */
@@ -1010,120 +926,17 @@
     step();
   }
 
-  /* ---------- синхронизация между устройствами ----------
-     Работает только внутри артефакта claude.ai: там доступна capability db.
-     Локально (python3 -m http.server) claude.use нет — приложение живёт
-     на одном localStorage, как раньше. */
-  var syncDoc = null, syncBusy = false, syncTimer = null, syncDirty = false;
-
+  /* ---------- синхронизация ----------
+     Вся механика в js/sync.js. Здесь только статус в интерфейсе. */
   var syncText = "";
-  function setSync(txt, cls) {
+  Store.onStatus(function (txt, cls) {
     syncText = txt;
     var e = document.getElementById("sync");
     if (!e) return;
     e.textContent = txt;
     e.className = "val sync" + (cls ? " " + cls : "");
-  }
-
-  /* Слияние удалённого состояния с локальным.
-     done — только объединение, пройденный день не может «распройтись».
-     srs — берём карту целиком с той стороны, где она свежее.
-     счётчики — максимум. Сброс прогресса побеждает всё, если он новее. */
-  var syncStale = false;
-
-  function mergeRemote(r) {
-    if (!r || typeof r !== "object") return false;
-    if (schemaOf(r) > SCHEMA) {
-      /* другое устройство уже на новом формате — не трогаем его данные
-         и ничего не отправляем, пока эта вкладка не перезагрузится */
-      syncStale = true;
-      setSync("обнови страницу", "bad");
-      return false;
-    }
-    r = migrate(r);
-    if (r.migrated) delete r.migrated;
-    if ((r.reset || 0) > (S.reset || 0)) {
-      S = JSON.parse(JSON.stringify(r));
-      return true;
-    }
-    var changed = false, k;
-    for (k in (r.done || {})) {
-      if (r.done[k] && !S.done[k]) { S.done[k] = r.done[k]; changed = true; }
-    }
-    if ((r.srsAt || 0) > (S.srsAt || 0)) {
-      S.srs = r.srs || {}; S.srsAt = r.srsAt || 0; changed = true;
-    }
-    ["totalCorrect", "totalTried", "streak"].forEach(function (f) {
-      if ((r[f] || 0) > (S[f] || 0)) { S[f] = r[f]; changed = true; }
-    });
-    var rv = r.vocab || {};
-    for (k in rv) {
-      var mine = S.vocab[k];
-      if (!mine || (rv[k].t || 0) > (mine.t || 0)) { S.vocab[k] = rv[k]; changed = true; }
-    }
-    if ((r.vocabAt || 0) > (S.vocabAt || 0)) S.vocabAt = r.vocabAt;
-    if ((r.vocabLevelAt || 0) > (S.vocabLevelAt || 0)) {
-      S.vocabLevel = r.vocabLevel || 1; S.vocabLevelAt = r.vocabLevelAt; changed = true;
-    }
-    if (r.lastDay && (!S.lastDay || r.lastDay > S.lastDay)) { S.lastDay = r.lastDay; changed = true; }
-    if (changed) S.updated = Math.max(S.updated || 0, r.updated || 0);
-    return changed;
-  }
-
-  /* Запись идёт целым документом, поэтому перед отправкой всегда подмешиваем
-     то, что сейчас лежит в облаке: иначе устройство с устаревшей копией
-     затирает чужой прогресс (так однажды пропал отмеченный день). */
-  function pushNow() {
-    if (!syncDoc || syncStale) return;
-    if (syncBusy) { syncDirty = true; return; }
-    syncBusy = true; syncDirty = false;
-    setSync("синк…");
-    syncDoc.get().then(function (snap) {
-      if (snap && snap.exists) mergeRemote(snap.data());
-      if (syncStale) throw new Error("schema");
-      return syncDoc.set(JSON.parse(JSON.stringify(S)));
-    }).then(function () {
-      syncBusy = false;
-      setSync("синк ✓", "ok");
-      if (syncDirty) pushNow();
-    }, function () {
-      syncBusy = false;
-      setSync("синк ✗", "bad");
-    });
-  }
-
-  function schedulePush() {
-    if (!syncDoc) return;
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(pushNow, 1200);
-  }
-
-  /* перерисовывать можно только там, где нет незавершённого дня */
-  function safeToRedraw() {
-    var h = location.hash.replace(/^#/, "") || "/";
-    return h === "/" || /^\/l\d+$/.test(h);
-  }
-
-  function initSync() {
-    if (!window.claude || typeof claude.use !== "function") return;
-    claude.use("db").then(function (db) {
-      if (!db) return;
-      syncDoc = db.doc("progress/main");
-      setSync("синк…");
-      syncDoc.onSnapshot(function (snap) {
-        if (!snap.exists) { pushNow(); return; }
-        var r = snap.data();
-        var changed = mergeRemote(r);
-        if (changed) { localSave(); if (safeToRedraw()) route(); }
-        if ((S.updated || 0) > ((r && r.updated) || 0)) pushNow();
-        else setSync("синк ✓", "ok");
-      }, function () {
-        syncDoc = null;
-        setSync("синк ✗", "bad");
-      });
-    }, function () {});
-  }
+  });
 
   route();
-  initSync();
+  Store.connect();
 })();
