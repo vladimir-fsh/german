@@ -539,8 +539,9 @@
      ответы в этой же сессии на интервал уже не влияют — слово просто
      крутится в сессии, пока не вспомнится. */
   var VLADDER = Store.LADDER;
-  var V_SESSION = 10;   /* потолок всей сессии */
-  var V_NEW = 10;       /* столько новых даёт добор по кнопке */
+  var CFG = window.SRS_CONFIG || {};
+  var V_SESSION = CFG.sessionNew || 10;   /* потолок обычной сессии */
+  var V_NEW = CFG.sessionNew || 10;       /* столько новых даёт добор по кнопке */
 
   var V_LEVELS = 5;
 
@@ -633,7 +634,7 @@
      интервал, поэтому отдельного списка «свежие ошибки» нет.
      Порядок: короткий интервал вперёд, при равных — что свежее, затем что
      просрочено дольше. Потолок сессии — 20 слов. */
-  var V_REPEAT = 20;
+  var V_REPEAT = CFG.sessionRepeat || 20;
 
   function vocabRepeatPlan() {
     var now = Date.now(), pool = [], taken = {};
@@ -856,7 +857,7 @@
     /* Быстрый ответ — знак того, что слово уже знакомо: оно перескакивает
        ступеньку лестницы интервалов. Подсмотрел перевод — ответ быстрым
        не считается, это уже не «знал», а «узнал». */
-    var FAST_MS = 2000;
+    var FAST_MS = CFG.fastMs || 2000;
     var shownAt = 0, peeked = false;
 
     function answeredFast() { return !peeked && (Date.now() - shownAt) <= FAST_MS; }

@@ -27,19 +27,23 @@ window.Store = (function () {
   var LS_OPS = "de-b1-oplog-v1";        /* собственный журнал */
   var LS_DEV = "de-b1-device-v1";       /* идентификатор устройства */
 
-  /* Интервалы карточек считаются по SM-2, как в Anki:
-     у каждой карточки своя лёгкость, следующий интервал = текущий × лёгкость.
-     Минимальный интервал — сутки, внутридневных шагов нет. */
-  var EASE_START = 2.5;
-  var EASE_MIN = 1.3;
-  var EASE_EASY = 0.15;    /* быстрый ответ поднимает лёгкость */
-  var EASE_LAPSE = 0.2;    /* промах опускает */
-  var EASY_BONUS = 1.3;    /* множитель за быстрый ответ */
-  var IV_GRAD = 1;         /* первый интервал после «знаю» */
-  var IV_EASY = 4;         /* первый интервал, если ответил быстро */
-  var IV_MIN = 1;          /* меньше суток не бывает */
-  var IV_LEARNED = 180;    /* интервал больше полугода — слово выучено */
-  var FUZZ = 0.05;         /* разброс ±5%, чтобы карточки не слипались в один день */
+  /* Все числа расписания живут в js/srs-config.js — правятся там.
+     Значения ниже служат запасными, если конфиг почему-то не загрузился. */
+  var CFG = window.SRS_CONFIG || {};
+  function cfg(name, fallback) { return CFG[name] != null ? CFG[name] : fallback; }
+
+  var EASE_START = cfg("easeStart", 2.5);
+  var EASE_MIN = cfg("easeMin", 1.3);
+  var EASE_EASY = cfg("easeFast", 0.15);
+  var EASE_LAPSE = cfg("easeLapse", 0.2);
+  var EASY_BONUS = cfg("fastBonus", 1.3);
+  var IV_GRAD = cfg("ivGraduate", 1);
+  var IV_EASY = cfg("ivFast", 4);
+  var IV_MIN = cfg("ivMin", 1);
+  var IV_LAPSE = cfg("ivLapse", 3);
+  var LAPSE_KEEP = cfg("lapseKeep", 0.3);
+  var IV_LEARNED = cfg("ivLearned", 100);
+  var FUZZ = cfg("fuzz", 0.05);
 
   var LADDER = [1, 3, 7, 14, 30];       /* прежняя лестница, нужна только для переноса */
   var SRS_LADDER = [0, 864e5, 3 * 864e5];   /* очередь ошибок в заданиях, 3 бокса */
@@ -160,10 +164,16 @@ window.Store = (function () {
         } else {
           /* лёгкость роняем только у карточек, уже вышедших из изучения:
              новая карточка ещё не заслужила штрафа, как и в Anki */
-          if (v.reps) v.ease = Math.max(EASE_MIN, v.ease - EASE_LAPSE);
-          v.iv = IV_MIN;
+          if (v.reps) {
+            v.ease = Math.max(EASE_MIN, v.ease - EASE_LAPSE);
+            /* срыв не отбрасывает в самое начало: остаётся треть прежнего
+               интервала, но не меньше второго — трёх суток */
+            v.iv = Math.max(IV_LAPSE, Math.round(v.iv * LAPSE_KEEP));
+          } else {
+            v.iv = IV_MIN;
+          }
           v.lapses = (v.lapses || 0) + 1;
-          v.due = op.t + IV_MIN * 864e5;
+          v.due = op.t + v.iv * 864e5;
         }
         v.t = op.t;
         s.vocab[op.key] = v;
