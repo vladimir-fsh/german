@@ -588,11 +588,13 @@
     vocabCards().forEach(function (it) {
       var v = S.vocab[it.key];
       if (!v) {
-        /* обратное направление открывается только после того, как слово
-           хотя бы раз узнал с немецкого — иначе вспоминать нечего */
+        /* Обратное направление открывается после того, как слово узнал
+           с немецкого, и не раньше чем через сутки: иначе те же слова
+           возвращаются «новыми» в следующей же сессии. */
         if (it.dir === "ru") {
           var base = S.vocab[it.key.slice(0, -3) + "|de"];
           if (!base || !(base.reps > 0)) return;
+          if (now - (base.t || 0) < REVERSE_DELAY) return;
         }
         fresh.push(it);
         return;
@@ -635,6 +637,7 @@
      Порядок: короткий интервал вперёд, при равных — что свежее, затем что
      просрочено дольше. Потолок сессии — 20 слов. */
   var V_REPEAT = CFG.sessionRepeat || 20;
+  var REVERSE_DELAY = (CFG.reverseDelayDays != null ? CFG.reverseDelayDays : 1) * 864e5;
 
   function vocabRepeatPlan() {
     var now = Date.now(), pool = [], taken = {};
