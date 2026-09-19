@@ -591,7 +591,7 @@
            хотя бы раз узнал с немецкого — иначе вспоминать нечего */
         if (it.dir === "ru") {
           var base = S.vocab[it.key.slice(0, -3) + "|de"];
-          if (!base || base.box < 1) return;
+          if (!base || !(base.reps > 0)) return;
         }
         fresh.push(it);
         return;
@@ -629,27 +629,24 @@
     return due.concat(fresh);
   }
 
-  /* Повторение: то, чему пришёл срок, плюс свежие промахи прошлых сессий —
-     слово, на котором споткнулся вчера, незачем ждать сутки.
-     Порядок: слабые ящики вперёд, при равных — что свежее, потом что просрочено
-     дольше. Потолок сессии — 20 слов. */
+  /* Повторение: только то, чему пришёл срок. Промах уже назначил слову свой
+     интервал, поэтому отдельного списка «свежие ошибки» нет.
+     Порядок: короткий интервал вперёд, при равных — что свежее, затем что
+     просрочено дольше. Потолок сессии — 20 слов. */
   var V_REPEAT = 20;
-  var FRESH_MISS = 3 * 864e5;   /* промах считается свежим трое суток */
 
   function vocabRepeatPlan() {
     var now = Date.now(), pool = [], taken = {};
     vocabCards().forEach(function (it) {
       var v = S.vocab[it.key];
       if (!v || v.learned) return;
-      var due = (v.due || 0) <= now;
-      var freshMiss = (v.lapses || 0) > 0 && v.box <= 1 && (now - (v.t || 0)) < FRESH_MISS;
-      if (due || freshMiss) pool.push(it);
+      if ((v.due || 0) <= now) pool.push(it);
     });
     pool.sort(function (a, b) {
       var va = S.vocab[a.key], vb = S.vocab[b.key];
-      if (va.box !== vb.box) return va.box - vb.box;             /* слабые вперёд */
-      if ((vb.t || 0) !== (va.t || 0)) return (vb.t || 0) - (va.t || 0);   /* свежие вперёд */
-      return (va.due || 0) - (vb.due || 0);                      /* дольше просрочено — раньше */
+      if ((va.iv || 0) !== (vb.iv || 0)) return (va.iv || 0) - (vb.iv || 0);
+      if ((vb.t || 0) !== (va.t || 0)) return (vb.t || 0) - (va.t || 0);
+      return (va.due || 0) - (vb.due || 0);
     });
     return vocabOnePerWord(pool, taken).slice(0, V_REPEAT);
   }
@@ -802,7 +799,7 @@
       head.appendChild(el("div", "muted", calib
         ? "Все слова словаря уже в работе — калибровать нечего."
         : mode === "repeat"
-        ? "Повторять сейчас нечего: сроки ещё не подошли, свежих промахов нет."
+        ? "Повторять нечего: ни одному слову сейчас не подошёл срок."
         : sp.fresh.length
           ? "Всё, что пора повторить, пройдено. Можно взять новые слова."
           : "Слова кончились: весь словарь уже в работе."));

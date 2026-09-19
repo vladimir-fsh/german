@@ -22,13 +22,38 @@
 window.Store = (function () {
   "use strict";
 
-  var SCHEMA = 3;
+  var SCHEMA = 4;
   var LS_STATE = "de-b1-progress-v1";   /* материализованное состояние, для мгновенного старта */
   var LS_OPS = "de-b1-oplog-v1";        /* собственный журнал */
   var LS_DEV = "de-b1-device-v1";       /* идентификатор устройства */
 
-  var LADDER = [1, 3, 7, 14, 30];       /* лестница интервалов карточек, дни */
-  var SRS_LADDER = [0, 864e5, 3 * 864e5];   /* очередь ошибок, 3 бокса */
+  /* Интервалы карточек считаются по SM-2, как в Anki:
+     у каждой карточки своя лёгкость, следующий интервал = текущий × лёгкость.
+     Минимальный интервал — сутки, внутридневных шагов нет. */
+  var EASE_START = 2.5;
+  var EASE_MIN = 1.3;
+  var EASE_EASY = 0.15;    /* быстрый ответ поднимает лёгкость */
+  var EASE_LAPSE = 0.2;    /* промах опускает */
+  var EASY_BONUS = 1.3;    /* множитель за быстрый ответ */
+  var IV_GRAD = 1;         /* первый интервал после «знаю» */
+  var IV_EASY = 4;         /* первый интервал, если ответил быстро */
+  var IV_MIN = 1;          /* меньше суток не бывает */
+  var IV_LEARNED = 180;    /* интервал больше полугода — слово выучено */
+  var FUZZ = 0.05;         /* разброс ±5%, чтобы карточки не слипались в один день */
+
+  var LADDER = [1, 3, 7, 14, 30];       /* прежняя лестница, нужна только для переноса */
+  var SRS_LADDER = [0, 864e5, 3 * 864e5];   /* очередь ошибок в заданиях, 3 бокса */
+
+  /* Разброс обязан быть детерминированным: свёртка журнала выполняется на всех
+     устройствах и должна давать одинаковый результат. Берём его из хеша
+     ключа и номера операции, а не из генератора случайных чисел. */
+  function fuzz(key, seq, iv) {
+    if (iv < 2) return iv;
+    var h = 0, str = key + ":" + seq;
+    for (var i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    var k = ((h >>> 0) % 1000) / 1000;            /* 0..1 */
+    return Math.max(IV_MIN, Math.round(iv * (1 + (k * 2 - 1) * FUZZ)));
+  }
 
   var COMPACT_AT = 250;   /* столько операций в сумме — пора сворачивать */
   var TRIM_MARGIN = 50;   /* столько последних операций не подрезаем, страховка от гонки снапшотов */
@@ -44,6 +69,30 @@ window.Store = (function () {
   }
 
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  /* Перенос со схемы 3: ящик лестницы превращается в интервал в днях,
+     лёгкость у всех стартовая. Сроки и счётчик промахов сохраняются. */
+  function fromBox(e) {
+    var box = e.box || 0;
+    return {
+      iv: box > 0 ? LADDER[Math.min(box, LADDER.length) - 1] : 0,
+      ease: EASE_START,
+      reps: box,
+      lapses: e.lapses || 0,
+      due: e.due || 0,
+      learned: !!e.learned,
+      t: e.t || 0
+    };
+  }
+
+  function migrateVocabShape(st) {
+    if (!st || !st.vocab) return st;
+    for (var k in st.vocab) {
+      var e = st.vocab[k];
+      if (e && e.iv == null) st.vocab[k] = fromBox(e);
+    }
+    return st;
+  }
 
   /* ---------- редьюсер ----------
      Чистая функция: (состояние, операция) → состояние.
@@ -92,22 +141,29 @@ window.Store = (function () {
         }
         return s;
 
-      /* карточка слова: вверх по лестнице с первого раза, вниз при промахе */
+      /* Карточка слова по SM-2.
+         «знаю»      → интервал × лёгкость, быстрый ответ ещё × 1.3 и лёгкость вверх
+         «не знаю»   → лёгкость вниз, интервал сбрасывается в сутки
+         Новая карточка выпускается на сутки, при быстром ответе сразу на четыре. */
       case "vocabGrade":
-        v = s.vocab[op.key] || { box: 0, due: 0, learned: false, lapses: 0 };
+        v = s.vocab[op.key] || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false };
+        if (v.box != null && v.iv == null) v = fromBox(v);   /* запись старого формата */
+        var fast = op.fast || (op.pts || 0) >= 10;
+
         if (op.ok) {
-          if (v.box >= LADDER.length) { v.learned = true; v.due = 0; }
-          else {
-            /* ответил быстро — перескакиваем через ступеньку: знакомое слово
-               незачем гонять по всей лестнице. op.pts — от старых операций. */
-            var jump = (op.fast || (op.pts || 0) >= 10) ? 2 : 1;
-            v.box = Math.min(LADDER.length, v.box + jump);
-            v.due = op.t + LADDER[v.box - 1] * 864e5;
-          }
+          if (!v.reps) v.iv = fast ? IV_EASY : IV_GRAD;
+          else v.iv = fuzz(op.key, op.seq, Math.max(IV_MIN, v.iv * v.ease * (fast ? EASY_BONUS : 1)));
+          if (fast) v.ease = v.ease + EASE_EASY;
+          v.reps = (v.reps || 0) + 1;
+          if (v.iv >= IV_LEARNED) { v.learned = true; v.due = 0; }
+          else v.due = op.t + v.iv * 864e5;
         } else {
-          v.box = Math.max(0, v.box - 1);
+          /* лёгкость роняем только у карточек, уже вышедших из изучения:
+             новая карточка ещё не заслужила штрафа, как и в Anki */
+          if (v.reps) v.ease = Math.max(EASE_MIN, v.ease - EASE_LAPSE);
+          v.iv = IV_MIN;
           v.lapses = (v.lapses || 0) + 1;
-          v.due = op.t + LADDER[v.box === 0 ? 0 : v.box - 1] * 864e5;
+          v.due = op.t + IV_MIN * 864e5;
         }
         v.t = op.t;
         s.vocab[op.key] = v;
@@ -120,10 +176,12 @@ window.Store = (function () {
       /* «уже знаю»: слово закрывается целиком, оба направления */
       case "vocabKnown":
         ["|de", "|ru"].forEach(function (dir) {
-          var e = s.vocab[op.key + dir] || { box: 0, due: 0, learned: false, lapses: 0 };
+          var e = s.vocab[op.key + dir] || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false };
+          if (e.box != null && e.iv == null) e = fromBox(e);
           e.learned = true;
           e.due = 0;
-          e.box = LADDER.length;
+          e.iv = IV_LEARNED;
+          e.reps = (e.reps || 0) + 1;
           e.t = op.t;
           s.vocab[op.key + dir] = e;
         });
@@ -187,6 +245,8 @@ window.Store = (function () {
       try { localStorage.setItem(LS_STATE + "-backup-v" + (state.v || 2), JSON.stringify(state)); } catch (e) {}
       state.v = SCHEMA;
       state.resetAt = state.reset || 0;
+      migrateVocabShape(state);
+      if (snapshot && snapshot.state) migrateVocabShape(snapshot.state);
       if (!snapshot) snapshot = { v: SCHEMA, state: clone(state), cursor: {}, at: Date.now() };
     } else {
       state = blank();
