@@ -208,6 +208,9 @@ input.blank, input.big {
 }
 input.big { display: block; width: 100%; text-align: left; border: 1px solid var(--border);
   background: var(--surface-2); border-radius: 10px; padding: 11px 13px; font-weight: 500; margin-top: 4px; }
+/* ввод только окончания: основа текстом, узкое поле вплотную к ней */
+.stem { white-space: nowrap; }
+input.blank.end { min-width: 0; width: 2.6em; padding: 1px 2px; text-align: left; }
 input.blank.ok, input.big.ok { border-color: var(--ok); color: var(--ok); }
 input.blank.bad, input.big.bad { border-color: var(--bad); color: var(--bad); }
 

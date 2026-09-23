@@ -1,2 +1,2 @@
 /* Печатается скриптом tools/stamp.sh при публикации. Руками не править. */
-window.APP_VERSION = "v32";
+window.APP_VERSION = "v33";

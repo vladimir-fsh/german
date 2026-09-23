@@ -8,7 +8,7 @@ window.COURSE = {
   lessons: [
     { n: 18, status: "ready", slug: "lektion_18_adjektivdeklination",
       title: "Adjektivdeklination", ru: "Склонение прилагательных",
-      topic: "Personenbeschreibung, Kleidung", days: 6 },
+      topic: "Personenbeschreibung, Kleidung", days: 7 },
     { n: 19, status: "ready", slug: "lektion_19_nebenstze_1_dass_weil",
       title: "Nebensätze 1: dass, weil", ru: "Придаточные с dass и weil",
       topic: "Erziehung, Rassismus", days: 4 },

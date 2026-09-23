@@ -388,17 +388,6 @@ window.L18 = {
           ru: "У моей сестры длинные волосы.",
           why: "die Haare — множественное число, перед ним нет ein-слова, но окончание нужно: lange Haare. Множественное подробно разберём позже." },
 
-        { type: "order",
-          words: ["Das", "ist", "eine", "interessante", "Aufgabe"],
-          a: ["Das ist eine interessante Aufgabe"],
-          ru: "Это интересное задание.",
-          prompt: "Собери предложение из слов." },
-
-        { type: "order",
-          words: ["Er", "ist", "ein", "fleißiger", "Schüler"],
-          a: ["Er ist ein fleißiger Schüler"],
-          ru: "Он прилежный ученик." },
-
         { type: "translate",
           ru: "Это новый компьютер.",
           a: ["Das ist ein neuer Computer.", "Das ist ein neuer Computer"],
@@ -491,16 +480,6 @@ window.L18 = {
           ru: "Это не хороший тест, это плохой тест.",
           why: "kein склоняется точно как ein. Nominativ после sein → -er оба раза." },
 
-        { type: "order",
-          words: ["Ich", "brauche", "eine", "warme", "Jacke"],
-          a: ["Ich brauche eine warme Jacke"],
-          ru: "Мне нужна тёплая куртка." },
-
-        { type: "order",
-          words: ["Donald", "trägt", "immer", "eine", "blaue", "Mütze"],
-          a: ["Donald trägt immer eine blaue Mütze"],
-          ru: "Дональд всегда носит синюю шапку." },
-
         { type: "translate",
           ru: "Я покупаю новую куртку.",
           a: ["Ich kaufe eine neue Jacke.", "Ich kaufe eine neue Jacke"],
@@ -591,16 +570,6 @@ window.L18 = {
           opts: ["Die beiden", "Die beide", "Der beiden"], a: 0,
           ru: "Оба вора лезут через окно.",
           why: "beide во множественном после die ведёт себя как прилагательное: die beiden Diebe." },
-
-        { type: "order",
-          words: ["Ich", "kenne", "den", "neuen", "Lehrer"],
-          a: ["Ich kenne den neuen Lehrer"],
-          ru: "Я знаю нового учителя." },
-
-        { type: "order",
-          words: ["Der", "kleine", "Junge", "trägt", "die", "roten", "Schuhe"],
-          a: ["Der kleine Junge trägt die roten Schuhe"],
-          ru: "Маленький мальчик носит красные ботинки." },
 
         { type: "translate",
           ru: "Я знаю эту старую женщину.",
@@ -693,16 +662,6 @@ window.L18 = {
           a: ["gefährlichen", "bösen", "gute"],
           ru: "В этой опасной ситуации у двух злых воров появляется хорошая идея.",
           why: "dieser = Dativ ж. р. → -en. die zwei bösen — множественное после артикля → -en. eine gute Idee — Akkusativ ж. р. → -e." },
-
-        { type: "order",
-          words: ["Ich", "gebe", "dem", "kleinen", "Kind", "einen", "Apfel"],
-          a: ["Ich gebe dem kleinen Kind einen Apfel"],
-          ru: "Я даю маленькому ребёнку яблоко." },
-
-        { type: "order",
-          words: ["Wir", "fahren", "mit", "einem", "alten", "Auto"],
-          a: ["Wir fahren mit einem alten Auto"],
-          ru: "Мы едем на старой машине." },
 
         { type: "translate",
           ru: "Я говорю с новым учителем.",
@@ -803,16 +762,6 @@ window.L18 = {
           ru: "Она носит розовую куртку.",
           why: "rosa, lila, orange не склоняются никогда — окончания у них не бывает." },
 
-        { type: "order",
-          words: ["Was", "für", "einen", "Pullover", "ziehst", "du", "an"],
-          a: ["Was für einen Pullover ziehst du an"],
-          ru: "Какой свитер ты надеваешь?" },
-
-        { type: "order",
-          words: ["Welche", "Schuhe", "hat", "er", "angezogen"],
-          a: ["Welche Schuhe hat er angezogen"],
-          ru: "Какие ботинки он надел?" },
-
         { type: "translate",
           ru: "Что за куртку он носит?",
           a: ["Was für eine Jacke trägt er?", "Was für eine Jacke trägt er"],
@@ -826,6 +775,191 @@ window.L18 = {
         { type: "pairs",
           prompt: "Соедини черту характера с переводом.",
           pairs: [["ehrlich", "честный"], ["zuverlässig", "надёжный"], ["bescheiden", "скромный"], ["vorsichtig", "осторожный"], ["mutig", "смелый"], ["neugierig", "любопытный"], ["eifersüchtig", "ревнивый"], ["ordentlich", "аккуратный"]] }
+      ]
+    },
+    {
+      title: "Повторение: все четыре падежа разом",
+      sub: "Смешанные окончания + слова, на которых урок ломался",
+      grammar: [1, 2, 3, 5],
+      ex: [
+        { type: "choice",
+          q: "Anna ist ein ___ Mensch, sie spricht nie über ihre Erfolge.",
+          opts: ["bescheidener", "bescheidenes", "bescheiden"], a: 0,
+          ru: "Анна — скромный человек, она никогда не говорит о своих успехах.",
+          why: "der Mensch, Nominativ после sein. «ein» рода не показывает, поэтому сигналит прилагательное: -er от der." },
+
+        { type: "choice",
+          q: "Wir suchen einen ___ Mitarbeiter.",
+          opts: ["zuverlässigen", "zuverlässiger", "zuverlässige"], a: 0,
+          ru: "Мы ищем надёжного сотрудника.",
+          why: "suchen → Akkusativ. У мужского рода в Akkusativ всё на -n: einen zuverlässigen Mitarbeiter." },
+
+        { type: "choice",
+          q: "Mit ___ Kollegen kann man über alles reden.",
+          opts: ["einem zuverlässigen", "einen zuverlässigen", "ein zuverlässiger"], a: 0,
+          ru: "С надёжным коллегой можно говорить обо всём.",
+          why: "mit → Dativ: einem zuverlässigen. И сам der Kollege в Dativ получает -n — это n-Deklination." },
+
+        { type: "choice",
+          q: "___ Umgebung ist sehr ruhig.",
+          opts: ["Die ganze", "Der ganze", "Das ganze"], a: 0,
+          ru: "Вся округа очень тихая.",
+          why: "die Umgebung — женский род. Артикль die уже сигналит, прилагательному хватает слабого -e." },
+
+        { type: "choice",
+          q: "Nur ___ Menschen sagen immer die Wahrheit.",
+          opts: ["ehrliche", "ehrlicher", "ehrlichen"], a: 0,
+          ru: "Только честные люди всегда говорят правду.",
+          why: "Plural Nominativ без артикля: прилагательное берёт хвост от die → -e." },
+
+        { type: "fill",
+          q: "Das ist eine {wichtig} Bedingung.", a: ["wichtige"],
+          ru: "Это важное условие.",
+          why: "die Bedingung, Nominativ: «eine» уже сказала род, прилагательное молчит на -e." },
+
+        { type: "fill",
+          q: "Unter einer {wichtig} Bedingung helfe ich dir.", a: ["wichtigen"],
+          ru: "При одном важном условии я тебе помогу.",
+          why: "unter → Dativ. В Dativ прилагательное всегда -en, независимо от рода: unter einer wichtigen Bedingung." },
+
+        { type: "fill",
+          q: "Ich nehme an {ein} {interessant} Projekt teil.",
+          a: [["einem"], ["interessanten"]],
+          ru: "Я участвую в интересном проекте.",
+          why: "teilnehmen an + Dativ. das Projekt → einem, прилагательное в Dativ → -en." },
+
+        { type: "fill",
+          q: "Wir verzichten auf {der} {neu} Fernseher.",
+          a: [["den"], ["neuen"]],
+          ru: "Мы отказываемся от нового телевизора.",
+          why: "verzichten auf + Akkusativ. der Fernseher → den neuen: мужской род в Akkusativ весь на -n." },
+
+        { type: "fill",
+          q: "In der {ruhig} Umgebung schlafe ich viel besser.", a: ["ruhigen"],
+          ru: "В тихой местности я сплю намного лучше.",
+          why: "in + Dativ (место): der Umgebung. Dativ — стена из -en." },
+
+        { type: "fill",
+          q: "Eigentlich wollte ich nur {ein} {ruhig} Abend zu Hause.",
+          a: [["einen"], ["ruhigen"]],
+          ru: "Вообще-то я хотел просто тихий вечер дома.",
+          why: "der Abend, прямое дополнение → Akkusativ: einen ruhigen Abend." },
+
+        { type: "pairs",
+          prompt: "Соедини слово с переводом.",
+          pairs: [["die Bedingung", "условие"], ["die Umgebung", "окрестности"], ["teilnehmen an", "участвовать в"], ["verzichten auf", "отказываться от"], ["bescheiden", "скромный"], ["zuverlässig", "надёжный"]] },
+
+        { type: "translate",
+          ru: "Он надёжный друг.",
+          a: ["Er ist ein zuverlässiger Freund.", "Er ist ein zuverlässiger Freund"],
+          why: "der Freund, Nominativ после sein: ein zuverlässiger Freund." },
+
+        { type: "translate",
+          ru: "Я помогу тебе при одном условии.",
+          a: ["Ich helfe dir unter einer Bedingung.", "Ich helfe dir unter einer Bedingung"],
+          why: "unter + Dativ: unter einer Bedingung. helfen требует Dativ — поэтому dir, а не dich." },
+
+        { type: "translate",
+          ru: "Мы участвуем в интересном проекте.",
+          a: ["Wir nehmen an einem interessanten Projekt teil.", "Wir nehmen an einem interessanten Projekt teil"],
+          why: "teilnehmen отделяемый: teil улетает в конец. an + Dativ → an einem interessanten Projekt." }
+      ]
+    },
+    {
+      title: "Описание человека: окончания в потоке",
+      sub: "Внешность, одежда, характер — все три склонения в связном тексте",
+      grammar: [2, 3],
+      ex: [
+        { type: "choice",
+          q: "Der Polizist trägt eine ___ Uniform.",
+          opts: ["blaue", "blauen", "blauer"], a: 0,
+          ru: "Полицейский носит синюю форму.",
+          why: "die Uniform, tragen → Akkusativ. Женский род в Akkusativ не меняется: eine blaue." },
+
+        { type: "choice",
+          q: "Er schaut mit einem ___ Blick nach vorn.",
+          opts: ["strengen", "strenger", "strenges"], a: 0,
+          ru: "Он смотрит вперёд строгим взглядом.",
+          why: "mit всегда требует Dativ, а в Dativ после артикля окончание -en." },
+
+        { type: "fill",
+          q: "Dieser Dieb ist ein {jung} Mann. Er hat einen {schlank} Körper und {dünn} Beine.",
+          a: ["junger", "schlanken", "dünne"],
+          ru: "Этот вор — молодой мужчина. У него стройное тело и тонкие ноги.",
+          why: "ein + Nominativ м. р. → -er. einen + Akkusativ м. р. → -en. Beine без артикля во множественном → -e." },
+
+        { type: "fill",
+          q: "Er trägt eine {kariert} Mütze und eine {schwarz} Maske.",
+          a: ["karierte", "schwarze"],
+          ru: "Он носит клетчатую кепку и чёрную маску.",
+          why: "Обе die, Akkusativ: у женского рода форма та же, что в Nominativ, → -e." },
+
+        { type: "choice",
+          q: "An seiner Hose hängt ein ___ Gürtel.",
+          opts: ["schwarzer", "schwarzen", "schwarzes"], a: 0,
+          ru: "На его брюках висит чёрный ремень.",
+          why: "Ремень здесь подлежащее: что висит? Nominativ, der Gürtel после ein → -er. Предлог an относится к Hose, не к ремню." },
+
+        { type: "fill",
+          q: "Man soll seine {grün} Augen nicht sehen.",
+          a: ["grünen"],
+          ru: "Его зелёные глаза не должны быть видны.",
+          why: "seine — артикль во множественном, после любого артикля во множественном -en." },
+
+        { type: "fill",
+          q: "Außerdem trägt er ein {grau} Hemd mit einer {braun} Weste.",
+          a: ["graues", "braunen"],
+          ru: "Кроме того, на нём серая рубашка с коричневым жилетом.",
+          why: "das Hemd после ein → хвост от das: -es. mit einer — Dativ → -en." },
+
+        { type: "choice",
+          q: "Die Hose ist blau-weiß ___.",
+          opts: ["gestreift", "gestreifte", "gestreiften"], a: 0,
+          ru: "Брюки в сине-белую полоску.",
+          why: "После sein справа нет существительного — окончания нет, даже у причастия." },
+
+        { type: "fill",
+          q: "An der {recht} Seite hängen zwei {alt} Schlüssel.",
+          a: ["rechten", "alte"],
+          ru: "С правой стороны висят два старых ключа.",
+          why: "an der + wo? → Dativ, после артикля -en. zwei — не артикль, сигнала нет → -e." },
+
+        { type: "fill",
+          q: "Obelix hat immer {gut} Laune, aber er ist oft {hungrig}.",
+          a: ["gute", "hungrig"],
+          ru: "У Обеликса всегда хорошее настроение, но он часто голоден.",
+          why: "die Laune без артикля в Akkusativ → -e. hungrig стоит после ist — окончания нет, поле остаётся пустым." },
+
+        { type: "choice",
+          q: "Er wohnt in einem ___ Haus.",
+          opts: ["hohen", "hohem", "hochen"], a: 0,
+          ru: "Он живёт в высоком доме.",
+          why: "hoch теряет -c- перед окончанием: hoh-. in + wo? → Dativ, после einem → -en." },
+
+        { type: "fill",
+          q: "Frau Kümmel ist eine {alt} Nachbarin mit {weiß} Haaren.",
+          a: ["alte", "weißen"],
+          ru: "Госпожа Кюммель — пожилая соседка с седыми волосами.",
+          why: "eine + Nominativ ж. р. → -e. mit + Dativ множественного без артикля → -en, и у существительного тоже -n." },
+
+        { type: "pairs",
+          prompt: "Соедини слово внешности с переводом.",
+          pairs: [["lockig", "кудрявый"], ["schlank", "стройный"], ["kräftig", "крепкий"], ["blass", "бледный"], ["gepflegt", "ухоженный"], ["bärtig", "бородатый"]] },
+
+        { type: "translate",
+          ru: "У него короткие светлые волосы.",
+          a: ["Er hat kurze blonde Haare.", "Er hat kurze blonde Haare", "Er hat kurze, blonde Haare."],
+          why: "Haare без артикля во множественном, оба прилагательных сигналят сами: kurze blonde." },
+
+        { type: "translate",
+          ru: "Она носит длинное красное платье.",
+          a: ["Sie trägt ein langes rotes Kleid.", "Sie trägt ein langes rotes Kleid", "Sie trägt ein langes, rotes Kleid."],
+          why: "das Kleid после ein → хвост от das: langes rotes." },
+
+        { type: "translate",
+          ru: "Полицейский смотрит на молодого вора.",
+          a: ["Der Polizist schaut den jungen Dieb an.", "Der Polizist sieht den jungen Dieb an.", "Der Polizist schaut den jungen Dieb an", "Der Polizist sieht den jungen Dieb an", "Der Polizist betrachtet den jungen Dieb."],
+          why: "ansehen / anschauen + Akkusativ: den jungen Dieb. Мужской род в Akkusativ — главная ловушка урока." }
       ]
     }
   ],

@@ -60,28 +60,58 @@
 
   var BUILD = {};
 
-  /* ---- fill: текст с пропусками {подсказка} ---- */
+  /* ---- fill: текст с пропусками {подсказка} ----
+     Если задание проверяет только окончание — ответ это подсказка плюс хвост
+     (klein → kleiner, ein → einen), — основа печатается текстом, а вводится
+     только окончание. Нулевое окончание (сказуемое: «ist hoch») вводится
+     пустым полем: форма поля не должна подсказывать, есть окончание или нет.
+     Если ответ меняет основу (hoch → hohes), остаётся ввод слова целиком.
+     Флаг ex.full отключает режим окончаний для всего задания. */
+  function endingsOf(hint, answers, full) {
+    if (full || !hint) return null;
+    var h = hint.toLowerCase(), out = [];
+    for (var k = 0; k < answers.length; k++) {
+      var a = String(answers[k]);
+      if (a.toLowerCase().indexOf(h) !== 0) return null;
+      out.push(a.slice(hint.length));
+    }
+    return out;
+  }
+
   BUILD.fill = function (ex, host, finish, api) {
     if (ex.prompt) host.appendChild(el("div", "prompt", esc(ex.prompt)));
     var answers = Array.isArray(ex.a[0]) ? ex.a : ex.a.map(function (x) { return [x]; });
     var q = el("div", "q");
-    var i = 0;
+    var i = 0, slots = [];
     var parts = String(ex.q).split(/(\{[^}]*\})/);
     parts.forEach(function (p) {
       if (/^\{[^}]*\}$/.test(p)) {
         var hint = p.slice(1, -1);
+        var idx = i++;
+        var ends = endingsOf(hint, answers[idx] || [], ex.full);
         var inp = document.createElement("input");
-        inp.className = "blank";
         inp.type = "text";
         inp.autocapitalize = "off";
         inp.autocomplete = "off";
         inp.spellcheck = false;
         inp.setAttribute("autocorrect", "off");
         inp.setAttribute("enterkeyhint", "go");
-        inp.dataset.idx = i++;
-        if (hint) inp.placeholder = hint;
-        inp.size = Math.max(6, hint.length + 2);
-        q.appendChild(inp);
+        inp.dataset.idx = idx;
+        if (ends) {
+          /* основа текстом, поле только под окончание */
+          var wrap = el("span", "stem");
+          wrap.appendChild(document.createTextNode(hint));
+          inp.className = "blank end";
+          inp.size = 3;
+          wrap.appendChild(inp);
+          q.appendChild(wrap);
+        } else {
+          inp.className = "blank";
+          if (hint) inp.placeholder = hint;
+          inp.size = Math.max(6, hint.length + 2);
+          q.appendChild(inp);
+        }
+        slots.push({ inp: inp, ends: ends, full: answers[idx] || [] });
       } else if (p) {
         q.appendChild(document.createTextNode(p));
       }
@@ -89,15 +119,21 @@
     if (ex.ru) q.appendChild(el("span", "ru", esc(ex.ru)));
     host.appendChild(q);
 
-    var inputs = q.querySelectorAll("input.blank");
-    if (inputs[0]) setTimeout(function () { inputs[0].focus(); }, 30);
+    if (slots[0]) setTimeout(function () { slots[0].inp.focus(); }, 30);
 
     api.check = function () {
       var ok = true;
-      inputs.forEach(function (inp, k) {
-        var good = match(inp.value, answers[k] || []);
-        inp.className = "blank " + (good ? "ok" : "bad");
-        inp.disabled = true;
+      slots.forEach(function (sl) {
+        var good;
+        if (sl.ends) {
+          /* пустое поле или прочерк — нулевое окончание */
+          var typed = String(sl.inp.value).replace(/[-–—]/g, "");
+          good = match(typed, sl.ends);
+        } else {
+          good = match(sl.inp.value, sl.full);
+        }
+        sl.inp.className = (sl.ends ? "blank end " : "blank ") + (good ? "ok" : "bad");
+        sl.inp.disabled = true;
         if (!good) ok = false;
       });
       var right = answers.map(function (a) { return a[0]; }).join(" / ");
