@@ -19,8 +19,18 @@
   /* Перерисовывать можно там, где нет незавершённого прохода: экран задания
      или карточки пересобирать нельзя, иначе ответ пропадёт на полуслове.
      Списки и главная перерисовываются всегда — именно на них видно прогресс. */
+  /* Текущий маршрут. Всё, что не похоже на наш маршрут, считается главной:
+     обёртка артефакта (например, при запуске с экрана «Домой» на iOS) может
+     подставить в адрес свой хеш, и тогда главная переставала перерисовываться
+     после прихода прогресса из облака — висело «Подтягиваю прогресс…». */
+  var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|review|more|l\d+(\/(g|d)\d+)?)?$/;
+  function curPath() {
+    var h = location.hash.replace(/^#/, "");
+    return ROUTE_RE.test(h) ? h : "/";
+  }
+
   function redrawable() {
-    var h = location.hash.replace(/^#/, "") || "/";
+    var h = curPath();
     if (h === "/" || h === "/more" || /^\/l\d+$/.test(h)) return true;
     if (h === "/vocab" || h === "/review") return !sessionLoad();
     return false;
@@ -55,7 +65,7 @@
   window.addEventListener("hashchange", route);
 
   function route() {
-    var h = location.hash.replace(/^#/, "") || "/";
+    var h = curPath();
     var m;
     window.scrollTo(0, 0);
     window.onresize = null;
@@ -485,7 +495,7 @@
 
   /* подсветка активной вкладки и счётчики на значках */
   function syncTabs() {
-    var h = location.hash.replace(/^#/, "") || "/";
+    var h = curPath();
     var root = h === "/" || /^\/l\d+/.test(h) ? "/"
       : h.indexOf("/vocab") === 0 ? "/vocab"
       : h.indexOf("/review") === 0 ? "/review"
