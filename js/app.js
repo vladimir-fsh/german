@@ -12,11 +12,19 @@
 
   Store.onChange(function (next) {
     S = next;
-    /* перерисовываем только там, где нет незавершённого прохода */
-    var h = location.hash.replace(/^#/, "") || "/";
-    if (h === "/" || /^\/l\d+$/.test(h) || h === "/more") route();
+    if (redrawable()) route();
     syncTabs();
   });
+
+  /* Перерисовывать можно там, где нет незавершённого прохода: экран задания
+     или карточки пересобирать нельзя, иначе ответ пропадёт на полуслове.
+     Списки и главная перерисовываются всегда — именно на них видно прогресс. */
+  function redrawable() {
+    var h = location.hash.replace(/^#/, "") || "/";
+    if (h === "/" || h === "/more" || /^\/l\d+$/.test(h)) return true;
+    if (h === "/vocab" || h === "/review") return !sessionLoad();
+    return false;
+  }
 
   function dayKey(n, d) { return "L" + n + "D" + d; }
   function isDayDone(n, d) { return !!S.done[dayKey(n, d)]; }
@@ -82,6 +90,12 @@
     var words = vocabPending();
     var acc = S.totalTried ? Math.round((S.totalCorrect / S.totalTried) * 100) : 0;
 
+    /* Хранилище артефакта на телефоне переживает не каждое открытие, и тогда
+       прогресс приходит только из облака. Нули в это время — вранье, поэтому
+       до первого ответа облака показываем прочерки, а не «0 дней пройдено». */
+    var loading = !Store.ready();
+    function val(x) { return loading ? "—" : x; }
+
     app.innerHTML = "";
     var hero = el("div", "card hero");
     hero.innerHTML =
@@ -89,18 +103,19 @@
       "<h1>" + esc(C.title) + "</h1>" +
       '<div class="muted">Курс собран на базе упражнений lehrerlenz.de, Lektionen 18–32. ' +
       "Готовые уроки идут по порядку; остальные подключаются по мере готовности.</div>" +
-      '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="bar"><i style="width:' + (loading ? 0 : pct) + '%"></i></div>' +
       '<div class="stats">' +
-      '<div class="stat"><b>' + doneDays + " / " + totalDays + "</b><span>дней пройдено</span></div>" +
-      '<div class="stat"><b>' + S.streak + "</b><span>дней подряд</span></div>" +
-      '<div class="stat"><b>' + acc + "%</b><span>верных ответов</span></div>" +
-      '<div class="stat"><b>' + due + "</b><span>на повторение</span></div>" +
-      '<div class="stat"><b>' + words + "</b><span>карточек на сегодня</span></div>" +
+      '<div class="stat"><b>' + (loading ? "—" : doneDays + " / " + totalDays) + "</b><span>дней пройдено</span></div>" +
+      '<div class="stat"><b>' + val(S.streak) + "</b><span>дней подряд</span></div>" +
+      '<div class="stat"><b>' + (loading ? "—" : acc + "%") + "</b><span>верных ответов</span></div>" +
+      '<div class="stat"><b>' + val(due) + "</b><span>на повторение</span></div>" +
+      '<div class="stat"><b>' + val(words) + "</b><span>карточек на сегодня</span></div>" +
       "</div>";
     var row = el("div", "btnrow");
     var next = findNext();
-    var b1 = el("button", "btn", next ? "Продолжить: урок " + next.n + ", день " + (next.d + 1) : "Все готовые уроки пройдены");
-    b1.disabled = !next;
+    var b1 = el("button", "btn", loading ? "Подтягиваю прогресс…"
+      : next ? "Продолжить: урок " + next.n + ", день " + (next.d + 1) : "Все готовые уроки пройдены");
+    b1.disabled = loading || !next;
     b1.onclick = function () { go("/l" + next.n + "/d" + next.d); };
     row.appendChild(b1);
     if (due) {
@@ -115,8 +130,8 @@
     var vcard = el("div", "card");
     vcard.innerHTML = "<h2>Словарь</h2>" +
       '<div class="muted">Слово засчитывается выученным, когда прошло всю лестницу интервалов ' +
-      "в обе стороны: и с немецкого, и на немецкий.</div>" + vocabBar(ws);
-    if (!S.calibrated) {
+      "в обе стороны: и с немецкого, и на немецкий.</div>" + vocabBar(ws, loading);
+    if (!loading && !S.calibrated) {
       vcard.appendChild(el("div", "note",
         "Слова пока берутся с самой ходовой ступени, поэтому попадается лёгкое. " +
         "Калибровка проходит по четыре слова с каждой ступени: знакомое закрывается сразу, " +
@@ -124,15 +139,17 @@
     }
 
     var vrow = el("div", "btnrow");
-    if (!S.calibrated) {
+    if (!loading && !S.calibrated) {
       var vbc = el("button", "btn", "Подобрать уровень");
       vbc.onclick = function () { go("/vocab/calibrate"); };
       vrow.appendChild(vbc);
     }
-    var vb = el("button", "btn" + (words && S.calibrated ? "" : " sec"), words ? "Учить слова (" + words + ")" : "Взять 10 новых слов");
+    var vb = el("button", "btn" + (words && S.calibrated ? "" : " sec"),
+      loading ? "Подтягиваю прогресс…" : words ? "Учить слова (" + words + ")" : "Взять 10 новых слов");
+    vb.disabled = loading;
     vb.onclick = function () { go(words ? "/vocab" : "/vocab/new"); };
     vrow.appendChild(vb);
-    var rep0 = vocabRepeatPending();
+    var rep0 = loading ? 0 : vocabRepeatPending();
     if (rep0) {
       var vb2 = el("button", "btn sec", "Повторить слова (" + rep0 + ")");
       vb2.onclick = function () { go("/vocab/repeat"); };
@@ -149,14 +166,14 @@
     C.lessons.forEach(function (l) {
       var L = window["L" + l.n];
       var ok = l.status === "ready" && L;
-      var pctL = ok ? lessonPct(l.n) : 0;
+      var pctL = ok && !loading ? lessonPct(l.n) : 0;
       var d = el("div", "lesson" + (pctL === 100 ? " done" : pctL > 0 ? " active" : ""));
       d.innerHTML =
         '<div class="num">' + l.n + "</div>" +
         "<div><div class=\"t\">" + esc(l.title) +
         (ok ? "" : '<span class="badge">скоро</span>') + "</div>" +
         '<div class="s">' + esc(l.ru) + "</div></div>" +
-        '<div class="pct">' + (ok ? pctL + "%" : l.days + " дн.") + "</div>";
+        '<div class="pct">' + (ok ? (loading ? "…" : pctL + "%") : l.days + " дн.") + "</div>";
       if (ok) d.onclick = function () { go("/l" + l.n); };
       else d.style.opacity = ".55", d.style.cursor = "default";
       holder.appendChild(d);
@@ -741,14 +758,15 @@
     return { total: pool.length, learned: learned, started: started };
   }
 
-  function vocabBar(ws) {
+  function vocabBar(ws, loading) {
     var pct = ws.total ? Math.round((ws.learned / ws.total) * 100) : 0;
-    return '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+    function v(x) { return loading ? "—" : x; }
+    return '<div class="bar"><i style="width:' + (loading ? 0 : pct) + '%"></i></div>' +
       '<div class="stats">' +
-      '<div class="stat"><b>' + ws.learned + "</b><span>выучено</span></div>" +
-      '<div class="stat"><b>' + ws.started + "</b><span>в работе</span></div>" +
-      '<div class="stat"><b>' + (ws.total - ws.learned - ws.started) + "</b><span>не начато</span></div>" +
-      '<div class="stat"><b>' + pct + "%</b><span>словаря</span></div>" +
+      '<div class="stat"><b>' + v(ws.learned) + "</b><span>выучено</span></div>" +
+      '<div class="stat"><b>' + v(ws.started) + "</b><span>в работе</span></div>" +
+      '<div class="stat"><b>' + v(ws.total - ws.learned - ws.started) + "</b><span>не начато</span></div>" +
+      '<div class="stat"><b>' + (loading ? "—" : pct + "%") + "</b><span>словаря</span></div>" +
       "</div>";
   }
 

@@ -61,6 +61,7 @@ window.Store = (function () {
 
   var COMPACT_AT = 250;   /* столько операций в сумме — пора сворачивать */
   var TRIM_MARGIN = 50;   /* столько последних операций не подрезаем, страховка от гонки снапшотов */
+  var READY_WAIT = 4000;  /* столько ждём облако, прежде чем показать то, что есть */
 
   /* ---------- состояние ---------- */
 
@@ -248,6 +249,17 @@ window.Store = (function () {
   var listeners = [], statusListeners = [];
   var DB = null, pushTimer = null, pushing = false, dirty = false, legacyDone = false;
 
+  /* Готовность состояния. На телефоне localStorage переживает не каждое
+     открытие: у артефакта своё хранилище, и после публикации оно бывает
+     пустым. Тогда состояние приходит только из облака, и до его прихода
+     интерфейсу нечего показывать — нули вместо прогресса пугают сильнее
+     честного «подтягиваю». hydrated — состояние поднялось с диска,
+     cloudSeen — облако уже ответило (пусть даже пустотой). */
+  var hydrated = !!state;
+  var cloudSeen = false;
+  var readyTimer = null;
+  var connectAt = 0;
+
   /* Миграция со схемы 2: прежнее состояние становится стартовым снапшотом,
      журнал начинается пустым. Ничего не теряется. */
   if (!state || state.v !== SCHEMA) {
@@ -265,12 +277,28 @@ window.Store = (function () {
     if (snapshot) lsSet("de-b1-snapshot-v1", snapshot);
   }
 
+  function notify() {
+    listeners.forEach(function (fn) {
+      /* падение одного слушателя не должно ронять остальных, но и молча
+         съедать его нельзя: именно так теряются неотрисованные экраны */
+      try { fn(state); } catch (e) { if (window.console) console.error("listener failed", e); }
+    });
+  }
+
+  function markCloudSeen() {
+    if (cloudSeen) return;
+    cloudSeen = true;
+    clearTimeout(readyTimer);
+    notify();
+  }
+
   function materialize() {
     var ops = mine.ops.slice();
     for (var d in foreign) if (d !== DEV) ops = ops.concat(foreign[d]);
     state = reduce(snapshot ? snapshot.state : null, dropCovered(ops));
     lsSet(LS_STATE, state);
-    listeners.forEach(function (fn) { try { fn(state); } catch (e) {} });
+    hydrated = true;
+    notify();
     return state;
   }
 
@@ -311,6 +339,9 @@ window.Store = (function () {
 
   function push() {
     if (!DB) return;
+    /* устройству без единой операции писать нечего: пустой документ
+       в oplogs только мусорит коллекцию и ничего не переносит */
+    if (!mine.ops.length) return;
     if (pushing) { dirty = true; return; }
     pushing = true; dirty = false;
     setStatus("синк…");
@@ -327,6 +358,7 @@ window.Store = (function () {
   }
 
   function onSnapshotDoc(snap) {
+    markCloudSeen();
     if (!snap.exists) return;
     var d = snap.data();
     if (!d || !d.state) return;
@@ -349,6 +381,7 @@ window.Store = (function () {
   }
 
   function onLogs(qsnap) {
+    markCloudSeen();
     var seen = {};
     qsnap.docs.forEach(function (doc) {
       var d = doc.data();
@@ -421,25 +454,45 @@ window.Store = (function () {
       }, function () {});
   }
 
+  /* возврат к приложению: дожать журнал в облако и перерисовать интерфейс */
+  function resume() {
+    if (document.hidden) return;
+    /* таймер ожидания мог простоять замороженным вместе со страницей,
+       поэтому срок проверяем по стенным часам, а не по факту срабатывания */
+    if (!cloudSeen && connectAt && Date.now() - connectAt > READY_WAIT) markCloudSeen();
+    schedulePush();
+    notify();
+  }
+
   /* ---------- подключение ---------- */
 
   function connect() {
-    if (!window.claude || typeof claude.use !== "function") return;
+    if (!window.claude || typeof claude.use !== "function") { markCloudSeen(); return; }
+    /* если облако молчит, интерфейс не должен ждать его вечно */
+    connectAt = Date.now();
+    readyTimer = setTimeout(markCloudSeen, READY_WAIT);
     claude.use("db").then(function (db) {
-      if (!db) return;
+      if (!db) { markCloudSeen(); return; }
       DB = db;
       setStatus("синк…");
       db.doc("sync/snapshot").onSnapshot(onSnapshotDoc, function () { setStatus("синк ✗", "bad"); });
       db.collection("oplogs").onSnapshot(onLogs, function () { setStatus("синк ✗", "bad"); });
       importLegacy();
       push();
-    }, function () {});
+    }, function () { markCloudSeen(); });
 
     /* офлайн-очередь: журнал уже на диске, при возврате сети просто дожимаем */
     window.addEventListener("online", function () { schedulePush(); });
     document.addEventListener("visibilitychange", function () {
-      if (!document.hidden) schedulePush();
+      if (!document.hidden) resume();
     });
+    /* iOS замораживает страницу приложения с экрана «Домой»: ответ облака
+       приходит, пока вкладка скрыта, и экран остаётся тем, каким его
+       заморозили. Поэтому при возврате видимости разворачиваем состояние
+       заново и будим слушателей — иначе прогресс появляется только после
+       переключения вкладки вручную. */
+    window.addEventListener("pageshow", resume);
+    window.addEventListener("focus", resume);
   }
 
   return {
@@ -447,6 +500,8 @@ window.Store = (function () {
     LADDER: LADDER,
     device: DEV,
     state: function () { return state; },
+    /* false, пока состояние не поднято ни с диска, ни из облака */
+    ready: function () { return hydrated || cloudSeen; },
     mutate: mutate,
     onChange: function (fn) { listeners.push(fn); },
     onStatus: function (fn) { statusListeners.push(fn); },
