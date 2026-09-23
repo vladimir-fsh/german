@@ -9,7 +9,12 @@ function ok(name, cond, extra) {
   else { fail++; console.log("  FAIL " + name + (extra ? "\n       " + extra : "")); }
 }
 
-var win = env.load(["data/lessons.js", "data/vocab.js", "data/l18.js", "data/l19.js"]);
+/* файлы уроков подхватываются сами: всё, что лежит как data/lNN.js */
+var lessonFiles = require("fs").readdirSync(__dirname + "/../data")
+  .filter(function (f) { return /^l\d+\.js$/.test(f); })
+  .sort()
+  .map(function (f) { return "data/" + f; });
+var win = env.load(["data/lessons.js", "data/vocab.js"].concat(lessonFiles));
 var TYPES = { fill: 1, choice: 1, order: 1, translate: 1, pairs: 1 };
 
 win.COURSE.lessons.forEach(function (meta) {
@@ -30,6 +35,8 @@ win.COURSE.lessons.forEach(function (meta) {
     day.ex.forEach(function (ex, i) {
       var id = where + ", задание " + (i + 1);
       ok(id + ": тип известен", !!TYPES[ex.type], ex.type);
+      /* сборка предложения из плашек тратит время и не тренирует правило — в уроках её нет */
+      ok(id + ": без order", ex.type !== "order");
       kinds[ex.type] = (kinds[ex.type] || 0) + 1;
 
       if (ex.type === "fill") {

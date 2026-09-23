@@ -165,18 +165,6 @@ window.L19 = {
           ru: "Он сегодня не может прийти, потому что должен работать.",
           why: "Спрягаемая форма стоит последней: сначала Infinitiv arbeiten, потом muss." },
 
-        { type: "choice",
-          q: "Sie ist müde, weil sie zu spät ___ .",
-          opts: ["ins Bett gegangen ist", "ist ins Bett gegangen", "gegangen ins Bett ist"], a: 0,
-          ru: "Она устала, потому что поздно легла спать.",
-          why: "В Perfekt вспомогательный глагол ist уезжает за Partizip: … gegangen ist." },
-
-        { type: "choice",
-          q: "Ich muss früh aufstehen, weil der Zug um sechs ___ .",
-          opts: ["abfährt", "ab fährt", "fährt ab"], a: 0,
-          ru: "Мне нужно рано вставать, потому что поезд отходит в шесть.",
-          why: "В придаточном отделяемая приставка возвращается к глаголу и пишется слитно: abfährt." },
-
         { type: "fill",
           q: "Die Schüler lachen, weil sie ihre Hausaufgaben nicht gemacht {}.",
           a: ["haben"],
@@ -188,6 +176,12 @@ window.L19 = {
           a: [["möchte", "will"]],
           ru: "Я ношу фартук, потому что не хочу испачкаться во время готовки.",
           why: "Модальный глагол — спрягаемый, поэтому он последний, после machen. Возвратное mich при этом остаётся сразу после ich." },
+
+        { type: "choice",
+          q: "Sie ist müde, weil sie zu spät ___ .",
+          opts: ["ins Bett gegangen ist", "ist ins Bett gegangen", "gegangen ins Bett ist"], a: 0,
+          ru: "Она устала, потому что поздно легла спать.",
+          why: "В Perfekt вспомогательный глагол ist уезжает за Partizip: … gegangen ist." },
 
         { type: "fill",
           q: "Der Junge schämt sich, weil alle über ihn {}.",
@@ -201,6 +195,12 @@ window.L19 = {
           ru: "Я приду позже, потому что мой автобус опаздывает.",
           why: "Собираем придаточное: союз weil, дополнение Verspätung, спрягаемый hat в конце." },
 
+        { type: "choice",
+          q: "Ich muss früh aufstehen, weil der Zug um sechs ___ .",
+          opts: ["abfährt", "ab fährt", "fährt ab"], a: 0,
+          ru: "Мне нужно рано вставать, потому что поезд отходит в шесть.",
+          why: "В придаточном отделяемая приставка возвращается к глаголу и пишется слитно: abfährt." },
+
         { type: "fill",
           q: "Warum trägst du eine Schürze? — {Weil} ich nicht schmutzig werden {}.",
           a: [["weil"], ["will", "möchte"]],
@@ -212,22 +212,6 @@ window.L19 = {
           a: ["bestanden"],
           ru: "Она счастлива, потому что её сын сдал экзамен.",
           why: "Partizip bestanden стоит перед hat: в придаточном спрягаемый глагол закрывает предложение." },
-
-        { type: "order",
-          words: ["Er", "kommt", "nicht", "weil", "er", "keine", "Zeit", "hat"],
-          a: ["Er kommt nicht, weil er keine Zeit hat"],
-          ru: "Он не придёт, потому что у него нет времени." },
-
-        { type: "order",
-          words: ["Weil", "ich", "müde", "bin", "gehe", "ich", "ins", "Bett"],
-          a: ["Weil ich müde bin, gehe ich ins Bett"],
-          ru: "Так как я устал, я иду спать.",
-          prompt: "Начни с придаточного — и помни, что идёт сразу после запятой." },
-
-        { type: "order",
-          words: ["Wir", "bleiben", "zu", "Hause", "denn", "es", "regnet"],
-          a: ["Wir bleiben zu Hause, denn es regnet"],
-          ru: "Мы остаёмся дома, потому что идёт дождь." },
 
         { type: "pairs",
           prompt: "Соедини слово урока с переводом.",
