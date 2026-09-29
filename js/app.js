@@ -23,7 +23,7 @@
      обёртка артефакта (например, при запуске с экрана «Домой» на iOS) может
      подставить в адрес свой хеш, и тогда главная переставала перерисовываться
      после прихода прогресса из облака — висело «Подтягиваю прогресс…». */
-  var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|review|more|l\d+(\/(g|d)\d+)?)?$/;
+  var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate|add))?|review|more|l\d+(\/(g|d)\d+)?)?$/;
   function curPath() {
     var h = location.hash.replace(/^#/, "");
     return ROUTE_RE.test(h) ? h : "/";
@@ -32,7 +32,10 @@
   function redrawable() {
     var h = curPath();
     if (h === "/" || h === "/more" || /^\/l\d+$/.test(h)) return true;
-    if (h === "/vocab" || h === "/review") return !sessionLoad();
+    if (h === "/vocab") return !sessionLoad();
+    /* каждый ответ — мутация, а мутация будит слушателей: перерисовка
+       посреди прохода перетасовывала очередь и съедала ответ */
+    if (h === "/review") return !reviewLive;
     return false;
   }
 
@@ -60,6 +63,143 @@
     return out;
   }
 
+  /* ---------- похожие задания ----------
+     Идентификаторы: "L18D4-7" — седьмое задание пятого дня урока 18,
+     "L18X3" — задание из запасника урока (L.drill), которого нет ни в одном
+     дне. Запасник пишется под типичные ошибки: та же конструкция, другое
+     предложение. Из него берётся «новое похожее» к ошибке. */
+  var MIX_TYPES = { fill: 1, choice: 1, translate: 1 };
+
+  function parseId(id) {
+    var m = /^L(\d+)D(\d+)-(\d+)$/.exec(id);
+    if (m) return { n: +m[1], d: +m[2], k: +m[3] };
+    m = /^L(\d+)X(\d+)$/.exec(id);
+    if (m) return { n: +m[1], x: +m[2] };
+    return null;
+  }
+  function isDrill(id) { var p = parseId(id); return !!(p && p.x != null); }
+
+  /* само задание: из данных урока, а если их поменяли — из очереди ошибок */
+  function exById(id) {
+    var p = parseId(id), L = p && window["L" + p.n], ex = null;
+    if (L && p.x != null) ex = L.drill && L.drill[p.x];
+    else if (L) ex = L.days[p.d] && L.days[p.d].ex[p.k];
+    return ex || (S.srs[id] && S.srs[id].ex) || null;
+  }
+
+  /* блоки теории, на которых стоит задание: у дня — его grammar, у запасника — g */
+  function gramOf(id) {
+    var p = parseId(id), L = p && window["L" + p.n];
+    if (!L) return [];
+    var g = p.x != null ? (L.drill && L.drill[p.x] && L.drill[p.x].g) : (L.days[p.d] && L.days[p.d].grammar);
+    return g == null ? [] : [].concat(g);
+  }
+
+  function overlaps(a, b) {
+    for (var i = 0; i < a.length; i++) if (b.indexOf(a[i]) >= 0) return true;
+    return false;
+  }
+
+  /* из кандидатов — того же типа, что ошибка, если такие есть */
+  function pickLike(cands, type) {
+    var same = cands.filter(function (c) { return c.ex.type === type; });
+    var from = same.length ? same : cands;
+    return from[Math.floor(Math.random() * from.length)];
+  }
+
+  /* Новое задание на ту же конструкцию, что и ошибка id.
+     Сначала — ещё не виденное из запасника урока с тем же блоком теории,
+     потом — соседнее задание того же дня, которое не лежит в ошибках,
+     в крайнем случае — уже виденное из запасника. avoid — уже занятые id. */
+  function similarTo(id, avoid) {
+    var p = parseId(id), L = p && window["L" + p.n];
+    if (!L) return null;
+    var gs = gramOf(id), src = exById(id), type = src && src.type;
+    var fresh = [], seen = [], sib = [];
+    (L.drill || []).forEach(function (ex, k) {
+      var did = "L" + p.n + "X" + k;
+      if (did === id || avoid[did] || S.srs[did] || !MIX_TYPES[ex.type]) return;
+      if (!overlaps([].concat(ex.g), gs)) return;
+      ((S.drill || {})[did] != null ? seen : fresh).push({ id: did, ex: ex });
+    });
+    /* у дня первым стоит его главный блок — он и есть конструкция ошибки */
+    var main = fresh.filter(function (c) { return [].concat(c.ex.g).indexOf(gs[0]) >= 0; });
+    if (main.length) return pickLike(main, type);
+    if (fresh.length) return pickLike(fresh, type);
+    if (p.d != null && L.days[p.d]) {
+      L.days[p.d].ex.forEach(function (ex, k) {
+        var sid = "L" + p.n + "D" + p.d + "-" + k;
+        if (sid === id || avoid[sid] || S.srs[sid] || !MIX_TYPES[ex.type]) return;
+        sib.push({ id: sid, ex: ex });
+      });
+    }
+    if (sib.length) return pickLike(sib, type);
+    if (seen.length) return pickLike(seen, type);
+    return null;
+  }
+
+  /* Подмес в новый день: около 15% заданий — на конструкции, в которых
+     раньше были ошибки, из других дней. Чаще всего это не сама ошибка,
+     а похожее задание; если похожего нет — сама ошибка. Задания встают
+     в середину и конец дня, не в начало: день открывается узнаванием. */
+  var MIX_SHARE = 0.15;
+
+  function planMix(n, di, len) {
+    var want = Math.round(len * MIX_SHARE);
+    var own = "L" + n + "D" + di + "-";
+    var pool = E.shuffle(Object.keys(S.srs).filter(function (id) {
+      return id.indexOf(own) !== 0 && parseId(id) && MIX_TYPES[(exById(id) || {}).type];
+    }));
+    /* сначала по одной ошибке на тему (урок + главный блок дня),
+       чтобы подмес не состоял из двух одинаковых конструкций */
+    function topic(id) { return parseId(id).n + ":" + gramOf(id)[0]; }
+    var seenTopic = {}, firstPass = [], rest = [];
+    pool.forEach(function (id) {
+      (seenTopic[topic(id)] ? rest : firstPass).push(id);
+      seenTopic[topic(id)] = true;
+    });
+    pool = firstPass.concat(rest);
+    var avoid = {}, ids = [];
+    for (var j = 0; j < pool.length && ids.length < want; j++) {
+      var sim = similarTo(pool[j], avoid) || (avoid[pool[j]] ? null : { id: pool[j] });
+      if (!sim || !exById(sim.id)) continue;
+      avoid[sim.id] = true;
+      ids.push(sim.id);
+    }
+    var from = Math.min(3, len), span = len - from;
+    return ids.map(function (id, q) {
+      return { id: id, at: from + Math.floor(span * (q + 0.3 + Math.random() * 0.4) / ids.length) };
+    });
+  }
+
+  /* задания дня плюс подмес; у каждого свой id для очереди ошибок */
+  function dayList(n, di, mix) {
+    var list = window["L" + n].days[di].ex.map(function (ex, k) {
+      return { ex: ex, id: "L" + n + "D" + di + "-" + k };
+    });
+    mix.slice().sort(function (a, b) { return b.at - a.at; }).forEach(function (m) {
+      var ex = exById(m.id);
+      if (ex) list.splice(Math.min(m.at, list.length), 0, { ex: ex, id: m.id, mixed: true });
+    });
+    return list;
+  }
+
+  /* после ответа на подмешанное задание — откуда оно */
+  function mixNote(host, id, text) {
+    var fb = host.querySelector(".feedback");
+    var p = parseId(id);
+    if (fb) fb.insertAdjacentHTML("beforeend", '<span class="mixnote">' + esc(text) +
+      (p ? " · урок " + p.n : "") + "</span>");
+  }
+
+  /* ответ на задание вне очереди ошибок: промах кладём в очередь,
+     верный ответ на то, что уже там лежит, продвигает его */
+  function gradeLoose(it, ok) {
+    S = Store.mutate("answer", isDrill(it.id) ? { ok: ok, drill: it.id } : { ok: ok });
+    if (!ok) srsAdd(it.id, it.ex, parseId(it.id) ? parseId(it.id).n : null);
+    else srsHit(it.id, true);
+  }
+
   /* ---------- маршруты ---------- */
   function go(hash) { location.hash = hash; }
   window.addEventListener("hashchange", route);
@@ -77,6 +217,7 @@
     if (h === "/vocab/new") return viewVocab("new");
     if (h === "/vocab/repeat") return viewVocab("repeat");
     if (h === "/vocab/calibrate") return viewVocab("calib");
+    if (h === "/vocab/add") return viewAdd();
     if (h === "/more") return viewMore();
     if ((m = h.match(/^\/l(\d+)$/))) return viewLesson(+m[1]);
     if ((m = h.match(/^\/l(\d+)\/g(\d+)$/))) return viewGrammar(+m[1], +m[2]);
@@ -138,7 +279,8 @@
 
     var ws = vocabWordStats();
     var vcard = el("div", "card");
-    vcard.innerHTML = "<h2>Словарь</h2>" +
+    vcard.innerHTML = '<div class="h2row"><h2>Словарь</h2>' +
+      '<button class="addbtn" data-add aria-label="Добавить слово">+</button></div>' +
       '<div class="muted">Слово засчитывается выученным, когда прошло всю лестницу интервалов ' +
       "в обе стороны: и с немецкого, и на немецкий.</div>" + vocabBar(ws, loading);
     if (!loading && !S.calibrated) {
@@ -166,6 +308,7 @@
       vrow.appendChild(vb2);
     }
     vcard.appendChild(vrow);
+    vcard.querySelector("[data-add]").onclick = function () { go("/vocab/add"); };
     app.appendChild(vcard);
 
     var list = el("div", "card");
@@ -225,7 +368,7 @@
         '<div class="tag">' + (isDayDone(n, i) ? "готово" : open ? "продолжить" : "день " + (i + 1)) + "</div>" +
         "<div><div style=\"font-weight:600\">" + esc(day.title) + "</div>" +
         '<div class="s muted">' + esc(day.sub || "") + " · " +
-        (open ? "остановился на " + open.i + " из " + day.ex.length : day.ex.length + " заданий") +
+        (open ? "остановился на " + open.i + " из " + (open.of || day.ex.length) : day.ex.length + " заданий") +
         "</div></div>";
       row.onclick = function () { go("/l" + n + "/d" + i); };
       d.appendChild(row);
@@ -303,8 +446,9 @@
     var L = window["L" + n];
     var day = L && L.days[di];
     if (!day) return go("/l" + n);
-    var list = day.ex.slice();
     var saved = dayLoad(n, di);
+    var mix = saved ? (saved.mix || []) : planMix(n, di, day.ex.length);
+    var list = dayList(n, di, mix);
     var i = saved ? Math.min(saved.i || 0, list.length - 1) : 0;
     var correct = saved ? (saved.correct || 0) : 0;
     app.innerHTML = "";
@@ -354,16 +498,22 @@
       check.disabled = false;
       pl.querySelector(".cnt").textContent = (i + 1) + " / " + list.length;
       pl.querySelector("i").style.width = Math.round((i / list.length) * 100) + "%";
-      var ex = list[i];
-      api = E.render(ex, host, function (ok) {
+      var it = list[i];
+      api = E.render(it.ex, host, function (ok) {
         answered = true;
         if (ok) correct++;
-        S = Store.mutate("answer", { ok: ok });
-        var id = "L" + n + "D" + di + "-" + i;
-        if (!ok) srsAdd(id, ex, n);
+        if (it.mixed) {
+          gradeLoose(it, ok);
+          mixNote(host, it.id, "Конструкция из твоих прошлых ошибок");
+        } else {
+          S = Store.mutate("answer", { ok: ok });
+          if (!ok) srsAdd(it.id, it.ex, n);
+        }
         /* позиция в дне переживает перезагрузку: день засчитывается только
-           на последнем задании, терять 14 ответов из 16 нельзя */
-        daySave({ n: n, di: di, i: i + 1, correct: correct, at: Date.now() });
+           на последнем задании, терять 14 ответов из 16 нельзя.
+           Подмес сохраняется вместе с ней, иначе после перезагрузки
+           задания съедут. */
+        daySave({ n: n, di: di, i: i + 1, correct: correct, mix: mix, of: list.length, at: Date.now() });
         check.style.display = "none";
         next.style.display = "";
         syncBar();
@@ -417,11 +567,35 @@
     step();
   }
 
-  /* ---------- повторение ---------- */
+  /* ---------- повторение ----------
+     За каждой старой ошибкой сразу идёт новое задание на ту же конструкцию:
+     старое проверяет, помнишь ли исправление, новое — понял ли правило,
+     а не запомнил ответ. Проход ограничен, иначе с парами он раздувается
+     вдвое; остаток — следующей порцией. */
+  var REVIEW_MAX = 12;
+  var reviewLive = false;
+
+  function reviewQueue(due) {
+    var avoid = {}, queue = [];
+    due.forEach(function (d) { avoid[d.id] = true; });
+    due.slice(0, REVIEW_MAX).forEach(function (d) {
+      queue.push({ id: d.id, ex: d.r.ex, old: true });
+      var sim = similarTo(d.id, avoid);
+      if (!sim) return;
+      avoid[sim.id] = true;
+      queue.push({ id: sim.id, ex: sim.ex });
+    });
+    return queue;
+  }
+
   function viewReview() {
     var due = E.shuffle(srsDue());
+    var queue = reviewQueue(due);
+    var batchOld = Math.min(due.length, REVIEW_MAX);
+    /* пустой экран перерисовывать можно: ошибки могут приехать из облака */
+    reviewLive = queue.length > 0;
     app.innerHTML = "";
-    if (!due.length) {
+    if (!queue.length) {
       var c0 = el("div", "card hero");
       c0.innerHTML = "<h1>Нечего повторять</h1><div class=\"muted\">Ошибок в очереди нет. Возвращайся после новых заданий.</div>";
       var r0 = el("div", "btnrow");
@@ -431,12 +605,14 @@
       app.appendChild(c0);
       return;
     }
-    var i = 0;
+    var i = 0, correct = 0;
     var card = el("div", "card");
     card.innerHTML = '<div class="kicker">Повторение ошибок</div>';
     var pl = el("div", "progline");
     pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>';
     card.appendChild(pl);
+    var tag = el("div", "mixtag");
+    card.appendChild(tag);
     var host = el("div", null);
     card.appendChild(host);
     var row = el("div", "btnrow sticky");
@@ -456,13 +632,20 @@
     function step() {
       answered = false;
       next.style.display = "none"; check.style.display = "";
-      pl.querySelector(".cnt").textContent = (i + 1) + " / " + due.length;
-      pl.querySelector("i").style.width = Math.round((i / due.length) * 100) + "%";
-      var item = due[i];
-      api = E.render(item.r.ex, host, function (ok) {
+      pl.querySelector(".cnt").textContent = (i + 1) + " / " + queue.length;
+      pl.querySelector("i").style.width = Math.round((i / queue.length) * 100) + "%";
+      var item = queue[i];
+      tag.textContent = item.old ? "Твоя ошибка" : "Новое на ту же конструкцию";
+      tag.className = "mixtag" + (item.old ? "" : " fresh");
+      api = E.render(item.ex, host, function (ok) {
         answered = true;
-        S = Store.mutate("answer", { ok: ok });
-        srsHit(item.id, ok);
+        if (ok) correct++;
+        if (item.old) {
+          S = Store.mutate("answer", { ok: ok });
+          srsHit(item.id, ok);
+        } else {
+          gradeLoose(item, ok);
+        }
         check.style.display = "none"; next.style.display = ""; syncBar(); next.focus();
       });
       check.style.display = api.check ? "" : "none";
@@ -471,12 +654,36 @@
     check.onclick = function () { if (api && api.check) api.check(); };
     next.onclick = function () {
       i++;
-      if (i >= due.length) { document.onkeydown = null; return go("/"); }
+      if (i >= queue.length) { document.onkeydown = null; return finish(); }
       step();
     };
     document.onkeydown = function (e) {
       if (e.key === "Enter" && answered) { e.preventDefault(); next.click(); }
     };
+
+    /* итог прохода не перерисовывается приходом облака: reviewLive остаётся
+       поднятым, иначе экран сам запустил бы следующую порцию */
+    function finish() {
+      var left = srsDue().length;
+      app.innerHTML = "";
+      var c = el("div", "card hero");
+      c.innerHTML = '<div class="kicker">Повторение ошибок</div>' +
+        "<h1>" + correct + " из " + queue.length + " верно</h1>" +
+        '<div class="muted">Старых ошибок в проходе: ' + batchOld +
+        ", к каждой — новое задание на ту же конструкцию." +
+        (left ? "<br>В очереди ещё " + left + "." : "<br>Очередь пуста.") + "</div>";
+      var r = el("div", "btnrow");
+      if (left) {
+        var b1 = el("button", "btn", "Следующая порция");
+        b1.onclick = function () { viewReview(); };
+        r.appendChild(b1);
+      }
+      var b2 = el("button", "btn" + (left ? " sec" : ""), "К программе");
+      b2.onclick = function () { go("/"); };
+      r.appendChild(b2);
+      c.appendChild(r);
+      app.appendChild(c);
+    }
     step();
   }
 
@@ -572,9 +779,12 @@
 
   var V_LEVELS = 5;
 
-  /* слова уроков (f = 0, идут первыми) плюс общий словарь A2–B1 со ступенями частотности */
+  /* свои слова (добавлены через «+») и слова уроков — f = 0, идут первыми;
+     дальше общий словарь A2–B1 со ступенями частотности */
   function vocabPool() {
-    var out = [];
+    var out = [], mine = S.custom || {};
+    Object.keys(mine).sort(function (a, b) { return (mine[a].t || 0) - (mine[b].t || 0); })
+      .forEach(function (de) { out.push({ n: null, w: mine[de], key: "U:" + de, f: 0 }); });
     (window.COURSE.lessons || []).forEach(function (l) {
       if (l.status !== "ready") return;
       var L = window["L" + l.n];
@@ -842,6 +1052,9 @@
         bn.onclick = function () { go("/vocab/new"); };
         r0.appendChild(bn);
       }
+      var ba = el("button", "btn sec", "+ Своё слово");
+      ba.onclick = function () { go("/vocab/add"); };
+      r0.appendChild(ba);
       var b0 = el("button", "btn sec", "← На главную");
       b0.onclick = function () { go("/"); };
       r0.appendChild(b0);
@@ -865,7 +1078,9 @@
 
     var card = el("div", "vscreen");
     var pl = el("div", "progline");
-    pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>';
+    pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>' +
+      (calib ? "" : '<button class="addbtn sm" aria-label="Добавить слово">+</button>');
+    if (!calib) pl.querySelector(".addbtn").onclick = function () { go("/vocab/add"); };
     card.appendChild(pl);
     var host = el("div", "vhost");
     card.appendChild(host);
@@ -1226,6 +1441,192 @@
       r.appendChild(b); r.appendChild(b2);
       c.appendChild(r);
       app.appendChild(c);
+    }
+  }
+
+  /* ---------- своё слово ----------
+     Вводишь слово по-немецки или по-русски, Claude составляет черновик
+     карточки, ты его правишь и подтверждаешь. Только после подтверждения
+     слово ложится в журнал операцией wordAdd и попадает в общую очередь.
+     Перевод идёт через возможность артефакта sample; где её нет (локально,
+     без разрешения) — карточка заполняется руками. */
+  var samplerP = null;
+  function sampler() {
+    if (!samplerP) {
+      samplerP = window.claude && typeof claude.use === "function"
+        ? claude.use("sample").then(null, function () { return null; })
+        : Promise.resolve(null);
+    }
+    return samplerP;
+  }
+
+  function normWord(s) {
+    return E.norm(s).replace(/^(der|die|das|sich) /, "");
+  }
+
+  /* слово уже есть в словаре — в уроках, общем списке или своих */
+  function vocabFind(de) {
+    var k = normWord(de), hit = null;
+    if (!k) return null;
+    vocabPool().forEach(function (it) {
+      if (!hit && (normWord(it.w.de) === k || E.norm(it.w.ru) === E.norm(de))) hit = it;
+    });
+    return hit;
+  }
+
+  /* ответ Claude как JSON: целиком, а если вокруг есть текст — от первой { до последней } */
+  function looseJson(text) {
+    text = String(text || "");
+    try { return JSON.parse(text); } catch (e) {}
+    var a = text.indexOf("{"), b = text.lastIndexOf("}");
+    if (a < 0 || b <= a) return null;
+    try { return JSON.parse(text.slice(a, b + 1)); } catch (e) { return null; }
+  }
+
+  function addPrompt(input) {
+    return "Ты помогаешь русскоговорящему ученику (уровень A2, идёт к B1) учить немецкий " +
+      "по карточкам. Он хочет добавить слово или фразу: «" + input + "».\n" +
+      "Это может быть немецкое или русское слово, возможно с опечаткой. Составь одну карточку.\n" +
+      "Правила:\n" +
+      "- de: немецкий вариант в словарной форме. Существительное — с артиклем (der/die/das). " +
+      "Глагол — в инфинитиве, с sich и с управляемым предлогом, если он есть (sich kümmern um). " +
+      "Если русское слово переводится по-разному — бери самый ходовой разговорный вариант.\n" +
+      "- ru: короткий русский перевод, 1–3 значения через запятую.\n" +
+      "- ex: короткий живой пример (5–10 слов), как говорят в жизни, а не в учебнике. Лексика A2–B1.\n" +
+      "- exru: перевод примера.\n" +
+      "- reg: если слово книжное или газетное — «книжно · в разговоре: <разговорный вариант>»; " +
+      "если разговорное или сленг — «разговорное»; иначе пустая строка.\n" +
+      "Проверь артикль и окончания. Если ввод не похож на слово или фразу — верни {\"error\": \"<почему, по-русски>\"}.\n" +
+      'Ответь только JSON: {"de": "", "ru": "", "ex": "", "exru": "", "reg": ""}';
+  }
+
+  function viewAdd() {
+    app.innerHTML = "";
+    var c = el("div", "card");
+    c.innerHTML = '<div class="kicker">Словарь</div><h2>Своё слово</h2>' +
+      '<div class="muted">Напиши слово или фразу — по-немецки или по-русски. Claude предложит ' +
+      "карточку, в словарь она попадёт только после твоего подтверждения.</div>";
+    var inp = document.createElement("input");
+    inp.className = "big"; inp.type = "text"; inp.spellcheck = false;
+    inp.autocapitalize = "off"; inp.autocomplete = "off";
+    inp.setAttribute("autocorrect", "off");
+    inp.setAttribute("enterkeyhint", "go");
+    inp.placeholder = "sich lohnen или «стоить того»";
+    c.appendChild(inp);
+    var row = el("div", "btnrow");
+    var go1 = el("button", "btn", "Перевести");
+    var back = el("button", "btn sec", "← Назад");
+    back.onclick = function () { history.length > 1 ? history.back() : go("/vocab"); };
+    row.appendChild(go1); row.appendChild(back);
+    c.appendChild(row);
+    var out = el("div", "addout");
+    c.appendChild(out);
+    app.appendChild(c);
+    setTimeout(function () { inp.focus(); }, 30);
+
+    var ctl = null;
+    function run() {
+      var q = inp.value.trim();
+      if (!q) { inp.focus(); return; }
+      var dup = vocabFind(q);
+      if (dup) return showDup(dup);
+      go1.disabled = true;
+      out.innerHTML = '<div class="muted">Думаю…</div>';
+      sampler().then(function (sample) {
+        if (!sample) {
+          go1.disabled = false;
+          return draft({ de: q, ru: "", ex: "", exru: "", reg: "" },
+            "Перевод работает только в приложении на claude.ai. Здесь заполни карточку сам.");
+        }
+        ctl = new AbortController();
+        return sample(addPrompt(q), { signal: ctl.signal }).then(function (res) {
+          var r = looseJson(res && res.text);
+          go1.disabled = false;
+          if (!r || r.error || !r.de || !r.ru) {
+            out.innerHTML = "";
+            out.appendChild(el("div", "note", esc((r && r.error) || "Не получилось составить карточку. Попробуй написать иначе.")));
+            return;
+          }
+          var d2 = vocabFind(String(r.de));
+          if (d2) return showDup(d2);
+          draft({ de: String(r.de), ru: String(r.ru), ex: String(r.ex || ""), exru: String(r.exru || ""), reg: String(r.reg || "") });
+        }, function (e) {
+          go1.disabled = false;
+          var code = e && e.code;
+          if (code === "cancelled") { out.innerHTML = ""; return; }
+          var msg = code === "not_granted" || code === "sampling_disabled"
+            ? "Доступ к Claude не разрешён — заполни карточку сам."
+            : code === "rate_limited" ? "Слишком много запросов. Попробуй чуть позже или заполни сам."
+              : "Перевод не удался. Можно попробовать ещё раз или заполнить сам.";
+          draft({ de: q, ru: "", ex: "", exru: "", reg: "" }, msg);
+        });
+      });
+    }
+    go1.onclick = run;
+    inp.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); run(); }
+    });
+
+    function showDup(it) {
+      go1.disabled = false;
+      out.innerHTML = "";
+      out.appendChild(el("div", "note", "Это слово уже есть в словаре: <b>" + esc(it.w.de) + "</b> — " +
+        esc(it.w.ru) + " · " + esc(vocabWhen(it.key + "|de"))));
+    }
+
+    /* черновик карточки: всё можно поправить до подтверждения */
+    function draft(w, note) {
+      out.innerHTML = "";
+      if (note) out.appendChild(el("div", "note", esc(note)));
+      var form = el("div", "addform");
+      var fields = [
+        ["de", "Немецкий"], ["ru", "Перевод"], ["ex", "Пример"], ["exru", "Перевод примера"], ["reg", "Пометка"]
+      ];
+      var box = {};
+      fields.forEach(function (f) {
+        var lab = el("label", null, "<span>" + f[1] + "</span>");
+        var x = document.createElement(f[0] === "ex" || f[0] === "exru" ? "textarea" : "input");
+        if (x.tagName === "INPUT") x.type = "text";
+        else x.rows = 2;
+        x.value = w[f[0]] || "";
+        x.spellcheck = false;
+        x.setAttribute("autocorrect", "off");
+        x.autocapitalize = "off";
+        lab.appendChild(x);
+        form.appendChild(lab);
+        box[f[0]] = x;
+      });
+      out.appendChild(form);
+      var r = el("div", "btnrow");
+      var ok = el("button", "btn", "Добавить карточку");
+      var no = el("button", "btn sec", "Отмена");
+      ok.onclick = function () {
+        var nw = {};
+        fields.forEach(function (f) { nw[f[0]] = box[f[0]].value.trim(); });
+        if (!nw.de || !nw.ru) { (nw.de ? box.ru : box.de).focus(); return; }
+        var d3 = vocabFind(nw.de);
+        if (d3) return showDup(d3);
+        S = Store.mutate("wordAdd", { w: nw });
+        syncTabs();
+        added(nw);
+      };
+      no.onclick = function () { out.innerHTML = ""; inp.value = ""; inp.focus(); };
+      r.appendChild(ok); r.appendChild(no);
+      out.appendChild(r);
+    }
+
+    function added(w) {
+      out.innerHTML = "";
+      inp.value = "";
+      out.appendChild(el("div", "note good", "Добавлено: <b>" + esc(w.de) + "</b> — " + esc(w.ru) +
+        ". Карточка встанет первой среди новых слов."));
+      var r = el("div", "btnrow");
+      var more = el("button", "btn sec", "Ещё слово");
+      more.onclick = function () { out.innerHTML = ""; inp.focus(); };
+      var learn = el("button", "btn", "Учить слова");
+      learn.onclick = function () { go("/vocab"); };
+      r.appendChild(learn); r.appendChild(more);
+      out.appendChild(r);
     }
   }
 

@@ -67,7 +67,7 @@ window.Store = (function () {
 
   function blank() {
     return {
-      v: SCHEMA, done: {}, srs: {}, vocab: {},
+      v: SCHEMA, done: {}, srs: {}, vocab: {}, custom: {}, drill: {},
       vocabLevel: 1, calibrated: false, streak: 0, lastDay: null,
       totalCorrect: 0, totalTried: 0, resetAt: 0
     };
@@ -115,6 +115,23 @@ window.Store = (function () {
       case "answer":
         s.totalTried++;
         if (op.ok) s.totalCorrect++;
+        /* задание из запасника урока: отмечаем, что оно уже показывалось,
+           чтобы «новое похожее» в следующий раз было действительно новым */
+        if (op.drill) {
+          s.drill = s.drill || {};
+          s.drill[op.drill] = op.ok ? 1 : 0;
+        }
+        return s;
+
+      /* своё слово, добавленное через «+». Ключ — немецкая форма:
+         повторное добавление того же слова просто обновляет перевод */
+      case "wordAdd":
+        if (!op.w || !op.w.de) return s;
+        s.custom = s.custom || {};
+        s.custom[op.w.de] = {
+          de: op.w.de, ru: op.w.ru || "", ex: op.w.ex || "", exru: op.w.exru || "",
+          reg: op.w.reg || "", t: op.t
+        };
         return s;
 
       case "dayDone":
