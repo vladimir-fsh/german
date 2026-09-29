@@ -118,8 +118,9 @@ https://claude.ai/artifact/RTpbFXCnadZoeUwTKicZcu
 
 ## Карточки слов
 
-- В словаре (`data/vocab.js`) только слова: никаких идиом («Schwein haben»,
-  «Ich verstehe nur Bahnhof») и готовых фраз («Keine Ahnung.», «Passt schon.»).
+- В словаре (`data/vocab.js`) никаких идиом («Schwein haben», «Ich verstehe
+  nur Bahnhof»). Готовые фразы («Keine Ahnung.», «Passt schon.») можно,
+  но не больше 10% словаря; остальное — слова.
   Глагол с предлогом или устойчивым дополнением («sich kümmern um»,
   «Urlaub nehmen») — это слово, его можно.
 - Если у слова есть более разговорный вариант, карточкой идёт разговорный,

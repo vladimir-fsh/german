@@ -3,7 +3,7 @@
    Приложение само двигает ступень: знаешь новые слова с первого раза — следующая
    порция берётся менее частотная, ошибаешься — возвращается более ходовая.
 
-   Только слова: без идиом и готовых фраз. Если у слова есть разговорный
+   Без идиом. Готовые фразы — не больше 10% словаря. Если у слова есть разговорный
    вариант, карточка учит разговорный, а второй вариант стоит в reg:
    «книжно: …» у разговорного двойника книжного слова, «нейтрально: …»
    у разговорного слова. Книжные слова без бытовой замены — на ступени 5. */
@@ -66,6 +66,20 @@ window.VOCAB = [
   { f: 1, de: "ausmachen", ru: "выключить; договориться (о встрече)", ex: "Mach bitte das Licht aus. / Wir haben einen Termin ausgemacht.", exru: "Выключи, пожалуйста, свет. / Мы договорились о встрече." },
   { f: 1, de: "mal", ru: "-ка, разок (смягчает просьбу)", ex: "Kannst du mal kurz kommen?", exru: "Можешь подойти на минутку?", reg: "частица: без неё просьба звучит резко" },
   { f: 1, de: "doch", ru: "же, ну (настойчиво); «нет же, да» на отрицание", ex: "Komm doch mit! — Du hast keine Zeit? — Doch!", exru: "Ну пойдём с нами! — У тебя нет времени? — Есть!", reg: "частица" },
+
+  /* готовые фразы, ступень 1 */
+  { f: 1, de: "Das macht nichts.", ru: "ничего страшного", ex: "— Oh, Entschuldigung! — Das macht nichts.", exru: "— Ой, извините! — Ничего страшного." },
+  { f: 1, de: "Es kommt darauf an.", ru: "смотря как, зависит от обстоятельств", ex: "— Kommst du mit? — Es kommt darauf an, wann.", exru: "— Пойдёшь с нами? — Смотря когда." },
+  { f: 1, de: "Keine Ahnung.", ru: "понятия не имею", ex: "— Wo ist die Fernbedienung? — Keine Ahnung.", exru: "— Где пульт? — Понятия не имею." },
+  { f: 1, de: "Was ist los?", ru: "что случилось? что такое?", ex: "Du siehst traurig aus. Was ist los?", exru: "Ты выглядишь грустным. Что случилось?" },
+  { f: 1, de: "Mal sehen.", ru: "посмотрим", ex: "— Kommst du am Samstag? — Mal sehen.", exru: "— Придёшь в субботу? — Посмотрим." },
+  { f: 1, de: "Ach so!", ru: "а, вот оно что!", ex: "— Er ist heute krank. — Ach so, deshalb ist er nicht da.", exru: "— Он сегодня болеет. — А, вот почему его нет." },
+  { f: 1, de: "Stimmt.", ru: "верно, точно", ex: "— Es ist schon spät. — Stimmt, wir müssen los.", exru: "— Уже поздно. — Точно, нам пора." },
+  { f: 1, de: "Alles klar.", ru: "понятно, договорились", ex: "— Wir treffen uns um sieben. — Alles klar!", exru: "— Встречаемся в семь. — Договорились!" },
+  { f: 1, de: "Keine Sorge.", ru: "не волнуйся", ex: "Keine Sorge, ich komme pünktlich.", exru: "Не волнуйся, я приду вовремя." },
+  { f: 1, de: "Los geht's!", ru: "поехали! начали!", ex: "Alle da? Dann los geht's!", exru: "Все здесь? Тогда поехали!" },
+  { f: 1, de: "Mach's gut!", ru: "пока, всего хорошего", ex: "Tschüss, mach's gut!", exru: "Пока, всего хорошего!" },
+  { f: 1, de: "Gute Besserung!", ru: "выздоравливай!", ex: "Du bist krank? Gute Besserung!", exru: "Ты заболел? Выздоравливай!" },
 
   /* ---------- ступень 2: уверенный A2 — начало B1 ---------- */
   { f: 2, de: "die Verantwortung", ru: "ответственность", ex: "Er übernimmt die Verantwortung für das Projekt.", exru: "Он берёт на себя ответственность за проект." },
@@ -191,6 +205,15 @@ window.VOCAB = [
   { f: 2, de: "den Müll rausbringen", ru: "выносить мусор", ex: "Kannst du bitte den Müll rausbringen?", exru: "Можешь, пожалуйста, вынести мусор?" },
   { f: 2, de: "sich hinlegen", ru: "прилечь", ex: "Ich habe Kopfschmerzen, ich lege mich kurz hin.", exru: "У меня болит голова, я ненадолго прилягу." },
 
+  /* готовые фразы, ступень 2 */
+  { f: 2, de: "Im Ernst?", ru: "серьёзно?", ex: "Du hast gekündigt? Im Ernst?", exru: "Ты уволился? Серьёзно?" },
+  { f: 2, de: "Na und?", ru: "ну и что?", ex: "— Er ist älter als du. — Na und?", exru: "— Он старше тебя. — Ну и что?" },
+  { f: 2, de: "Wie läuft's?", ru: "как дела? как идёт?", ex: "Na, wie läuft's bei der neuen Arbeit?", exru: "Ну, как дела на новой работе?", reg: "разговорное" },
+  { f: 2, de: "Wie meinst du das?", ru: "что ты имеешь в виду?", ex: "Wie meinst du das? Ich verstehe dich nicht.", exru: "Что ты имеешь в виду? Я тебя не понимаю." },
+  { f: 2, de: "Es geht um …", ru: "речь идёт о …", ex: "Worum geht es in dem Film?", exru: "О чём этот фильм?" },
+  { f: 2, de: "Zusammen oder getrennt?", ru: "вместе или раздельно? (счёт в кафе)", ex: "— Zahlen, bitte! — Zusammen oder getrennt?", exru: "— Счёт, пожалуйста! — Вместе или раздельно?" },
+  { f: 2, de: "Stimmt so.", ru: "сдачи не надо", ex: "Das macht 18 Euro. — Hier sind 20, stimmt so.", exru: "С вас 18 евро. — Вот 20, сдачи не надо." },
+
   /* ---------- ступень 3: середина B1 ---------- */
   { f: 3, de: "der Eindruck", ru: "впечатление", ex: "Sie macht einen ruhigen Eindruck.", exru: "Она производит спокойное впечатление." },
   { f: 3, de: "der Zusammenhang", ru: "взаимосвязь, контекст", ex: "Ich sehe keinen Zusammenhang zwischen den Ereignissen.", exru: "Я не вижу связи между этими событиями." },
@@ -254,6 +277,14 @@ window.VOCAB = [
   { f: 3, de: "abstürzen", ru: "зависнуть, вылететь (о компьютере)", ex: "Mein Laptop ist schon wieder abgestürzt.", exru: "Мой ноутбук опять завис." },
   { f: 3, de: "die Blumen gießen", ru: "поливать цветы", ex: "Kannst du im Urlaub meine Blumen gießen?", exru: "Можешь поливать мои цветы, пока я в отпуске?" },
   { f: 3, de: "die Spülmaschine ausräumen", ru: "разобрать посудомойку", ex: "Wer räumt heute die Spülmaschine aus?", exru: "Кто сегодня разбирает посудомойку?" },
+
+  /* готовые фразы, ступень 3 */
+  { f: 3, de: "Was soll's.", ru: "ну и ладно, что поделаешь", ex: "Wir haben verloren, aber was soll's.", exru: "Мы проиграли, ну и ладно." },
+  { f: 3, de: "Passt schon.", ru: "всё нормально, не страшно", ex: "— Sorry, ich bin zu spät. — Passt schon.", exru: "— Извини, я опоздал. — Да ничего.", reg: "разговорное" },
+  { f: 3, de: "Von mir aus.", ru: "по мне, так ладно", ex: "— Gehen wir heute ins Kino? — Von mir aus.", exru: "— Пойдём сегодня в кино? — Ну давай." },
+  { f: 3, de: "Das kommt nicht infrage.", ru: "это исключено", ex: "Ein Hund in der Wohnung? Das kommt nicht infrage!", exru: "Собака в квартире? Исключено!" },
+  { f: 3, de: "Es liegt an …", ru: "дело в …", ex: "Es liegt nicht an dir, sondern an mir.", exru: "Дело не в тебе, а во мне." },
+  { f: 3, de: "Mir ist schlecht.", ru: "меня тошнит, мне плохо", ex: "Halt bitte an, mir ist schlecht.", exru: "Останови, пожалуйста, меня тошнит." },
 
   /* ---------- ступень 4: зрелый B1 и сленг ---------- */
   { f: 4, de: "das Vorurteil", ru: "предрассудок", ex: "Viele Menschen haben Vorurteile gegen Fremde.", exru: "У многих людей есть предрассудки против чужаков." },
