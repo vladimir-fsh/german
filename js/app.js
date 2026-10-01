@@ -324,6 +324,16 @@
       }); head.appendChild(det);
     });
     head.appendChild(el("div", "muted", "Ответы сохраняются. Результат относится к первой попытке; открытая теория отмечается как подсказка."));
+    /* день пройден, а отметка не легла (сбой, перезагрузка) — засчитать руками
+       с уже сохранёнными ответами; второе нажатие подтверждает */
+    if (!isDayDone(n, di)) {
+      var mrow = el("div", "btnrow"), mark = el("button", "btn sec", "Засчитать день"), armed = false;
+      mark.onclick = function () {
+        if (!armed) { armed = true; mark.textContent = "Точно засчитать? Нажми ещё раз"; return; }
+        done();
+      };
+      mrow.appendChild(mark); head.appendChild(mrow);
+    }
     app.appendChild(head);
     var card = el("div", "card"), pl = el("div", "progline");
     pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>'; card.appendChild(pl);
