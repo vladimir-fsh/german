@@ -81,13 +81,13 @@ test("две вкладки одного устройства не затира�
   const storage = env.makeStorage(); const first = env.load(SYNC, { localStorage: storage }); const second = env.load(SYNC, { localStorage: storage });
   first.Store.mutate("answer", { ok: true }); second.Store.mutate("answer", { ok: false });
   first._fire("storage"); assert.equal(first.Store.state().totalTried, 2); assert.equal(first.Store.state().totalCorrect, 1);
-  assert.equal(second.Store.state().totalTried, 2); assert.equal(second.Store._debug().mine.seq, 2);
+  assert.equal(second.Store.state().totalTried, 2); assert.equal(second.Store._debug().mine.seq, 1);
 });
 
 test("собственный облачный журнал восстанавливается, даже если локальная копия потеряна", async () => {
   const db = env.makeDb(); db._seed("oplogs/self", { device: "self", seq: 1, lc: 1, ops: [{ type: "answer", ok: true, device: "self", seq: 1, lc: 1, t: T }] });
   const win = env.load(SYNC, { db, storage: { "de-b1-device-v1": "self" } }); win.Store.connect(); await env.settle(20);
-  assert.equal(win.Store.state().totalCorrect, 1); assert.equal(win.Store._debug().mine.seq, 1);
+  assert.equal(win.Store.state().totalCorrect, 1); assert.equal(win.Store._debug().foreign.self.length, 1);
 });
 
 test("новые карточки имеют короткие шаги; ранний ответ не удлиняет интервал, срыв возвращает обучение", () => {
@@ -142,16 +142,173 @@ test("невалидный журнал облака не повреждает �
 });
 
 test("плохой черновик в резервной копии отклоняется до замены прогресса", () => {
-  const win = env.load(SYNC.concat("js/practice.js")); win.Store.mutate("answer", { ok: true });
+  const win = env.load(SYNC.concat(["js/practice.js", "js/sessions.js"])); win.Store.mutate("answer", { ok: true });
   const draft = win.Practice.create(18, 0, [{ type: "fill", q: "{ein}", a: ["einen"] }]);
   draft.records[0] = { draft: { values: [42] } };
   assert.throws(() => win.Store.importBackup(JSON.stringify({ kind: "de-b1-backup", state: stored(), drafts: { L18D0: draft } })));
   assert.equal(win.Store.state().totalTried, 1); assert.equal(Object.keys(win.Store.state().done).length, 0);
 });
 
-test("потерянный свой журнал получает новый номер после курсора снимка", () => {
+test("новый автор не попадает под старый курсор снимка", () => {
   const state = stored(); const snapshot = { v: 4, state, cursor: { self: 40, other: 10 }, at: T };
   const win = env.load(SYNC, { storage: { "de-b1-device-v1": "self", "de-b1-progress-v1": JSON.stringify(state), "de-b1-snapshot-v1": JSON.stringify(snapshot) } });
   win.Store.mutate("answer", { ok: true });
-  assert.equal(win.Store.state().totalTried, 17); assert.equal(win.Store._debug().mine.seq, 41);
+  assert.equal(win.Store.state().totalTried, 17); assert.notEqual(win.Store.device, "self"); assert.equal(win.Store._debug().mine.seq, 1);
+});
+
+test("одновременные ответы вкладок переживают пересечение локальных записей", () => {
+  const storage = env.makeStorage(); const a = env.load(SYNC, { localStorage: storage }); const b = env.load(SYNC, { localStorage: storage });
+  const set = storage.setItem; let nested = false;
+  storage.setItem = (key, value) => {
+    if (!nested && key.indexOf("de-b1-oplog") === 0 && JSON.parse(value).ops.length) { nested = true; b.Store.mutate("answer", { ok: false }); }
+    set(key, value);
+  };
+  a.Store.mutate("answer", { ok: true }); storage.setItem = set;
+  a._fire("storage"); b._fire("storage");
+  const reload = env.load(SYNC, { localStorage: storage }); reload.Store.mutate("touchDay", { day: "2026-10-01" });
+  assert.equal(reload.Store.state().totalTried, 2); assert.equal(reload.Store.state().totalCorrect, 1);
+});
+
+test("резервная копия переносит незавершенную сессию слов и просмотр подсказки", () => {
+  const session = { at: T, mode: "new", keys: ["V:die Meinung|de"], newKeys: ["V:die Meinung|de"], i: 0, done: 0, first: {}, newSeen: 0, newKnown: 0, peeked: true, calibStat: {} };
+  const source = env.load(SYNC.concat(["js/practice.js", "js/sessions.js"]), { storage: { "de-b1-session-v1": JSON.stringify(session) } });
+  const backup = JSON.parse(source.Store.exportBackup()); assert.equal(backup.sessions?.vocab.peeked, true);
+  const target = env.load(SYNC.concat(["js/practice.js", "js/sessions.js"])); target.Store.importBackup(JSON.stringify(backup));
+  assert.equal(JSON.parse(target.localStorage.getItem("de-b1-session-v1")).peeked, true);
+});
+
+const SESSION_FILES = SYNC.concat(["js/practice.js", "js/sessions.js", "js/review.js"]);
+const FILL = { type: "fill", q: "ein schön{} Pullover", a: ["er"], why: "Nominativ maskulin" };
+function reviewRun(win) {
+  win.Store.mutate("srsAdd", { id: "L18D0-3", n: 18, ex: FILL });
+  const r = win.Store.state().srs["L18D0-3"];
+  return win.ReviewPlan.create([{ id: "L18D0-3", r }]);
+}
+
+test("повторение восстанавливает незавершенный ввод и переносится резервной копией", () => {
+  const source = env.load(SESSION_FILES); const run = reviewRun(source);
+  run.records[0] = { draft: { values: ["e"], usedHint: true } }; source.Sessions.save("review", run);
+  const reload = env.load(SESSION_FILES, { storage: { ...source.localStorage._dump() } });
+  assert.equal(reload.Sessions.load("review").records[0].draft.values[0], "e");
+  const target = env.load(SESSION_FILES); target.Store.importBackup(source.Store.exportBackup());
+  assert.equal(target.Sessions.load("review").id, run.id);
+  assert.equal(target.Sessions.load("review").records[0].draft.usedHint, true);
+  assert.ok(target.ReviewPlan.pending(target.Sessions.load("review").items[0], target.Store.state()));
+});
+
+test("проверенный повтор считает ответ и срок атомарно; перезагрузка не засчитывает его снова", () => {
+  const source = env.load(SESSION_FILES); const run = reviewRun(source);
+  const result = { ok: true, verdict: "correct" };
+  run.records[0] = { result, draft: { values: ["er"], result } }; source.Sessions.save("review", run);
+  source.Store.mutate("reviewAnswer", source.ReviewPlan.grade(run, 0, result));
+  assert.equal(source.Store.state().srs["L18D0-3"].box, 1);
+  const reload = env.load(SESSION_FILES, { storage: { ...source.localStorage._dump() } });
+  const restored = reload.Sessions.load("review");
+  reload.Store.mutate("reviewAnswer", reload.ReviewPlan.grade(restored, 0, restored.records[0].result));
+  assert.equal(reload.Store.state().totalTried, 1); assert.equal(reload.Store.state().srs["L18D0-3"].box, 1);
+  const own = source.Store._debug().mine.ops;
+  assert.equal(own.length, 2); assert.equal(own[1].type, "reviewAnswer");
+});
+
+test("сохраненный результат до записи журнала восстанавливает зачет; устаревший повтор не меняет новую ошибку", () => {
+  const win = env.load(SESSION_FILES); const run = reviewRun(win);
+  run.records[0] = { result: { ok: false, verdict: "incorrect" } }; win.Sessions.save("review", run);
+  const reload = env.load(SESSION_FILES, { storage: { ...win.localStorage._dump() } });
+  reload.Store.mutate("reviewAnswer", reload.ReviewPlan.grade(reload.Sessions.load("review"), 0, run.records[0].result));
+  assert.equal(reload.Store.state().totalTried, 1); assert.ok(reload.Store.state().srs["L18D0-3"].due > run.items[0].due);
+  const stale = reload.ReviewPlan.grade(run, 0, { ok: true }); stale.attemptId = "other-tab:0";
+  const due = reload.Store.state().srs["L18D0-3"].due;
+  reload.Store.mutate("reviewAnswer", stale);
+  assert.equal(reload.Store.state().srs["L18D0-3"].box, 0); assert.equal(reload.Store.state().srs["L18D0-3"].due, due);
+});
+
+test("плохая сессия и будущая версия копии отклоняются до замены прогресса", () => {
+  const win = env.load(SESSION_FILES); win.Store.mutate("answer", { ok: true });
+  const run = reviewRun(win); run.records[0] = { draft: { values: [42] } };
+  assert.throws(() => win.Store.importBackup(JSON.stringify({ kind: "de-b1-backup", version: 2, state: stored(), sessions: { review: run } })));
+  assert.throws(() => win.Store.importBackup(JSON.stringify({ kind: "de-b1-backup", version: 3, state: stored() })));
+  assert.equal(win.Store.state().totalTried, 1); assert.equal(Object.keys(win.Store.state().done).length, 0);
+});
+
+test("поврежденная сессия сохраняет исходную запись и предупреждение после ответа", () => {
+  const win = env.load(SESSION_FILES, { storage: { "de-b1-review-v1": "{bad" } });
+  const run = reviewRun(win); win.Sessions.save("review", run); win.Store.mutate("answer", { ok: true });
+  assert.equal(win.localStorage.getItem("de-b1-review-v1"), "{bad"); assert.match(win.Store.storageError(), /поврежден/i);
+  assert.equal(JSON.parse(win.Store.exportBackup()).sessions.review.id, run.id);
+});
+
+test("нехватка места для сессии не теряет ввод; запись прогресса не скрывает предупреждение", () => {
+  const win = env.load(SESSION_FILES); const run = reviewRun(win); run.records[0] = { draft: { values: ["e"] } };
+  const set = win.localStorage.setItem;
+  win.localStorage.setItem = (key, value) => { if (key === "de-b1-review-v1") throw Error("QuotaExceededError"); set(key, value); };
+  win.Sessions.save("review", run); win.Store.mutate("answer", { ok: true });
+  assert.match(win.Store.storageError(), /памяти/); assert.equal(JSON.parse(win.Store.exportBackup()).sessions.review.records[0].draft.values[0], "e");
+  win.localStorage.setItem = set; win.Sessions.flush(); assert.equal(win.Store.storageError(), "");
+});
+
+test("метка навыка не сбрасывает старый черновик, но изменение задания его не восстанавливает", () => {
+  const win = env.load(SESSION_FILES); const draft = win.Practice.create(18, 0, [FILL]); draft.records[0] = { draft: { values: ["e"] } }; win.Practice.save(draft);
+  const reload = env.load(SESSION_FILES, { storage: { ...win.localStorage._dump() } });
+  assert.equal(reload.Practice.load(18, 0, [{ ...FILL, skill: "adj-ein-nom-m" }]).id, draft.id);
+  assert.equal(reload.Practice.load(18, 0, [{ ...FILL, a: ["en"] }]), null);
+});
+
+test("поздний повтор остается в том же навыке; без разметки сохраняет исходное задание", () => {
+  const win = env.load(SESSION_FILES.concat(["data/l18.js"]));
+  const original = JSON.parse(JSON.stringify(win.L18.days[0].ex[2])); const skill = original.skill; delete original.skill;
+  const next = win.ReviewPlan.variant({ id: "L18D0-2", r: { n: 18, box: 1, ex: original } });
+  assert.equal(next.skill, skill); assert.equal(next.type, "fill"); assert.notEqual(next, original);
+  const untagged = win.L18.days[0].ex[0];
+  assert.equal(win.ReviewPlan.variant({ id: "L18D0-0", r: { n: 18, box: 2, ex: untagged } }), untagged);
+  const stale = { ...original, q: "changed" };
+  assert.equal(win.ReviewPlan.variant({ id: "L18D0-2", r: { n: 18, box: 1, ex: stale } }), stale);
+});
+
+test("событие записи общего кеша не запускает цикл записей между вкладками", () => {
+  const storage = env.makeStorage(); const a = env.load(SYNC, { localStorage: storage }); const b = env.load(SYNC, { localStorage: storage });
+  a.Store.mutate("answer", { ok: true });
+  let writes = 0; const set = storage.setItem; storage.setItem = (key, value) => { writes++; set(key, value); };
+  b._fire("storage", { key: "de-b1-progress-v1" }); assert.equal(writes, 0);
+  b._fire("storage", { key: "de-b1-oplog-v2:" + a.Store.device }); assert.equal(b.Store.state().totalTried, 1);
+});
+
+test("вкладки одного устройства отправляют разные облачные документы и оба ответа сходятся", async () => {
+  const storage = env.makeStorage(); const db = env.makeDb();
+  const a = env.load(SYNC, { localStorage: storage, db }); const b = env.load(SYNC, { localStorage: storage, db });
+  a.Store.connect(); b.Store.connect(); await env.settle(20);
+  a.Store.mutate("answer", { ok: true }); b.Store.mutate("answer", { ok: false });
+  a.Store.flush(); b.Store.flush(); await env.settle(30);
+  assert.notEqual(a.Store.device, b.Store.device);
+  assert.equal(db._docs["oplogs/" + a.Store.device].ops.length, 1); assert.equal(db._docs["oplogs/" + b.Store.device].ops.length, 1);
+  assert.equal(a.Store.state().totalTried, 2); assert.equal(b.Store.state().totalTried, 2);
+});
+
+test("офлайн-ответ закрытой вкладки попадает в облако после перезагрузки без новых ответов", async () => {
+  const storage = env.makeStorage(); const offline = env.load(SYNC, { localStorage: storage });
+  offline.Store.mutate("answer", { ok: true });
+  const db = env.makeDb(); const reload = env.load(SYNC, { localStorage: storage, db });
+  reload.Store.connect(); await env.settle(30);
+  const otherDevice = env.load(SYNC, { db }); otherDevice.Store.connect(); await env.settle(30);
+  assert.equal(otherDevice.Store.state().totalTried, 1); assert.equal(otherDevice.Store.state().totalCorrect, 1);
+  assert.equal(db._docs["oplogs/" + reload.Store.device].relayed[0].device, offline.Store.device);
+  assert.equal(db._docs["oplogs/" + offline.Store.device], undefined);
+});
+
+test("вкладки сходятся без повторяющегося цикла событий записи и принимают чужое облако", () => {
+  const storage = env.makeStorage(); const a = env.load(SYNC, { localStorage: storage }); const b = env.load(SYNC, { localStorage: storage });
+  const queue = []; const set = storage.setItem; let writer;
+  storage.setItem = (key, value) => {
+    if (storage.getItem(key) !== value) queue.push({ key, writer });
+    set(key, value);
+  };
+  writer = a; a.Store.mutate("answer", { ok: true }); writer = b; b.Store.mutate("answer", { ok: false });
+  let events = 0;
+  while (queue.length && events++ < 40) {
+    const event = queue.shift(); writer = event.writer === a ? b : a; writer._fire("storage", { key: event.key });
+  }
+  assert.equal(queue.length, 0); assert.equal(a.Store.state().totalTried, 2); assert.equal(b.Store.state().totalTried, 2);
+  const foreign = JSON.parse(storage.getItem("de-b1-foreign-v1"));
+  foreign.cloud = [{ type: "answer", ok: true, device: "cloud", seq: 1, lc: 100, t: T }];
+  storage.setItem("de-b1-foreign-v1", JSON.stringify(foreign));
+  b._fire("storage", { key: "de-b1-foreign-v1" }); assert.equal(b.Store.state().totalTried, 3);
 });

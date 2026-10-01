@@ -55,7 +55,6 @@
 
   /* очередь повторения: id -> {box, due, ex, lesson} */
   function srsAdd(id, ex, n) { S = Store.mutate("srsAdd", { id: id, ex: ex, n: n }); }
-  function srsHit(id, ok) { if (S.srs[id]) S = Store.mutate("srsHit", { id: id, ok: ok }); }
   function srsDue() {
     var now = Date.now(), out = [];
     for (var k in S.srs) if (S.srs[k].due <= now) out.push({ id: k, r: S.srs[k] });
@@ -384,75 +383,62 @@
   }
 
   /* ---------- повторение ---------- */
-  function errorVariant(item) {
-    if (!item.r.box) return item.r.ex;
-    var match = item.id.match(/^L(\d+)D(\d+)-\d+$/), L = window["L" + item.r.n];
-    var day = match && L && L.days[+match[2]];
-    var candidates = day ? day.ex.filter(function (ex) { return ex.type === item.r.ex.type && JSON.stringify(ex) !== JSON.stringify(item.r.ex); }) : [];
-    return candidates.length ? candidates[(item.r.box - 1) % candidates.length] : item.r.ex;
-  }
-
   function viewReview() {
     if (Store.blocked()) return viewMore();
     working = true;
-    var due = E.shuffle(srsDue());
+    var saved = window.Sessions.load("review");
+    var run = saved || window.ReviewPlan.create(E.shuffle(srsDue()));
+    var i = run.i, view = routeId;
     app.innerHTML = "";
-    if (!due.length) {
+    if (!run.items.length) {
       var c0 = el("div", "card hero");
-      c0.innerHTML = "<h1>Нечего повторять</h1><div class=\"muted\">Сейчас срок повторения не подошел ни одной ошибке. Уже назначенные повторы остаются в очереди.</div>";
-      var r0 = el("div", "btnrow");
-      var bb = el("button", "btn", "К программе");
-      bb.onclick = function () { go("/"); };
-      r0.appendChild(bb); c0.appendChild(r0);
-      app.appendChild(c0);
+      c0.innerHTML = '<h1>Нечего повторять</h1><div class="muted">Сейчас срок повторения не подошел ни одной ошибке. Уже назначенные повторы остаются в очереди.</div>';
+      var r0 = el("div", "btnrow"), bb = el("button", "btn", "К программе");
+      bb.onclick = function () { go("/"); }; r0.appendChild(bb); c0.appendChild(r0); app.appendChild(c0);
       return;
     }
-    var i = 0;
+    function stash() { run.i = i; run.at = Date.now(); window.Sessions.save("review", run); }
+    stash();
     var card = el("div", "card");
-    card.innerHTML = '<div class="kicker">Повторение ошибок</div>';
-    var pl = el("div", "progline");
-    pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>';
-    card.appendChild(pl);
-    var host = el("div", null);
-    card.appendChild(host);
-    var row = el("div", "btnrow sticky");
-    var check = el("button", "btn", "Проверить");
-    var next = el("button", "btn sec", "Дальше →");
-    next.style.display = "none";
-    /* нижняя панель прилипает к экрану телефона; без видимых кнопок прячем её */
-    function syncBar() {
-      var vis = check.style.display !== "none" || next.style.display !== "none";
-      row.className = "btnrow sticky" + (vis ? "" : " empty");
-    }
-    row.appendChild(check); row.appendChild(next);
-    card.appendChild(row);
-    app.appendChild(card);
+    card.innerHTML = '<div class="kicker">Повторение ошибок</div><div class="muted">Ввод сохраняется. Поздний повтор использует другое задание только при совпадении учебного правила.</div>';
+    var pl = el("div", "progline"); pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>'; card.appendChild(pl);
+    var host = el("div", null); card.appendChild(host);
+    var row = el("div", "btnrow sticky"), check = el("button", "btn", "Проверить"), next = el("button", "btn sec", "Дальше →");
+    row.appendChild(check); row.appendChild(next); card.appendChild(row); app.appendChild(card);
     var api = null, answered = false;
-
-    function step() {
-      answered = false;
-      next.style.display = "none"; check.style.display = "";
-      pl.querySelector(".cnt").textContent = (i + 1) + " / " + due.length;
-      pl.querySelector("i").style.width = Math.round((i / due.length) * 100) + "%";
-      var item = due[i];
-      api = E.render(errorVariant(item), host, function (ok, result) {
-        answered = true;
-        S = Store.mutate("answer", { ok: ok, verdict: result.verdict });
-        if (result.verdict !== "needs-review") srsHit(item.id, ok);
-        check.style.display = "none"; next.style.display = ""; syncBar(); next.focus();
-      });
-      check.style.display = api.check ? "" : "none";
-      syncBar();
+    function syncBar() { row.className = "btnrow sticky" + (check.style.display === "none" && next.style.display === "none" ? " empty" : ""); }
+    function count(record) {
+      var grade = window.ReviewPlan.grade(run, i, record.result);
+      if (!S.answered[grade.attemptId]) S = Store.mutate("reviewAnswer", grade);
     }
-    check.onclick = function () { if (api && api.check) api.check(); };
-    next.onclick = function () {
-      i++;
-      if (i >= due.length) { document.onkeydown = null; return go("/"); }
-      step();
-    };
-    document.onkeydown = function (e) {
-      if (e.key === "Enter" && answered) { e.preventDefault(); next.click(); }
-    };
+    function step() {
+      if (view !== routeId) return;
+      while (i < run.items.length) {
+        var rec = run.records[i], checked = rec && (rec.result || (rec.draft && rec.draft.result));
+        if (checked || window.ReviewPlan.pending(run.items[i], S)) break;
+        i++;
+      }
+      if (i >= run.items.length) { window.Sessions.clear("review"); return go("/"); }
+      stash();
+      var record = run.records[i] || (run.records[i] = {});
+      if (!record.result && record.draft && record.draft.result) record.result = record.draft.result;
+      answered = !!record.result;
+      pl.querySelector(".cnt").textContent = (i + 1) + " / " + run.items.length;
+      pl.querySelector("i").style.width = Math.round(i / run.items.length * 100) + "%";
+      api = E.render(run.items[i].ex, host, function (ok, result) {
+        if (view !== routeId) return;
+        if (!record.result) { record.result = result; stash(); }
+        count(record); answered = true;
+        check.style.display = "none"; next.style.display = ""; syncBar();
+      }, { draft: record.draft, onDraft: function (draft) { record.draft = draft; stash(); } });
+      if (api.result && !record.result) { record.result = api.result; stash(); }
+      answered = !!record.result;
+      if (record.result) count(record);
+      check.style.display = !answered && api.check ? "" : "none"; next.style.display = answered ? "" : "none"; syncBar();
+    }
+    check.onclick = function () { if (api && api.check && !answered) api.check(); };
+    next.onclick = function () { if (!answered || view !== routeId) return; i++; stash(); step(); };
+    document.onkeydown = function (event) { if (event.key === "Enter" && answered) { event.preventDefault(); next.click(); } };
     step();
   }
 
@@ -522,7 +508,7 @@
     var resetRow = el("button", "row danger", "Сбросить весь прогресс");
     resetRow.onclick = function () {
       if (!confirm("Сбросить весь прогресс? Действие необратимо.")) return;
-      sessionClear(); dayClear();
+      window.Sessions.clear(); dayClear();
       S = Store.mutate("reset", {});
       viewMore(); syncTabs();
     };
@@ -530,11 +516,11 @@
 
     c.appendChild(rows);
     c.appendChild(el("h2", null, "Резервные копии"));
-    c.appendChild(el("div", "muted", "JSON переносит прогресс и черновики занятий. Импорт заменяет текущий прогресс после проверки. Исходное хранилище можно скачать для восстановления поврежденных данных."));
+    c.appendChild(el("div", "muted", "JSON переносит прогресс, черновики занятий и незавершенные сессии слов и ошибок. Импорт заменяет текущий прогресс после проверки. Исходное хранилище можно скачать для восстановления поврежденных данных."));
     var copies = el("div", "btnrow");
     var exportButton = el("button", "btn", "Скачать резервную копию"); exportButton.onclick = function () { download(Store.exportBackup(), "deutsch-progress.json"); };
     var rawButton = el("button", "btn sec", "Скачать исходное хранилище"); rawButton.onclick = function () { download(Store.exportRaw(), "deutsch-storage-original.json"); };
-    var retryButton = el("button", "btn sec", "Повторить сохранение"); retryButton.onclick = function () { Store.flush(); window.Practice.flush(); };
+    var retryButton = el("button", "btn sec", "Повторить сохранение"); retryButton.onclick = function () { Store.flush(); window.Practice.flush(); window.Sessions.flush(); };
     copies.appendChild(exportButton); copies.appendChild(rawButton); copies.appendChild(retryButton); c.appendChild(copies);
     var label = el("label", null, "Вставьте JSON резервной копии"); label.htmlFor = "backup-json"; c.appendChild(label);
     var textarea = document.createElement("textarea"); textarea.id = "backup-json"; textarea.className = "backup-text"; textarea.maxLength = 10000000; c.appendChild(textarea);
@@ -542,8 +528,11 @@
     var importButton = el("button", "btn sec", "Проверить и импортировать");
     importButton.onclick = function () {
       try {
-        var parsed = JSON.parse(textarea.value); window.ProgressData.object(parsed); window.ProgressData.state(parsed.kind === "de-b1-backup" ? parsed.state : parsed);
+        var parsed = JSON.parse(textarea.value); window.ProgressData.object(parsed);
+        if (parsed.kind === "de-b1-backup" && parsed.version != null && [1, 2].indexOf(parsed.version) < 0) throw new Error("Неизвестная версия резервной копии. Прогресс не изменен.");
+        window.ProgressData.state(parsed.kind === "de-b1-backup" ? parsed.state : parsed);
         if (parsed.drafts) window.Practice.validateImport(parsed.drafts);
+        window.Sessions.validateImport(parsed.sessions || {});
         if (!confirm("Заменить текущий прогресс резервной копией? Сначала скачайте текущий JSON.")) return;
         S = Store.importBackup(textarea.value); message.textContent = "Резервная копия восстановлена.";
       } catch (error) { message.textContent = "Файл не прошел проверку. Текущий прогресс не изменен."; }
@@ -744,7 +733,6 @@
      и слова, которые ещё надо прокрутить, лежат на диске.
      Хранится отдельно от прогресса и не синхронизируется — это состояние
      конкретной вкладки, а не то, что ты выучил. */
-  var SESSION_KEY = "de-b1-session-v1";
   var DAY_KEY = "de-b1-day-v1";
 
 
@@ -755,17 +743,11 @@
   }
 
   function sessionLoad() {
-    try {
-      var raw = JSON.parse(localStorage.getItem(SESSION_KEY));
-      if (!raw) return null;
-      window.ProgressData.safe(raw);
-      if (!Array.isArray(raw.keys) || !raw.keys.every(function (k) { return typeof k === "string"; }) || raw.i !== Math.floor(raw.i) || raw.i < 0) return null;
-      if (raw.i >= raw.keys.length) return null;
-      return raw;
-    } catch (e) { return null; }
+    var raw = window.Sessions.load("vocab");
+    return raw && raw.i < raw.keys.length ? raw : null;
   }
-  function sessionSave(st) { try { localStorage.setItem(SESSION_KEY, JSON.stringify(st)); } catch (e) { Store.warn("Сессия слов не сохранена. Не закрывайте страницу; экспортируйте хранилище в разделе «Ещё»."); } }
-  function sessionClear() { try { localStorage.removeItem(SESSION_KEY); } catch (e) {} }
+  function sessionSave(st) { window.Sessions.save("vocab", st); }
+  function sessionClear() { window.Sessions.clear("vocab"); }
 
   /* если новые слова уходят с первого раза — берём следующую порцию реже
      встречающихся; если сыплешься — возвращаемся к более ходовым */
@@ -972,12 +954,6 @@
           '<span class="r">знаю →</span>'));
 
       bindCard(drag, flip, tint);
-      var controls = el("div", "vcontrols");
-      var revealButton = el("button", "btn sec", "Показать ответ"); revealButton.onclick = flipCard;
-      var noButton = el("button", "btn sec", calib ? "Не знаю" : "Не вспомнил"); noButton.onclick = function () { answer(false); };
-      var yesButton = el("button", "btn", calib ? "Знаю без подсказки" : "Вспомнил"); yesButton.onclick = function () { answer(true); };
-      controls.appendChild(revealButton); controls.appendChild(noButton); controls.appendChild(yesButton);
-      host.appendChild(controls);
 
       peeked = !!(saved && saved.i === i && saved.peeked);
       saved = null;

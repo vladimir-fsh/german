@@ -11,10 +11,9 @@
    получают одно и то же состояние. Порядок задают часы Лампорта, ничья
    разрешается по идентификатору устройства.
 
-   Почему нет конфликтов записи. Каждое устройство пишет ТОЛЬКО свой документ
-   журнала `oplogs/<device>`. Два устройства физически не могут писать в один
-   документ, поэтому last-writer-wins нигде не участвует и офлайн-правки с
-   разных устройств складываются, а не затирают друг друга.
+   Каждый экземпляр страницы пишет собственный журнал `oplogs/<writer>`
+   и свой ключ localStorage. Даже вкладки одного устройства не заменяют
+   записи друг друга. Материализованное состояние является только кешем.
 
    Компакция. Журналы растут, поэтому изредка состояние сворачивается в снапшот
    `sync/snapshot` с курсором «какие операции в него уже вошли», а устройства
@@ -22,13 +21,15 @@
 window.Store = (function () {
   "use strict";
 
-  var SCHEMA = 5;
+  var SCHEMA = 6;
   var DATA = window.ProgressData;
   var LS_STATE = "de-b1-progress-v1";   /* материализованное состояние, для мгновенного старта */
-  var LS_OPS = "de-b1-oplog-v1";        /* собственный журнал */
+  var LS_OPS = "de-b1-oplog-v1";        /* прежний общий журнал, только для чтения */
+  var LOG_PREFIX = "de-b1-oplog-v2:";    /* отдельная запись на каждого автора */
   var LS_DEV = "de-b1-device-v1";       /* идентификатор устройства */
   var LS_FOREIGN = "de-b1-foreign-v1"; /* принятые журналы нужны и после офлайн-перезапуска */
-  var storageError = "", blocked = false;
+  var storageError = "", blocked = false, externalWarnings = {};
+  function warning() { return storageError || Object.keys(externalWarnings).map(function (key) { return externalWarnings[key]; }).join(" "); }
 
   /* Все числа расписания живут в js/srs-config.js — правятся там.
      Значения ниже служат запасными, если конфиг почему-то не загрузился. */
@@ -140,6 +141,13 @@ window.Store = (function () {
         if (op.verdict === "needs-review") { s.totalUncertain++; return s; }
         s.totalTried++;
         if (op.ok) s.totalCorrect++;
+        return s;
+
+      case "reviewAnswer":
+        if (s.answered[op.attemptId]) return s;
+        apply(s, { type: "answer", ok: op.ok, verdict: op.verdict, attemptId: op.attemptId, t: op.t });
+        r = s.srs[op.id];
+        if (op.verdict !== "needs-review" && r && r.box === op.expectedBox && r.due === op.expectedDue) apply(s, { type: "srsHit", id: op.id, ok: op.ok, t: op.t, policy: 2 });
         return s;
 
       case "dayDone":
@@ -308,8 +316,11 @@ window.Store = (function () {
     return d;
   }
 
-  var DEV = deviceId();
-  var mine = lsGet(LS_OPS, null) || { device: DEV, seq: 0, lc: 0, ops: [] };
+  /* Каждое открытие страницы - независимый автор. Общий идентификатор
+     устройства остается для переноса, но вкладки не пишут в один журнал. */
+  var DEV = deviceId() + "." + Date.now().toString(36) + "." + Math.random().toString(36).slice(2, 12);
+  var OWN_LOG = LOG_PREFIX + DEV;
+  var mine = { device: DEV, seq: 0, lc: 0, ops: [] };
   var snapshot = lsGet("de-b1-snapshot-v1", null);   /* последний известный снапшот */
   var foreign = lsGet(LS_FOREIGN, {});                /* device → массив операций */
   var state = lsGet(LS_STATE, null);
@@ -327,7 +338,7 @@ window.Store = (function () {
   var readyTimer = null;
   var connectAt = 0;
   try {
-    DATA.journal(mine);
+    DATA.journal(mine); collectDiskLogs();
     if (state) DATA.state(state);
     DATA.object(foreign); Object.keys(foreign).forEach(function (key) { if (!Array.isArray(foreign[key])) throw new Error(); foreign[key].forEach(DATA.operation); });
     if (snapshot) DATA.snapshot(snapshot);
@@ -350,6 +361,7 @@ window.Store = (function () {
       }
     } else {
       state = blank();
+      if (!snapshot) snapshot = { v: SCHEMA, state: clone(state), cursor: {}, at: Date.now(), recovered: true };
     }
     lsSet(LS_STATE, state);
     if (snapshot) lsSet("de-b1-snapshot-v1", snapshot);
@@ -357,8 +369,10 @@ window.Store = (function () {
   advanceFromSnapshot();
 
   function saveLocal() {
-    var ok = lsSet(LS_OPS, mine);
-    if (!lsSet(LS_FOREIGN, foreign)) ok = false;
+    var ok = !mine.seq || lsSet(OWN_LOG, mine);
+    var orderedForeign = {};
+    Object.keys(foreign).sort().forEach(function (id) { orderedForeign[id] = foreign[id]; });
+    if (!lsSet(LS_FOREIGN, orderedForeign)) ok = false;
     if (snapshot && !lsSet("de-b1-snapshot-v1", snapshot)) ok = false;
     if (!lsSet(LS_STATE, state)) ok = false;
     if (ok) storageError = "";
@@ -398,7 +412,7 @@ window.Store = (function () {
   }
 
   function setStatus(txt, cls) {
-    if (storageError) { txt = storageError; cls = "bad"; }
+    if (warning()) { txt = warning(); cls = "bad"; }
     statusListeners.forEach(function (fn) { try { fn(txt, cls); } catch (e) {} });
   }
 
@@ -420,7 +434,7 @@ window.Store = (function () {
     DATA.operation(op);
     mine.seq = op.seq; mine.lc = op.lc;
     mine.ops.push(op);
-    lsSet(LS_OPS, mine);
+    lsSet(OWN_LOG, mine);
     materialize();
     schedulePush();
     setStatus(DB ? "синк…" : "только это устройство");
@@ -437,13 +451,15 @@ window.Store = (function () {
 
   function push() {
     if (!DB) return;
-    /* устройству без единой операции писать нечего: пустой документ
-       в oplogs только мусорит коллекцию и ничего не переносит */
-    if (!mine.ops.length) return;
+    /* После офлайн-перезагрузки прежние авторы уже не отправят свои записи.
+       Переносим их операции в своем документе с исходными идентификаторами;
+       документ соседней вкладки никогда не перезаписывается. */
+    var relayed = localRelays();
+    if (!mine.ops.length && !relayed.length) return;
     if (pushing) { dirty = true; return; }
     pushing = true; dirty = false;
     setStatus("синк…");
-    DB.doc("oplogs/" + DEV).set({ device: DEV, seq: mine.seq, lc: mine.lc, ops: mine.ops, at: Date.now() })
+    DB.doc("oplogs/" + DEV).set({ device: DEV, seq: mine.seq, lc: mine.lc, ops: clone(mine.ops), relayed: relayed, at: Date.now() })
       .then(function () {
         pushing = false;
         setStatus("синк ✓", "ok");
@@ -478,7 +494,7 @@ window.Store = (function () {
     if (keepFrom <= 0) return;
     var before = mine.ops.length;
     mine.ops = mine.ops.filter(function (op) { return op.seq > keepFrom; });
-    if (mine.ops.length !== before) { lsSet(LS_OPS, mine); schedulePush(); }
+    if (mine.ops.length !== before) { lsSet(OWN_LOG, mine); schedulePush(); }
   }
 
   function onLogs(qsnap) {
@@ -488,12 +504,14 @@ window.Store = (function () {
       var d = doc.data();
       if (!d || !d.ops) return;
       try { DATA.journal(d); } catch (e) { setStatus("Некорректный журнал облака; локальный прогресс сохранен.", "bad"); return; }
-      if (d.device === DEV) { mine.ops = mergeOps(mine.ops, d.ops); mine.seq = Math.max(mine.seq, d.seq || 0); }
-      else seen[d.device] = mergeOps(seen[d.device] || [], d.ops);
-      if (d.lc > mine.lc) mine.lc = d.lc;   /* часы Лампорта догоняют чужие */
+      [d].concat(d.relayed || []).forEach(function (log) {
+        if (log.device === DEV) { mine.ops = mergeOps(mine.ops, log.ops); mine.seq = Math.max(mine.seq, log.seq || 0); }
+        else seen[log.device] = mergeOps(seen[log.device] || [], log.ops);
+        if (log.lc > mine.lc) mine.lc = log.lc;
+      });
     });
     foreign = seen;
-    lsSet(LS_OPS, mine);
+    lsSet(OWN_LOG, mine);
     materialize();
   }
 
@@ -528,9 +546,9 @@ window.Store = (function () {
   /* ---------- компакция ---------- */
 
   function totalOps() {
-    var n = mine.ops.length;
-    for (var d in foreign) n += foreign[d].length;
-    return n;
+    var ops = mine.ops.slice();
+    for (var d in foreign) ops = ops.concat(foreign[d]);
+    return dropCovered(ops).length;
   }
 
   function maybeCompact() {
@@ -565,8 +583,8 @@ window.Store = (function () {
     /* таймер ожидания мог простоять замороженным вместе со страницей,
        поэтому срок проверяем по стенным часам, а не по факту срабатывания */
     if (!cloudSeen && connectAt && Date.now() - connectAt > READY_WAIT) markCloudSeen();
+    materialize();
     schedulePush();
-    notify();
   }
 
   /* ---------- подключение ---------- */
@@ -604,21 +622,54 @@ window.Store = (function () {
     var entries = {}; a.concat(b).forEach(function (op) { entries[op.device + ":" + op.seq] = op; });
     return Object.keys(entries).map(function (key) { return entries[key]; }).sort(cmp);
   }
+  function diskLogKeys() {
+    var keys = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key && key.indexOf(LOG_PREFIX) === 0) keys.push(key);
+    }
+    return keys;
+  }
+  function localRelays() {
+    var relayed = [];
+    try {
+      [LS_OPS].concat(diskLogKeys()).forEach(function (key) {
+        var raw = localStorage.getItem(key), log = raw && JSON.parse(raw); if (!log || log.device === DEV) return;
+        DATA.journal(log);
+        if (key !== LS_OPS && key !== LOG_PREFIX + log.device) throw new Error("Неверный автор журнала");
+        var ops = dropCovered(log.ops);
+        if (ops.length) relayed.push({ device: log.device, seq: log.seq, lc: log.lc, ops: clone(ops) });
+      });
+    } catch (e) { setStatus("Не удалось перенести локальные журналы в облако. Исходные записи сохранены.", "bad"); }
+    return relayed;
+  }
+  function collectDiskLogs() {
+    [LS_OPS].concat(diskLogKeys()).forEach(function (key) {
+      var disk = lsGet(key, null); if (!disk) return;
+      DATA.journal(disk);
+      if (key !== LS_OPS && key !== LOG_PREFIX + disk.device) throw new Error("Неверный автор журнала");
+      if (disk.device === DEV) {
+        mine.ops = mergeOps(mine.ops, disk.ops); mine.seq = Math.max(mine.seq, disk.seq); mine.lc = Math.max(mine.lc, disk.lc);
+      } else foreign[disk.device] = mergeOps(foreign[disk.device] || [], disk.ops);
+      mine.lc = Math.max(mine.lc, disk.lc);
+    });
+  }
   function refreshDisk() {
-    var disk = lsGet(LS_OPS, null);
     if (blocked) return;
     try {
-      if (disk && disk.device === DEV) {
-        DATA.journal(disk); mine.ops = mergeOps(mine.ops, disk.ops);
-        mine.seq = Math.max(mine.seq, disk.seq || 0); mine.lc = Math.max(mine.lc, disk.lc || 0);
-      }
       var logs = lsGet(LS_FOREIGN, {}); DATA.object(logs);
       Object.keys(logs).forEach(function (id) { logs[id].forEach(DATA.operation); foreign[id] = mergeOps(foreign[id] || [], logs[id]); });
+      collectDiskLogs();
       var next = lsGet("de-b1-snapshot-v1", null);
       if (next && (!snapshot || next.at > snapshot.at)) { DATA.snapshot(next); snapshot = next; advanceFromSnapshot(); }
     } catch (e) { blocked = true; storageError = "Другая вкладка сохранила поврежденные данные. Экспортируйте текущий прогресс перед восстановлением."; }
   }
-  window.addEventListener("storage", function () { if (!storageError) { refreshDisk(); if (!blocked) materialize(); } });
+  window.addEventListener("storage", function (event) {
+    /* Материализованный кеш не запускает новую запись соседней вкладки. */
+    if (event.key && event.key !== LS_OPS && event.key !== LS_FOREIGN && event.key !== "de-b1-snapshot-v1" && event.key.indexOf(LOG_PREFIX) !== 0) return;
+    if (!storageError) { refreshDisk(); if (!blocked) materialize(); } });
+
+  if (!blocked && (hydrated || totalOps())) materialize();
 
   return {
     SCHEMA: SCHEMA,
@@ -628,25 +679,29 @@ window.Store = (function () {
     /* false, пока состояние не поднято ни с диска, ни из облака */
     ready: function () { return !blocked && (hydrated || cloudSeen); },
     blocked: function () { return blocked; },
-    storageError: function () { return storageError; },
-    warn: function (message) { storageError = message; setStatus(message, "bad"); },
-    flush: function () { saveLocal(); setStatus(storageError || "Сохранено на устройстве", storageError ? "bad" : "ok"); push(); },
-    exportBackup: function () { return JSON.stringify({ kind: "de-b1-backup", version: 1, at: Date.now(), state: state, drafts: window.Practice ? window.Practice.exportDrafts() : null }, null, 2); },
-    exportRaw: function () { var raw = {}; [LS_STATE, LS_OPS, LS_FOREIGN, "de-b1-snapshot-v1", "de-b1-days-v2", "de-b1-day-v1", "de-b1-session-v1"].forEach(function (key) { try { raw[key] = localStorage.getItem(key); } catch (e) { raw[key] = null; } }); return JSON.stringify(raw, null, 2); },
+    storageError: warning,
+    warn: function (message, source) { externalWarnings[source || "session"] = message; setStatus(message, "bad"); },
+    clearWarning: function (source) { delete externalWarnings[source]; setStatus(DB ? "синхронизация включена" : "только это устройство"); },
+    flush: function () { saveLocal(); setStatus("Сохранено на устройстве", "ok"); push(); },
+    exportBackup: function () { return JSON.stringify({ kind: "de-b1-backup", version: 2, at: Date.now(), state: state, drafts: window.Practice ? window.Practice.exportDrafts() : null, sessions: window.Sessions ? window.Sessions.exportSessions() : null }, null, 2); },
+    exportRaw: function () { var raw = {}; [LS_STATE, LS_OPS, LS_FOREIGN, "de-b1-snapshot-v1", "de-b1-days-v2", "de-b1-day-v1", "de-b1-session-v1", "de-b1-review-v1"].concat(diskLogKeys()).forEach(function (key) { try { raw[key] = localStorage.getItem(key); } catch (e) { raw[key] = null; } }); return JSON.stringify(raw, null, 2); },
     importBackup: function (text) {
       if (typeof text !== "string" || text.length > 10000000) throw new Error("Файл слишком большой.");
       var parsed; try { parsed = JSON.parse(text); } catch (e) { throw new Error("Некорректный JSON. Текущий прогресс не изменен."); }
       DATA.object(parsed);
+      if (parsed.kind === "de-b1-backup" && parsed.version != null && [1, 2].indexOf(parsed.version) < 0) throw new Error("Неизвестная версия резервной копии. Прогресс не изменен.");
       var data = DATA.state(parsed.kind === "de-b1-backup" ? parsed.state : parsed);
       var drafts = parsed.drafts && window.Practice ? window.Practice.validateImport(parsed.drafts) : null;
+      var sessions = window.Sessions ? window.Sessions.validateImport(parsed.sessions || {}) : null;
       var result = mutate("restore", { state: data });
       if (window.Practice) { if (drafts) window.Practice.importDrafts(drafts); else window.Practice.clear(); }
-      try { localStorage.removeItem("de-b1-session-v1"); localStorage.removeItem("de-b1-day-v1"); } catch (e) {}
+      if (window.Sessions) window.Sessions.importSessions(sessions);
+      try { if (!window.Sessions) localStorage.removeItem("de-b1-session-v1"); localStorage.removeItem("de-b1-day-v1"); } catch (e) {}
       return result;
     },
     mutate: mutate,
     onChange: function (fn) { listeners.push(fn); },
-    onStatus: function (fn) { statusListeners.push(fn); fn(storageError || "только это устройство", storageError ? "bad" : ""); },
+    onStatus: function (fn) { statusListeners.push(fn); fn(warning() || "только это устройство", warning() ? "bad" : ""); },
     connect: connect,
     /* для отладки и тестов */
     _debug: function () {

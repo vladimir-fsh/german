@@ -44,7 +44,7 @@ window.ProgressData = (function () {
   }
   function state(value) {
     safe(value, 0); object(value);
-    if ([2, 3, 4, 5].indexOf(value.v) < 0) fail();
+    if ([2, 3, 4, 5, 6].indexOf(value.v) < 0) fail();
     object(value.done); object(value.srs); object(value.vocab);
     Object.keys(value.done).forEach(function (k) {
       if (!/^L\d+D\d+$/.test(k)) fail();
@@ -78,13 +78,14 @@ window.ProgressData = (function () {
   function operation(op) {
     safe(op, 0); object(op); text(op.type, 40); identifier(op.device); number(op.seq); number(op.lc); number(op.t);
     if (Math.floor(op.seq) !== op.seq || Math.floor(op.lc) !== op.lc) fail();
-    if (["answer", "dayDone", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabKnown", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
-    if (op.type === "answer" || op.type === "vocabGrade" || op.type === "vocabReview" || op.type === "srsHit") { if (typeof op.ok !== "boolean") fail(); }
+    if (["answer", "reviewAnswer", "dayDone", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabKnown", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
+    if (op.type === "answer" || op.type === "reviewAnswer" || op.type === "vocabGrade" || op.type === "vocabReview" || op.type === "srsHit") { if (typeof op.ok !== "boolean") fail(); }
     if (op.type === "dayDone") { number(op.n, 999); number(op.di, 999); number(op.score); number(op.of); if (op.score > op.of) fail(); }
     if (op.records != null) { if (!Array.isArray(op.records)) fail(); op.records.forEach(record); }
     if (op.type === "touchDay" && !validDay(op.day)) fail();
     if (/^(vocabGrade|vocabReview|vocabKnown)$/.test(op.type)) { identifier(op.key); if (op.type !== "vocabKnown" && !/\|(de|ru)$/.test(op.key)) fail(); }
     if (op.type === "srsAdd" || op.type === "srsHit") identifier(op.id);
+    if (op.type === "reviewAnswer") { identifier(op.id); identifier(op.attemptId); number(op.expectedBox, 3); number(op.expectedDue); }
     if (op.attemptId != null) identifier(op.attemptId);
     if (op.type === "srsAdd") { exercise(op.ex); number(op.n, 999); }
     if (op.type === "vocabLevel" || op.type === "calibrate") { number(op.level, 5); if (op.level < 1 || Math.floor(op.level) !== op.level) fail(); }
@@ -95,6 +96,10 @@ window.ProgressData = (function () {
     object(value); identifier(value.device); number(value.seq); number(value.lc);
     if (value.seq !== Math.floor(value.seq) || value.lc !== Math.floor(value.lc) || !Array.isArray(value.ops)) fail();
     value.ops.forEach(function (op) { operation(op); if (op.device !== value.device || op.seq > value.seq || op.lc > value.lc) fail(); });
+    if (value.relayed != null) {
+      if (!Array.isArray(value.relayed) || value.relayed.length > 2000) fail();
+      value.relayed.forEach(function (entry) { if (entry.relayed != null) fail(); journal(entry); });
+    }
     return value;
   }
   function snapshot(value) {
@@ -103,5 +108,5 @@ window.ProgressData = (function () {
     Object.keys(value.cursor).forEach(function (id) { identifier(id); number(value.cursor[id]); if (Math.floor(value.cursor[id]) !== value.cursor[id]) fail(); });
     return value;
   }
-  return { state: state, operation: operation, journal: journal, snapshot: snapshot, object: object, day: dayString, previousStudyDay: previousStudyDay, currentStreak: currentStreak, safe: function (v) { safe(v, 0); return v; } };
+  return { exercise: exercise, record: record, state: state, operation: operation, journal: journal, snapshot: snapshot, object: object, day: dayString, previousStudyDay: previousStudyDay, currentStreak: currentStreak, safe: function (v) { safe(v, 0); return v; } };
 })();

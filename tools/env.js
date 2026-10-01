@@ -10,6 +10,8 @@ function makeStorage(seed) {
   var mem = Object.create(null);
   if (seed) for (var k in seed) mem[k] = seed[k];
   return {
+    get length() { return Object.keys(mem).length; },
+    key: function (i) { return Object.keys(mem)[i] || null; },
     getItem: function (k) { return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null; },
     setItem: function (k, v) { mem[k] = String(v); },
     removeItem: function (k) { delete mem[k]; },
@@ -76,7 +78,7 @@ function load(files, opts) {
     createElement: function () { return { style: {}, dataset: {}, classList: { add: function () {}, remove: function () {} } }; }
   };
   win.addEventListener = on;
-  win._fire = function (type) { (handlers[type] || []).forEach(function (fn) { fn({ type: type }); }); };
+  win._fire = function (type, details) { (handlers[type] || []).forEach(function (fn) { fn(Object.assign({ type: type }, details)); }); };
   win._handlers = handlers;
   win.setTimeout = setTimeout;
   win.clearTimeout = clearTimeout;

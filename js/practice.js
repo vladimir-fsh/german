@@ -3,11 +3,13 @@ window.Practice = (function () {
   "use strict";
   var KEY = "de-b1-days-v2", LEGACY = "de-b1-day-v1", memory = {}, dirty = false, blockedDrafts = false;
   function stamp() { return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10); }
-  function fingerprint(exercises) { return JSON.stringify(exercises); }
+  function fingerprint(exercises) {
+    return JSON.stringify(exercises.map(function (ex) { var copy = JSON.parse(JSON.stringify(ex)); delete copy.skill; return copy; }));
+  }
   function read() {
     if (dirty) return memory;
     try { var raw = localStorage.getItem(KEY); var parsed = raw ? JSON.parse(raw) : {}; validateImport(parsed); memory = parsed; }
-    catch (e) { blockedDrafts = true; window.Store.warn("Не удалось прочитать черновики занятий. Прогресс сохранен; исходные черновики доступны в экспорте хранилища."); }
+    catch (e) { blockedDrafts = true; window.Store.warn("Не удалось прочитать черновики занятий. Прогресс сохранен; исходные черновики доступны в экспорте хранилища.", "practice"); }
     return memory;
   }
   function validate(draft, length) {
@@ -29,7 +31,7 @@ window.Practice = (function () {
   }
   function load(n, di, exercises) {
     var key = "L" + n + "D" + di, saved = read()[key];
-    if (saved && saved.fingerprint === fingerprint(exercises) && validate(saved, exercises.length)) return saved;
+    if (saved && fingerprint(JSON.parse(saved.fingerprint)) === fingerprint(exercises) && validate(saved, exercises.length)) return saved;
     try {
       var old = JSON.parse(localStorage.getItem(LEGACY));
       if (old && old.n === n && old.di === di && old.i === Math.floor(old.i) && old.i >= 0 && old.i <= exercises.length && old.correct >= 0 && old.correct <= old.i) {
@@ -41,9 +43,9 @@ window.Practice = (function () {
   }
   function create(n, di, exercises) { return { id: stamp(), n: n, di: di, i: 0, records: [], fingerprint: fingerprint(exercises), at: Date.now() }; }
   function flush() {
-    if (blockedDrafts) { dirty = true; window.Store.warn("Исходные черновики повреждены и не перезаписаны. Новую работу экспортируйте перед восстановлением."); return false; }
-    try { localStorage.setItem(KEY, JSON.stringify(memory)); dirty = false; return true; }
-    catch (e) { dirty = true; window.Store.warn("Ответы занятия пока только в памяти. Не закрывайте страницу: экспортируйте резервную копию или повторите сохранение."); return false; }
+    if (blockedDrafts) { dirty = true; window.Store.warn("Исходные черновики повреждены и не перезаписаны. Новую работу экспортируйте перед восстановлением.", "practice"); return false; }
+    try { localStorage.setItem(KEY, JSON.stringify(memory)); dirty = false; window.Store.clearWarning("practice"); return true; }
+    catch (e) { dirty = true; window.Store.warn("Ответы занятия пока только в памяти. Не закрывайте страницу: экспортируйте резервную копию или повторите сохранение.", "practice"); return false; }
   }
   function save(draft) { var all = read(); all["L" + draft.n + "D" + draft.di] = draft; draft.at = Date.now(); dirty = true; flush(); }
   function remove(n, di) { var all = read(); delete all["L" + n + "D" + di]; dirty = true; flush(); try { var old = JSON.parse(localStorage.getItem(LEGACY)); if (old && old.n === n && old.di === di) localStorage.removeItem(LEGACY); } catch (e) {} }

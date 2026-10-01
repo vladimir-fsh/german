@@ -995,3 +995,10 @@ window.L18 = {
     { t: "Personenbeschreibung: Fehlersuche (Genially)", url: "https://view.genially.com/690373f4b3a9c14d12d96d62" }
   ]
 };
+
+/* Точные учебные цели для безопасной смены контекста в позднем повторении.
+   Без такой разметки повторяется исходное упражнение. */
+(function () {
+  var skills = { 2: "adj-ein-nom-m", 3: "adj-ein-nom-m", 4: "adj-eine-nom-f", 5: "adj-ein-nom-akk-n", 6: "adj-eine-nom-f", 7: "adj-ein-nom-m", 8: "adj-ein-nom-akk-n" };
+  Object.keys(skills).forEach(function (index) { window.L18.days[0].ex[index].skill = skills[index]; });
+})();
