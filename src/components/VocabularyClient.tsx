@@ -1,0 +1,16 @@
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import { getVocabularyCatalog, introduceVocabulary, isVocabularyDue, MAX_NEW_WORDS_PER_DAY } from "@/lib/progress";
+import { topics } from "@/lib/validation";
+import { useProgress } from "@/lib/useProgress";
+import { toISODate } from "@/lib/utils";
+export function VocabularyClient() {
+  const { progress, setProgress, hydrated, canEdit } = useProgress();
+  const [query, setQuery] = useState(""); const [topic, setTopic] = useState("Все"); const [level, setLevel] = useState("Все");
+  const introduced = Object.values(progress.reviewState).filter((state) => state.introducedAt && toISODate(new Date(state.introducedAt)) === toISODate()).length;
+  const dueCount = Object.values(progress.reviewState).filter((state) => isVocabularyDue(state)).length;
+  const words = Object.values(getVocabularyCatalog(progress)).filter((word) => (topic === "Все" || word.topic === topic) && (level === "Все" || word.difficulty === level) && `${word.german} ${word.russian} ${word.construction ?? ""}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  if (!hydrated) return <p>Загрузка словаря...</p>;
+  return <div className="space-y-5 pb-20"><section className="panel"><h1 className="text-2xl font-semibold">Общий словарь</h1><p className="mt-3">Слова встроенных и AI-занятий. Чтение карточки не считается проверкой знания.</p><Link href="/review" className="mt-3 inline-block text-lake">Воспроизвести слова без подсказки</Link></section><section className="panel grid gap-3 sm:grid-cols-3"><label>Поиск<input className="field mt-2" value={query} onChange={(event) => setQuery(event.target.value)} /></label><label>Тема<select className="field mt-2" value={topic} onChange={(event) => setTopic(event.target.value)}>{["Все", ...topics].map((item) => <option key={item}>{item}</option>)}</select></label><label>Уровень материала<select className="field mt-2" value={level} onChange={(event) => setLevel(event.target.value)}>{["Все", "A2", "B1"].map((item) => <option key={item}>{item}</option>)}</select></label></section><section className="grid gap-4 md:grid-cols-2">{words.map((word) => { const state = progress.reviewState[word.id]; return <article key={word.id} className="panel space-y-2"><p className="text-xs text-lake">{word.topic} · {word.difficulty}</p><h2 lang="de" className="text-xl font-semibold">{word.german}{word.plural ? `, ${word.plural}` : ""}</h2><p>{word.russian}</p>{word.verbForms && <p lang="de">{word.verbForms}</p>}{word.construction && <p lang="de">{word.construction}</p>}<p lang="de" className="rounded-md bg-paper p-3">{word.exampleSentence}</p><p className="text-sm text-ink/65">{!state || state.stage === "new" ? "Еще не введено в обучение" : `${state.reviewCount} попыток; следующий повтор ${new Date(state.dueAt).toLocaleString("ru-RU")}`}</p>{state?.stage === "new" && <button className="button-secondary" disabled={!canEdit || introduced >= MAX_NEW_WORDS_PER_DAY || dueCount > 10} onClick={() => setProgress((latest) => introduceVocabulary(latest, [word.id]))}>Добавить в практику</button>}</article>; })}</section>{words.length === 0 && <p>Ничего не найдено.</p>}<p className="text-sm">Лимит новых слов: {MAX_NEW_WORDS_PER_DAY} в день. При большой очереди сначала повторите старое.</p></div>;
+}
