@@ -153,8 +153,11 @@ window.Store = (function () {
       case "dayDone":
         if (op.attemptId && s.attempts.some(function (a) { return a.id === op.attemptId; })) return s;
         s.done["L" + op.n + "D" + op.di] = { at: op.t, score: op.score, of: op.of };
+        /* засчитан руками: of — сколько ответов сохранилось, а не длина дня */
+        if (op.manual) s.done["L" + op.n + "D" + op.di].manual = true;
         if (op.attemptId) {
           s.attempts.push({ id: op.attemptId, n: op.n, di: op.di, at: op.t, score: op.score, of: op.of, uncertain: op.uncertain || 0, hints: op.hints || 0, records: op.records || [] });
+          if (op.manual) s.attempts[s.attempts.length - 1].manual = true;
           s.attempts = s.attempts.slice(-100);
         }
         return s;

@@ -330,7 +330,7 @@
       var mrow = el("div", "btnrow"), mark = el("button", "btn sec", "Засчитать день"), armed = false;
       mark.onclick = function () {
         if (!armed) { armed = true; mark.textContent = "Точно засчитать? Нажми ещё раз"; return; }
-        done();
+        done(true);
       };
       mrow.appendChild(mark); head.appendChild(mrow);
     }
@@ -372,15 +372,33 @@
     check.onclick = function () { if (api && api.check && !answered) api.check(); };
     next.onclick = function () { if (!answered || finished || view !== routeId) return; run.i = ++i; window.Practice.save(run); step(); };
     document.onkeydown = function (event) { if (event.key === "Enter" && answered) { event.preventDefault(); next.click(); } };
-    function done() {
+    /* manual — день засчитан кнопкой: результат считается только по сохранённым
+       ответам, задания без ответа не идут в «не совпали» */
+    function done(manual) {
       if (finished) return; finished = true; working = false; document.onkeydown = null;
-      var stats = window.Practice.stats(run);
-      S = Store.mutate("dayDone", { n: n, di: di, score: stats.correct, of: list.length, uncertain: stats.uncertain, hints: stats.hints, attemptId: run.id, records: run.records });
+      var stats = window.Practice.stats(run), of = list.length;
+      if (manual) {
+        of = 0;
+        run.records.forEach(function (record) { if (record && record.result) of++; });
+        of = Math.max(of, stats.correct);
+      }
+      var op = { n: n, di: di, score: stats.correct, of: of, uncertain: stats.uncertain, hints: stats.hints, attemptId: run.id, records: run.records };
+      if (manual) op.manual = true;
+      /* ответов не было — в истории нечего показывать, остаётся только отметка дня */
+      if (manual && !of) { delete op.attemptId; delete op.records; }
+      S = Store.mutate("dayDone", op);
       touchStreak(); window.Practice.remove(n, di);
       app.innerHTML = "";
       var c = el("div", "card hero");
-      c.innerHTML = '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " выполнен</div><h1>" + stats.correct + " из " + list.length + " совпали с ответами</h1>" +
-        '<div class="muted">Это выполненная практика, не подтверждение уровня B1. Ошибки назначены на повторение спустя время.</div>' +
+      c.innerHTML = manual
+        ? '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " засчитан</div><h1>День засчитан вручную</h1>" +
+          '<div class="muted">' + (of
+            ? "Сохранилось ответов: " + of + ", из них совпали с ответами: " + stats.correct + ". Задания без ответа в результат не входят." +
+              (stats.correct < of ? " Ошибки из этих ответов назначены на повторение." : "")
+            : "Сохранённых ответов не было, поэтому результат не записан. День отмечен как пройденный.") + "</div>"
+        : '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " выполнен</div><h1>" + stats.correct + " из " + list.length + " совпали с ответами</h1>" +
+        '<div class="muted">Это выполненная практика, не подтверждение уровня B1. Ошибки назначены на повторение спустя время.</div>';
+      c.innerHTML +=
         (stats.uncertain ? '<div class="note">Переводов без подтвержденной оценки: ' + stats.uncertain + ". Другой вариант может быть верным.</div>" : "") +
         (stats.hints ? '<div class="note">Попыток с открытой теорией: ' + stats.hints + ". Проверьте навык позже без подсказки.</div>" : "");
       var buttons = el("div", "btnrow"), nx = findNext();
@@ -553,7 +571,7 @@
       c.appendChild(el("h2", null, "История попыток"));
       attempts.forEach(function (attempt) {
         var details = document.createElement("details");
-        details.appendChild(el("summary", null, "Урок " + attempt.n + ", день " + (attempt.di + 1) + ": " + attempt.score + "/" + attempt.of));
+        details.appendChild(el("summary", null, "Урок " + attempt.n + ", день " + (attempt.di + 1) + ": " + attempt.score + "/" + attempt.of + (attempt.manual ? ", засчитан вручную" : "")));
         details.appendChild(el("div", "muted", new Date(attempt.at).toLocaleString("ru") + ". С теорией: " + (attempt.hints || 0) + ". Без подтвержденной оценки: " + (attempt.uncertain || 0) + "."));
         (attempt.records || []).forEach(function (record, index) {
           if (!record || !record.result) return;
