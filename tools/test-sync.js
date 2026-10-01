@@ -9,7 +9,7 @@ function ok(name, cond, extra) {
 }
 function eq(name, a, b) { ok(name, a === b, "получено " + JSON.stringify(a) + ", ожидалось " + JSON.stringify(b)); }
 
-var SYNC = ["js/srs-config.js", "js/sync.js"];
+var SYNC = ["js/progress-data.js", "js/srs-config.js", "js/sync.js"];
 
 /* журнал чужого устройства: один закрытый день урока */
 function log(device, lcFrom, entries) {

@@ -471,6 +471,14 @@ details.theory .gram { padding: 0 14px 14px; }
 }
 
 /* ---------- вкладка «Ещё» ---------- */
+.storage-warning { padding: 14px 16px; background: var(--bad-soft); color: var(--text); font-size: 14px; }
+.storage-warning[hidden] { display: none; }
+.storage-warning button { display: block; margin-top: 10px; }
+.zero { border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); color: var(--text); min-height: 36px; min-width: 36px; margin-left: 3px; font: inherit; }
+.sample summary { cursor: pointer; margin-top: 10px; color: var(--text); }
+.backup-text { width: 100%; min-height: 110px; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font: inherit; }
+.vcontrols { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding-top: 14px; }
+.vcontrols .btn { padding: 9px 11px; font-size: 14px; min-height: 44px; }
 .rows { margin-top: 6px; }
 .row {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -479,5 +487,5 @@ details.theory .gram { padding: 0 14px 14px; }
 }
 .row:last-child { border-bottom: 0; }
 .row.danger { color: var(--bad); }
-.row .val { color: var(--text-dim); font-size: 14px; }
+.row .val { color: var(--text-dim); font-size: 14px; min-width: 0; overflow-wrap: anywhere; }
 .row.static { cursor: default; }

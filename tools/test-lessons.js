@@ -22,6 +22,8 @@ win.COURSE.lessons.forEach(function (meta) {
   if (meta.status !== "ready") { ok("урок " + meta.n + " ещё не готов — файла и не ждём", !L || !!L.days); return; }
   ok("урок " + meta.n + ": файл загружен", !!L);
   if (!L) return;
+  ok("урок " + meta.n + ": число доступных дней совпадает с планом", meta.days === L.days.length);
+  ok("урок " + meta.n + ": план не меньше написанного", !meta.plannedDays || meta.plannedDays >= meta.days);
   console.log("\nурок " + meta.n + " · " + L.title + " · дней " + L.days.length);
 
   L.days.forEach(function (day, di) {

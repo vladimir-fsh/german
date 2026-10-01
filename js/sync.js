@@ -22,10 +22,13 @@
 window.Store = (function () {
   "use strict";
 
-  var SCHEMA = 4;
+  var SCHEMA = 5;
+  var DATA = window.ProgressData;
   var LS_STATE = "de-b1-progress-v1";   /* материализованное состояние, для мгновенного старта */
   var LS_OPS = "de-b1-oplog-v1";        /* собственный журнал */
   var LS_DEV = "de-b1-device-v1";       /* идентификатор устройства */
+  var LS_FOREIGN = "de-b1-foreign-v1"; /* принятые журналы нужны и после офлайн-перезапуска */
+  var storageError = "", blocked = false;
 
   /* Все числа расписания живут в js/srs-config.js — правятся там.
      Значения ниже служат запасными, если конфиг почему-то не загрузился. */
@@ -69,11 +72,20 @@ window.Store = (function () {
     return {
       v: SCHEMA, done: {}, srs: {}, vocab: {},
       vocabLevel: 1, calibrated: false, streak: 0, lastDay: null,
-      totalCorrect: 0, totalTried: 0, resetAt: 0
+      totalCorrect: 0, totalTried: 0, totalUncertain: 0, attempts: [], answered: {}, resetAt: 0
     };
   }
 
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function advanceFromSnapshot() {
+    if (!snapshot) return;
+    var cursor = snapshot.cursor || {}, coveredCount = 0;
+    Object.keys(cursor).forEach(function (id) { coveredCount += cursor[id]; });
+    mine.seq = Math.max(mine.seq, cursor[DEV] || 0);
+    /* Старые снимки не сохраняли часы. Сумма номеров покрытых журналов
+       дает консервативную границу; новые снимки хранят точные часы. */
+    mine.lc = Math.max(mine.lc, snapshot.lc || 0, coveredCount);
+  }
 
   /* Перенос со схемы 3: ящик лестницы превращается в интервал в днях,
      лёгкость у всех стартовая. Сроки и счётчик промахов сохраняются. */
@@ -98,6 +110,12 @@ window.Store = (function () {
     }
     return st;
   }
+  function upgrade(st) {
+    var next = blank();
+    Object.keys(st || {}).forEach(function (k) { next[k] = st[k]; });
+    next.v = SCHEMA;
+    return migrateVocabShape(next);
+  }
 
   /* ---------- редьюсер ----------
      Чистая функция: (состояние, операция) → состояние.
@@ -113,15 +131,34 @@ window.Store = (function () {
         return s;
 
       case "answer":
+        if (op.attemptId && s.answered[op.attemptId]) return s;
+        if (op.attemptId) {
+          s.answered[op.attemptId] = op.t;
+          var ids = Object.keys(s.answered);
+          if (ids.length > 2000) ids.slice(0, ids.length - 2000).forEach(function (id) { delete s.answered[id]; });
+        }
+        if (op.verdict === "needs-review") { s.totalUncertain++; return s; }
         s.totalTried++;
         if (op.ok) s.totalCorrect++;
         return s;
 
       case "dayDone":
+        if (op.attemptId && s.attempts.some(function (a) { return a.id === op.attemptId; })) return s;
         s.done["L" + op.n + "D" + op.di] = { at: op.t, score: op.score, of: op.of };
+        if (op.attemptId) {
+          s.attempts.push({ id: op.attemptId, n: op.n, di: op.di, at: op.t, score: op.score, of: op.of, uncertain: op.uncertain || 0, hints: op.hints || 0, records: op.records || [] });
+          s.attempts = s.attempts.slice(-100);
+        }
         return s;
 
       case "touchDay":
+        if (op.policy === 2) {
+          var weekday = new Date(op.day + "T12:00:00Z").getUTCDay();
+          if (weekday === 0 || weekday === 6 || (s.lastDay && op.day <= s.lastDay)) return s;
+          s.streak = s.lastDay === DATA.previousStudyDay(op.day) ? (s.streak || 0) + 1 : 1;
+          s.lastDay = op.day;
+          return s;
+        }
         if (s.lastDay !== op.day) {
           y = new Date(Date.parse(op.day + "T00:00:00Z") - 864e5).toISOString().slice(0, 10);
           s.streak = s.lastDay === y ? (s.streak || 0) + 1 : 1;
@@ -136,13 +173,14 @@ window.Store = (function () {
       case "srsHit":
         r = s.srs[op.id];
         if (!r) return s;
+        if (op.policy === 2 && r.due > op.t) return s;
         if (op.ok) {
           r.box++;
           if (r.box >= SRS_LADDER.length) delete s.srs[op.id];
           else r.due = op.t + SRS_LADDER[r.box];
         } else {
           r.box = 0;
-          r.due = op.t;
+          r.due = op.t + (op.policy === 2 ? cfg("errorRetryMinutes", 1) * 60000 : 0);
         }
         return s;
 
@@ -180,6 +218,28 @@ window.Store = (function () {
         s.vocab[op.key] = v;
         return s;
 
+      /* Новый график отдельной операцией: исторические vocabGrade не меняют смысл. */
+      case "vocabReview":
+        v = s.vocab[op.key] || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false, introducedAt: op.t, introducedDay: op.day || new Date(op.t).toISOString().slice(0, 10), stage: "learning", step: 0 };
+        if (v.box != null && v.iv == null) v = fromBox(v);
+        if (v.due > op.t && !v.learned) return s;
+        v.introducedAt = v.introducedAt || op.t;
+        v.learned = false;
+        if (!op.ok) {
+          v.ease = Math.max(EASE_MIN, v.ease - (v.reps ? EASE_LAPSE : 0));
+          v.lapses = (v.lapses || 0) + 1; v.stage = "learning"; v.step = 0;
+          v.due = op.t + cfg("learningRetryMinutes", 1) * 60000;
+        } else if ((v.stage || (v.reps ? "review" : "learning")) === "learning") {
+          v.step = (v.step || 0) + 1;
+          if (v.step < 2) v.due = op.t + cfg("learningSuccessMinutes", 10) * 60000;
+          else { v.stage = "review"; v.iv = IV_GRAD; v.reps = (v.reps || 0) + 1; v.due = op.t + v.iv * 864e5; }
+        } else {
+          v.stage = "review"; v.iv = Math.min(cfg("reviewMaxDays", 100), fuzz(op.key, op.seq, Math.max(IV_MIN, v.iv * v.ease)));
+          v.reps = (v.reps || 0) + 1; v.due = op.t + v.iv * 864e5;
+        }
+        v.t = op.t; s.vocab[op.key] = v;
+        return s;
+
       case "vocabLevel":
         s.vocabLevel = op.level;
         return s;
@@ -190,12 +250,18 @@ window.Store = (function () {
           var e = s.vocab[op.key + dir] || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false };
           if (e.box != null && e.iv == null) e = fromBox(e);
           e.learned = true;
+          e.selfAssessed = true;
           e.due = 0;
           e.iv = IV_LEARNED;
           e.reps = (e.reps || 0) + 1;
           e.t = op.t;
           s.vocab[op.key + dir] = e;
         });
+        return s;
+
+      case "restore":
+        s = upgrade(DATA.state(op.state));
+        s.resetAt = op.t;
         return s;
 
       /* калибровка на входе: сразу ставит ступень частотности */
@@ -215,8 +281,9 @@ window.Store = (function () {
   }
 
   function reduce(base, ops) {
-    var s = base ? clone(base) : blank();
-    ops.slice().sort(cmp).forEach(function (op) { s = apply(s, op); });
+    var s = base ? upgrade(clone(base)) : blank();
+    var seen = {};
+    ops.slice().sort(cmp).forEach(function (op) { var key = op.device + ":" + op.seq; if (!seen[key]) { seen[key] = true; s = apply(s, op); } });
     s.v = SCHEMA;
     return s;
   }
@@ -227,9 +294,9 @@ window.Store = (function () {
     try {
       var raw = localStorage.getItem(k);
       return raw ? JSON.parse(raw) : fallback;
-    } catch (e) { return fallback; }
+    } catch (e) { blocked = true; storageError = "Сохраненные данные повреждены. Исходные записи не изменены. Экспортируйте их в разделе «Ещё» и восстановите резервную копию."; return fallback; }
   }
-  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function lsSet(k, v) { if (blocked) return false; try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { storageError = "Изменения пока только в памяти: браузер не смог сохранить прогресс. Не закрывайте страницу; скачайте резервную копию или повторите сохранение в разделе «Ещё»."; return false; } }
 
   function deviceId() {
     var d = null;
@@ -244,7 +311,7 @@ window.Store = (function () {
   var DEV = deviceId();
   var mine = lsGet(LS_OPS, null) || { device: DEV, seq: 0, lc: 0, ops: [] };
   var snapshot = lsGet("de-b1-snapshot-v1", null);   /* последний известный снапшот */
-  var foreign = {};                                   /* device → массив операций */
+  var foreign = lsGet(LS_FOREIGN, {});                /* device → массив операций */
   var state = lsGet(LS_STATE, null);
   var listeners = [], statusListeners = [];
   var DB = null, pushTimer = null, pushing = false, dirty = false, legacyDone = false;
@@ -259,22 +326,43 @@ window.Store = (function () {
   var cloudSeen = false;
   var readyTimer = null;
   var connectAt = 0;
+  try {
+    DATA.journal(mine);
+    if (state) DATA.state(state);
+    DATA.object(foreign); Object.keys(foreign).forEach(function (key) { if (!Array.isArray(foreign[key])) throw new Error(); foreign[key].forEach(DATA.operation); });
+    if (snapshot) DATA.snapshot(snapshot);
+  } catch (e) { blocked = true; storageError = "Структура сохраненных данных повреждена. Исходные записи сохранены для экспорта и восстановления."; mine = { device: DEV, seq: 0, lc: 0, ops: [] }; foreign = {}; snapshot = null; state = null; }
 
   /* Миграция со схемы 2: прежнее состояние становится стартовым снапшотом,
      журнал начинается пустым. Ничего не теряется. */
-  if (!state || state.v !== SCHEMA) {
+  if (!state || state.v !== SCHEMA || !snapshot) {
     if (state) {
       try { localStorage.setItem(LS_STATE + "-backup-v" + (state.v || 2), JSON.stringify(state)); } catch (e) {}
       state.v = SCHEMA;
-      state.resetAt = state.reset || 0;
+      state.resetAt = state.resetAt || state.reset || 0;
       migrateVocabShape(state);
       if (snapshot && snapshot.state) migrateVocabShape(snapshot.state);
-      if (!snapshot) snapshot = { v: SCHEMA, state: clone(state), cursor: {}, at: Date.now() };
+      state = upgrade(state);
+      if (!snapshot) {
+        var covered = {}; mine.ops.forEach(function (op) { covered[op.device] = Math.max(covered[op.device] || 0, op.seq); });
+        Object.keys(foreign).forEach(function (device) { foreign[device].forEach(function (op) { covered[op.device] = Math.max(covered[op.device] || 0, op.seq); }); });
+        snapshot = { v: SCHEMA, state: clone(state), cursor: covered, at: Date.now(), recovered: true };
+      }
     } else {
       state = blank();
     }
     lsSet(LS_STATE, state);
     if (snapshot) lsSet("de-b1-snapshot-v1", snapshot);
+  }
+  advanceFromSnapshot();
+
+  function saveLocal() {
+    var ok = lsSet(LS_OPS, mine);
+    if (!lsSet(LS_FOREIGN, foreign)) ok = false;
+    if (snapshot && !lsSet("de-b1-snapshot-v1", snapshot)) ok = false;
+    if (!lsSet(LS_STATE, state)) ok = false;
+    if (ok) storageError = "";
+    return ok;
   }
 
   function notify() {
@@ -296,7 +384,7 @@ window.Store = (function () {
     var ops = mine.ops.slice();
     for (var d in foreign) if (d !== DEV) ops = ops.concat(foreign[d]);
     state = reduce(snapshot ? snapshot.state : null, dropCovered(ops));
-    lsSet(LS_STATE, state);
+    saveLocal();
     hydrated = true;
     notify();
     return state;
@@ -310,22 +398,32 @@ window.Store = (function () {
   }
 
   function setStatus(txt, cls) {
+    if (storageError) { txt = storageError; cls = "bad"; }
     statusListeners.forEach(function (fn) { try { fn(txt, cls); } catch (e) {} });
   }
 
   /* ---------- мутации ---------- */
 
   function mutate(type, args) {
+    if (blocked && type !== "reset" && type !== "restore") throw new Error(storageError);
+    if (type === "restore") DATA.state(args.state);
+    if (type === "reset" || type === "restore") { blocked = false; storageError = ""; }
+    else if (!storageError) refreshDisk();
+    if (blocked) throw new Error(storageError);
     var op = args ? clone(args) : {};
     op.type = type;
     op.device = DEV;
-    op.seq = ++mine.seq;
-    op.lc = ++mine.lc;
+    op.seq = mine.seq + 1;
+    op.lc = mine.lc + 1;
     op.t = Date.now();
+    op.policy = 2;
+    DATA.operation(op);
+    mine.seq = op.seq; mine.lc = op.lc;
     mine.ops.push(op);
     lsSet(LS_OPS, mine);
     materialize();
     schedulePush();
+    setStatus(DB ? "синк…" : "только это устройство");
     return state;
   }
 
@@ -363,7 +461,10 @@ window.Store = (function () {
     var d = snap.data();
     if (!d || !d.state) return;
     if ((d.v || 0) > SCHEMA) { setStatus("обнови страницу", "bad"); return; }
-    snapshot = { v: d.v, state: d.state, cursor: d.cursor || {}, at: d.at || 0 };
+    try { DATA.snapshot({ state: d.state, cursor: d.cursor || {}, at: d.at || 0, lc: d.lc || 0 }); } catch (e) { setStatus("Некорректные данные облака; локальный прогресс сохранен.", "bad"); return; }
+    if (snapshot && !snapshot.recovered && (d.at || 0) < snapshot.at) return;
+    snapshot = { v: d.v, state: d.state, cursor: d.cursor || {}, at: d.at || 0, lc: d.lc || 0 };
+    advanceFromSnapshot();
     lsSet("de-b1-snapshot-v1", snapshot);
     trimMine();
     materialize();
@@ -382,11 +483,13 @@ window.Store = (function () {
 
   function onLogs(qsnap) {
     markCloudSeen();
-    var seen = {};
+    var seen = clone(foreign);
     qsnap.docs.forEach(function (doc) {
       var d = doc.data();
-      if (!d || !d.ops || d.device === DEV) return;
-      seen[d.device] = d.ops;
+      if (!d || !d.ops) return;
+      try { DATA.journal(d); } catch (e) { setStatus("Некорректный журнал облака; локальный прогресс сохранен.", "bad"); return; }
+      if (d.device === DEV) { mine.ops = mergeOps(mine.ops, d.ops); mine.seq = Math.max(mine.seq, d.seq || 0); }
+      else seen[d.device] = mergeOps(seen[d.device] || [], d.ops);
       if (d.lc > mine.lc) mine.lc = d.lc;   /* часы Лампорта догоняют чужие */
     });
     foreign = seen;
@@ -440,15 +543,16 @@ window.Store = (function () {
 
   function writeSnapshot() {
     if (!DB) return;
-    var cursor = {};
-    cursor[DEV] = mine.seq;
+    var cursor = clone((snapshot && snapshot.cursor) || {});
+    cursor[DEV] = Math.max(cursor[DEV] || 0, mine.seq);
     for (var d in foreign) {
       var ops = foreign[d];
-      cursor[d] = ops.length ? ops[ops.length - 1].seq : 0;
+      ops.forEach(function (op) { cursor[op.device] = Math.max(cursor[op.device] || 0, op.seq); });
     }
-    DB.doc("sync/snapshot").set({ v: SCHEMA, state: clone(state), cursor: cursor, at: Date.now(), by: DEV })
+    var sent = { v: SCHEMA, state: clone(state), cursor: cursor, at: Date.now(), by: DEV, lc: mine.lc };
+    DB.doc("sync/snapshot").set(sent)
       .then(function () {
-        snapshot = { v: SCHEMA, state: clone(state), cursor: cursor, at: Date.now() };
+        if (!snapshot || snapshot.recovered || snapshot.at <= sent.at) snapshot = { v: SCHEMA, state: sent.state, cursor: sent.cursor, at: sent.at, lc: sent.lc };
         lsSet("de-b1-snapshot-v1", snapshot);
         trimMine();
       }, function () {});
@@ -457,6 +561,7 @@ window.Store = (function () {
   /* возврат к приложению: дожать журнал в облако и перерисовать интерфейс */
   function resume() {
     if (document.hidden) return;
+    if (!storageError) refreshDisk();
     /* таймер ожидания мог простоять замороженным вместе со страницей,
        поэтому срок проверяем по стенным часам, а не по факту срабатывания */
     if (!cloudSeen && connectAt && Date.now() - connectAt > READY_WAIT) markCloudSeen();
@@ -495,16 +600,53 @@ window.Store = (function () {
     window.addEventListener("focus", resume);
   }
 
+  function mergeOps(a, b) {
+    var entries = {}; a.concat(b).forEach(function (op) { entries[op.device + ":" + op.seq] = op; });
+    return Object.keys(entries).map(function (key) { return entries[key]; }).sort(cmp);
+  }
+  function refreshDisk() {
+    var disk = lsGet(LS_OPS, null);
+    if (blocked) return;
+    try {
+      if (disk && disk.device === DEV) {
+        DATA.journal(disk); mine.ops = mergeOps(mine.ops, disk.ops);
+        mine.seq = Math.max(mine.seq, disk.seq || 0); mine.lc = Math.max(mine.lc, disk.lc || 0);
+      }
+      var logs = lsGet(LS_FOREIGN, {}); DATA.object(logs);
+      Object.keys(logs).forEach(function (id) { logs[id].forEach(DATA.operation); foreign[id] = mergeOps(foreign[id] || [], logs[id]); });
+      var next = lsGet("de-b1-snapshot-v1", null);
+      if (next && (!snapshot || next.at > snapshot.at)) { DATA.snapshot(next); snapshot = next; advanceFromSnapshot(); }
+    } catch (e) { blocked = true; storageError = "Другая вкладка сохранила поврежденные данные. Экспортируйте текущий прогресс перед восстановлением."; }
+  }
+  window.addEventListener("storage", function () { if (!storageError) { refreshDisk(); if (!blocked) materialize(); } });
+
   return {
     SCHEMA: SCHEMA,
     LADDER: LADDER,
     device: DEV,
     state: function () { return state; },
     /* false, пока состояние не поднято ни с диска, ни из облака */
-    ready: function () { return hydrated || cloudSeen; },
+    ready: function () { return !blocked && (hydrated || cloudSeen); },
+    blocked: function () { return blocked; },
+    storageError: function () { return storageError; },
+    warn: function (message) { storageError = message; setStatus(message, "bad"); },
+    flush: function () { saveLocal(); setStatus(storageError || "Сохранено на устройстве", storageError ? "bad" : "ok"); push(); },
+    exportBackup: function () { return JSON.stringify({ kind: "de-b1-backup", version: 1, at: Date.now(), state: state, drafts: window.Practice ? window.Practice.exportDrafts() : null }, null, 2); },
+    exportRaw: function () { var raw = {}; [LS_STATE, LS_OPS, LS_FOREIGN, "de-b1-snapshot-v1", "de-b1-days-v2", "de-b1-day-v1", "de-b1-session-v1"].forEach(function (key) { try { raw[key] = localStorage.getItem(key); } catch (e) { raw[key] = null; } }); return JSON.stringify(raw, null, 2); },
+    importBackup: function (text) {
+      if (typeof text !== "string" || text.length > 10000000) throw new Error("Файл слишком большой.");
+      var parsed; try { parsed = JSON.parse(text); } catch (e) { throw new Error("Некорректный JSON. Текущий прогресс не изменен."); }
+      DATA.object(parsed);
+      var data = DATA.state(parsed.kind === "de-b1-backup" ? parsed.state : parsed);
+      var drafts = parsed.drafts && window.Practice ? window.Practice.validateImport(parsed.drafts) : null;
+      var result = mutate("restore", { state: data });
+      if (window.Practice) { if (drafts) window.Practice.importDrafts(drafts); else window.Practice.clear(); }
+      try { localStorage.removeItem("de-b1-session-v1"); localStorage.removeItem("de-b1-day-v1"); } catch (e) {}
+      return result;
+    },
     mutate: mutate,
     onChange: function (fn) { listeners.push(fn); },
-    onStatus: function (fn) { statusListeners.push(fn); },
+    onStatus: function (fn) { statusListeners.push(fn); fn(storageError || "только это устройство", storageError ? "bad" : ""); },
     connect: connect,
     /* для отладки и тестов */
     _debug: function () {

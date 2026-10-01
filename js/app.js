@@ -9,6 +9,7 @@
      чтение состояния и вызов мутаций — прямых присваиваний в S больше нет. */
   var Store = window.Store;
   var S = Store.state();
+  var working = false, routeId = 0;
 
   Store.onChange(function (next) {
     S = next;
@@ -31,8 +32,9 @@
 
   function redrawable() {
     var h = curPath();
-    if (h === "/" || h === "/more" || /^\/l\d+$/.test(h)) return true;
-    if (h === "/vocab" || h === "/review") return !sessionLoad();
+    if (h === "/more") return !working;
+    if (h === "/" || /^\/l\d+$/.test(h)) return true;
+    if (h === "/vocab" || h === "/review") return !working;
     return false;
   }
 
@@ -46,7 +48,7 @@
     return Math.round((k / total) * 100);
   }
   function touchStreak() {
-    var today = new Date().toISOString().slice(0, 10);
+    var today = window.ProgressData.day(new Date());
     if (S.lastDay === today) return;
     S = Store.mutate("touchDay", { day: today });
   }
@@ -65,6 +67,7 @@
   window.addEventListener("hashchange", route);
 
   function route() {
+    routeId++; working = false; document.onkeydown = null;
     var h = curPath();
     var m;
     window.scrollTo(0, 0);
@@ -112,11 +115,11 @@
       '<div class="kicker">' + esc(C.pace) + "</div>" +
       "<h1>" + esc(C.title) + "</h1>" +
       '<div class="muted">Курс собран на базе упражнений lehrerlenz.de, Lektionen 18–32. ' +
-      "Готовые уроки идут по порядку; остальные подключаются по мере готовности.</div>" +
+      "Доступны " + ready.length + " из " + C.lessons.length + " уроков. Процент показывает выполнение доступных заданий, а не готовность к B1.</div>" +
       '<div class="bar"><i style="width:' + (loading ? 0 : pct) + '%"></i></div>' +
       '<div class="stats">' +
-      '<div class="stat"><b>' + (loading ? "—" : doneDays + " / " + totalDays) + "</b><span>дней пройдено</span></div>" +
-      '<div class="stat"><b>' + val(S.streak) + "</b><span>дней подряд</span></div>" +
+      '<div class="stat"><b>' + (loading ? "—" : doneDays + " / " + totalDays) + "</b><span>доступных дней выполнено</span></div>" +
+      '<div class="stat"><b>' + val(window.ProgressData.currentStreak(S, window.ProgressData.day(new Date()))) + "</b><span>учебных дней подряд</span></div>" +
       '<div class="stat"><b>' + (loading ? "—" : acc + "%") + "</b><span>верных ответов</span></div>" +
       '<div class="stat"><b>' + val(due) + "</b><span>на повторение</span></div>" +
       '<div class="stat"><b>' + val(words) + "</b><span>карточек на сегодня</span></div>" +
@@ -139,24 +142,25 @@
     var ws = vocabWordStats();
     var vcard = el("div", "card");
     vcard.innerHTML = "<h2>Словарь</h2>" +
-      '<div class="muted">Слово засчитывается выученным, когда прошло всю лестницу интервалов ' +
-      "в обе стороны: и с немецкого, и на немецкий.</div>" + vocabBar(ws, loading);
+      '<div class="muted">Закрытые слова включают прежнее расписание и вашу самооценку. ' +
+      "Это не подтверждение знания. Новые карточки продолжают повторяться.</div>" + vocabBar(ws, loading);
     if (!loading && !S.calibrated) {
       vcard.appendChild(el("div", "note",
         "Слова пока берутся с самой ходовой ступени, поэтому попадается лёгкое. " +
         "Калибровка проходит по четыре слова с каждой ступени: знакомое закрывается сразу, " +
-        "а стартовый уровень выставляется по результату."));
+        "а стартовая группа слов выбирается по самооценке. Это не тест уровня языка."));
     }
 
     var vrow = el("div", "btnrow");
     if (!loading && !S.calibrated) {
-      var vbc = el("button", "btn", "Подобрать уровень");
+      var vbc = el("button", "btn", "Подобрать слова");
       vbc.onclick = function () { go("/vocab/calibrate"); };
       vrow.appendChild(vbc);
     }
+    var canStartNew = vocabPlan("new").length > 0;
     var vb = el("button", "btn" + (words && S.calibrated ? "" : " sec"),
-      loading ? "Подтягиваю прогресс…" : words ? "Учить слова (" + words + ")" : "Взять 10 новых слов");
-    vb.disabled = loading;
+      loading ? "Подтягиваю прогресс…" : words ? "Учить слова (" + words + ")" : canStartNew ? "Начать новые карточки" : "Повторы будут позже");
+    vb.disabled = loading || (!words && !canStartNew);
     vb.onclick = function () { go(words ? "/vocab" : "/vocab/new"); };
     vrow.appendChild(vb);
     var rep0 = loading ? 0 : vocabRepeatPending();
@@ -170,7 +174,7 @@
 
     var list = el("div", "card");
     list.appendChild(el("h2", null, "Программа"));
-    list.appendChild(el("div", "muted", "15 уроков от склонения прилагательных до свободной речи на уровне B1."));
+    list.appendChild(el("div", "muted", "План из 15 уроков. Новые уроки добавляются поэтапно."));
     var holder = el("div", null);
     holder.style.marginTop = "14px";
     C.lessons.forEach(function (l) {
@@ -240,7 +244,7 @@
         var a = S.vocab["L" + n + ":" + w.de + "|de"], b = S.vocab["L" + n + ":" + w.de + "|ru"];
         if (a && a.learned && b && b.learned) learnedN++;
       });
-      wc.appendChild(el("div", "muted", L.words.length + " слов · выучено " + learnedN +
+      wc.appendChild(el("div", "muted", L.words.length + " слов · закрыто " + learnedN +
         " · карточки идут общей очередью со всем курсом"));
       var wl = el("div", "wordlist");
       L.words.forEach(function (w) {
@@ -300,130 +304,102 @@
 
   /* ---------- день: прохождение заданий ---------- */
   function viewDay(n, di) {
-    var L = window["L" + n];
-    var day = L && L.days[di];
+    var L = window["L" + n], day = L && L.days[di];
     if (!day) return go("/l" + n);
-    var list = day.ex.slice();
-    var saved = dayLoad(n, di);
-    var i = saved ? Math.min(saved.i || 0, list.length - 1) : 0;
-    var correct = saved ? (saved.correct || 0) : 0;
+    if (Store.blocked()) return viewMore();
+    working = true;
+    var list = day.ex.slice(), run = window.Practice.load(n, di, list) || window.Practice.create(n, di, list);
+    var i = run.i, api = null, answered = false, finished = false;
+    var view = routeId;
+    window.Practice.save(run);
     app.innerHTML = "";
-
     var head = el("div", "card");
-    head.innerHTML =
-      '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + "</div>" +
-      "<h2>" + esc(day.title) + "</h2>" +
+    head.innerHTML = '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + "</div><h2>" + esc(day.title) + "</h2>" +
       (day.sub ? '<div class="muted">' + esc(day.sub) + "</div>" : "");
-    if (day.grammar != null) {
-      (Array.isArray(day.grammar) ? day.grammar : [day.grammar]).forEach(function (gi) {
-        var g = L.grammar[gi];
-        if (!g) return;
-        var det = document.createElement("details");
-        det.className = "theory";
-        det.innerHTML = "<summary>Теория: " + esc(g.title) + '</summary><div class="gram">' + g.html + "</div>";
-        head.appendChild(det);
-      });
-    }
+    if (day.grammar != null) [].concat(day.grammar).forEach(function (gi) {
+      var g = L.grammar[gi]; if (!g) return;
+      var det = document.createElement("details"); det.className = "theory";
+      det.innerHTML = "<summary>Теория: " + esc(g.title) + '</summary><div class="gram">' + g.html + "</div>";
+      det.addEventListener("toggle", function () {
+        if (det.open && i < list.length) { var record = run.records[i] || (run.records[i] = {}); record.usedHint = true; window.Practice.save(run); }
+      }); head.appendChild(det);
+    });
+    head.appendChild(el("div", "muted", "Ответы сохраняются. Результат относится к первой попытке; открытая теория отмечается как подсказка."));
     app.appendChild(head);
-
-    var card = el("div", "card");
-    var pl = el("div", "progline");
-    pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>';
-    card.appendChild(pl);
-    var host = el("div", null);
-    card.appendChild(host);
-    var row = el("div", "btnrow sticky");
-    var check = el("button", "btn", "Проверить");
-    var next = el("button", "btn sec", "Дальше →");
-    next.style.display = "none";
-    /* нижняя панель прилипает к экрану телефона; без видимых кнопок прячем её */
-    function syncBar() {
-      var vis = check.style.display !== "none" || next.style.display !== "none";
-      row.className = "btnrow sticky" + (vis ? "" : " empty");
+    var card = el("div", "card"), pl = el("div", "progline");
+    pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>'; card.appendChild(pl);
+    var host = el("div", null); card.appendChild(host);
+    var row = el("div", "btnrow sticky"), check = el("button", "btn", "Проверить"), next = el("button", "btn sec", "Дальше →");
+    row.appendChild(check); row.appendChild(next); card.appendChild(row); app.appendChild(card);
+    function syncBar() { row.className = "btnrow sticky" + (check.style.display === "none" && next.style.display === "none" ? " empty" : ""); }
+    function count(record, index) {
+      var token = run.id + ":" + index;
+      if (!S.answered[token]) S = Store.mutate("answer", { ok: record.result.ok, verdict: record.result.verdict, attemptId: token });
     }
-    row.appendChild(check); row.appendChild(next);
-    card.appendChild(row);
-    app.appendChild(card);
-
-    var api = null, answered = false;
-
     function step() {
-      answered = false;
-      next.style.display = "none";
-      check.style.display = "";
-      check.disabled = false;
-      pl.querySelector(".cnt").textContent = (i + 1) + " / " + list.length;
-      pl.querySelector("i").style.width = Math.round((i / list.length) * 100) + "%";
-      var ex = list[i];
-      api = E.render(ex, host, function (ok) {
-        answered = true;
-        if (ok) correct++;
-        S = Store.mutate("answer", { ok: ok });
-        var id = "L" + n + "D" + di + "-" + i;
-        if (!ok) srsAdd(id, ex, n);
-        /* позиция в дне переживает перезагрузку: день засчитывается только
-           на последнем задании, терять 14 ответов из 16 нельзя */
-        daySave({ n: n, di: di, i: i + 1, correct: correct, at: Date.now() });
-        check.style.display = "none";
-        next.style.display = "";
-        syncBar();
-        next.focus();
-      });
-      check.style.display = api.check ? "" : "none";
-      syncBar();
-    }
-
-    check.onclick = function () { if (api && api.check) api.check(); };
-    next.onclick = function () {
-      i++;
       if (i >= list.length) return done();
-      step();
-    };
-    document.onkeydown = function (e) {
-      if (e.key !== "Enter") return;
-      if (answered) { e.preventDefault(); next.click(); }
-    };
-
+      var record = run.records[i] || (run.records[i] = {});
+      if (head.querySelector("details[open]")) record.usedHint = true;
+      answered = !!record.result;
+      pl.querySelector(".cnt").textContent = (i + 1) + " / " + list.length;
+      pl.querySelector("i").style.width = Math.round(i / list.length * 100) + "%";
+      api = E.render(list[i], host, function (ok, result) {
+        if (finished || view !== routeId) return;
+        if (!record.result) {
+          record.result = result; window.Practice.save(run); count(record, i);
+          if (!ok && result.verdict !== "needs-review") srsAdd("L" + n + "D" + di + "-" + i, list[i], n);
+        }
+        answered = true; check.style.display = "none"; next.style.display = ""; syncBar();
+      }, {
+        draft: record.draft, isHinted: function () { return record.usedHint; },
+        onDraft: function (draft) { record.draft = draft; window.Practice.save(run); }
+      });
+      if (api.result && !record.result) { record.result = api.result; window.Practice.save(run); }
+      answered = !!record.result;
+      if (record.result) count(record, i);
+      check.style.display = !answered && api.check ? "" : "none";
+      next.style.display = answered ? "" : "none"; syncBar();
+    }
+    check.onclick = function () { if (api && api.check && !answered) api.check(); };
+    next.onclick = function () { if (!answered || finished || view !== routeId) return; run.i = ++i; window.Practice.save(run); step(); };
+    document.onkeydown = function (event) { if (event.key === "Enter" && answered) { event.preventDefault(); next.click(); } };
     function done() {
-      document.onkeydown = null;
-      dayClear();
-      S = Store.mutate("dayDone", { n: n, di: di, score: correct, of: list.length });
-      touchStreak();
-      var pctD = Math.round((correct / list.length) * 100);
+      if (finished) return; finished = true; working = false; document.onkeydown = null;
+      var stats = window.Practice.stats(run);
+      S = Store.mutate("dayDone", { n: n, di: di, score: stats.correct, of: list.length, uncertain: stats.uncertain, hints: stats.hints, attemptId: run.id, records: run.records });
+      touchStreak(); window.Practice.remove(n, di);
       app.innerHTML = "";
       var c = el("div", "card hero");
-      c.innerHTML =
-        '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " пройден</div>" +
-        "<h1>" + correct + " из " + list.length + " верно</h1>" +
-        '<div class="muted">' + (pctD >= 85 ? "Отличный результат. Можно идти дальше."
-          : pctD >= 60 ? "Нормально. Ошибки попали в повторение — вернись к ним завтра."
-            : "Слабовато. Перечитай теорию и пройди день ещё раз.") + "</div>";
-      var row2 = el("div", "btnrow");
-      var nx = findNext();
-      if (nx) {
-        var b1 = el("button", "btn", "Следующий день");
-        b1.onclick = function () { go("/l" + nx.n + "/d" + nx.d); };
-        row2.appendChild(b1);
-      }
-      var b2 = el("button", "btn sec", "Пройти день заново");
-      b2.onclick = function () { dayClear(); viewDay(n, di); };
-      var b3 = el("button", "btn sec", "К программе");
-      b3.onclick = function () { go("/"); };
-      row2.appendChild(b2); row2.appendChild(b3);
-      c.appendChild(row2);
-      app.appendChild(c);
+      c.innerHTML = '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " выполнен</div><h1>" + stats.correct + " из " + list.length + " совпали с ответами</h1>" +
+        '<div class="muted">Это выполненная практика, не подтверждение уровня B1. Ошибки назначены на повторение спустя время.</div>' +
+        (stats.uncertain ? '<div class="note">Переводов без подтвержденной оценки: ' + stats.uncertain + ". Другой вариант может быть верным.</div>" : "") +
+        (stats.hints ? '<div class="note">Попыток с открытой теорией: ' + stats.hints + ". Проверьте навык позже без подсказки.</div>" : "");
+      var buttons = el("div", "btnrow"), nx = findNext();
+      if (nx) { var b1 = el("button", "btn", "Следующий день"); b1.onclick = function () { go("/l" + nx.n + "/d" + nx.d); }; buttons.appendChild(b1); }
+      var b2 = el("button", "btn sec", "Пройти день заново"); b2.onclick = function () { window.Practice.remove(n, di); routeId++; viewDay(n, di); };
+      var b3 = el("button", "btn sec", "К программе"); b3.onclick = function () { go("/"); };
+      buttons.appendChild(b2); buttons.appendChild(b3); c.appendChild(buttons); app.appendChild(c);
     }
-
     step();
   }
 
   /* ---------- повторение ---------- */
+  function errorVariant(item) {
+    if (!item.r.box) return item.r.ex;
+    var match = item.id.match(/^L(\d+)D(\d+)-\d+$/), L = window["L" + item.r.n];
+    var day = match && L && L.days[+match[2]];
+    var candidates = day ? day.ex.filter(function (ex) { return ex.type === item.r.ex.type && JSON.stringify(ex) !== JSON.stringify(item.r.ex); }) : [];
+    return candidates.length ? candidates[(item.r.box - 1) % candidates.length] : item.r.ex;
+  }
+
   function viewReview() {
+    if (Store.blocked()) return viewMore();
+    working = true;
     var due = E.shuffle(srsDue());
     app.innerHTML = "";
     if (!due.length) {
       var c0 = el("div", "card hero");
-      c0.innerHTML = "<h1>Нечего повторять</h1><div class=\"muted\">Ошибок в очереди нет. Возвращайся после новых заданий.</div>";
+      c0.innerHTML = "<h1>Нечего повторять</h1><div class=\"muted\">Сейчас срок повторения не подошел ни одной ошибке. Уже назначенные повторы остаются в очереди.</div>";
       var r0 = el("div", "btnrow");
       var bb = el("button", "btn", "К программе");
       bb.onclick = function () { go("/"); };
@@ -459,10 +435,10 @@
       pl.querySelector(".cnt").textContent = (i + 1) + " / " + due.length;
       pl.querySelector("i").style.width = Math.round((i / due.length) * 100) + "%";
       var item = due[i];
-      api = E.render(item.r.ex, host, function (ok) {
+      api = E.render(errorVariant(item), host, function (ok, result) {
         answered = true;
-        S = Store.mutate("answer", { ok: ok });
-        srsHit(item.id, ok);
+        S = Store.mutate("answer", { ok: ok, verdict: result.verdict });
+        if (result.verdict !== "needs-review") srsHit(item.id, ok);
         check.style.display = "none"; next.style.display = ""; syncBar(); next.focus();
       });
       check.style.display = api.check ? "" : "none";
@@ -513,6 +489,7 @@
 
   /* ---------- вкладка «Ещё» ---------- */
   function viewMore() {
+    working = true;
     app.innerHTML = "";
     var c = el("div", "card");
     c.innerHTML = '<div class="kicker">Настройки</div><h2>Ещё</h2>';
@@ -536,8 +513,8 @@
     rows.appendChild(el("div", "row static",
       'Верных ответов<span class="val">' + acc + "% из " + S.totalTried + "</span>"));
     rows.appendChild(el("div", "row static",
-      'Ступень частотности<span class="val">' + (S.vocabLevel || 1) + " из " + V_LEVELS + "</span>"));
-    var calRow = el("button", "row", 'Подобрать уровень заново<span class="val">' +
+      'Ступень словаря<span class="val">' + (S.vocabLevel || 1) + " из " + V_LEVELS + "</span>"));
+    var calRow = el("button", "row", 'Подобрать слова заново<span class="val">' +
       (S.calibrated ? "ступень " + (S.vocabLevel || 1) : "не проходилась") + "</span>");
     calRow.onclick = function () { go("/vocab/calibrate"); };
     rows.appendChild(calRow);
@@ -552,7 +529,49 @@
     rows.appendChild(resetRow);
 
     c.appendChild(rows);
+    c.appendChild(el("h2", null, "Резервные копии"));
+    c.appendChild(el("div", "muted", "JSON переносит прогресс и черновики занятий. Импорт заменяет текущий прогресс после проверки. Исходное хранилище можно скачать для восстановления поврежденных данных."));
+    var copies = el("div", "btnrow");
+    var exportButton = el("button", "btn", "Скачать резервную копию"); exportButton.onclick = function () { download(Store.exportBackup(), "deutsch-progress.json"); };
+    var rawButton = el("button", "btn sec", "Скачать исходное хранилище"); rawButton.onclick = function () { download(Store.exportRaw(), "deutsch-storage-original.json"); };
+    var retryButton = el("button", "btn sec", "Повторить сохранение"); retryButton.onclick = function () { Store.flush(); window.Practice.flush(); };
+    copies.appendChild(exportButton); copies.appendChild(rawButton); copies.appendChild(retryButton); c.appendChild(copies);
+    var label = el("label", null, "Вставьте JSON резервной копии"); label.htmlFor = "backup-json"; c.appendChild(label);
+    var textarea = document.createElement("textarea"); textarea.id = "backup-json"; textarea.className = "backup-text"; textarea.maxLength = 10000000; c.appendChild(textarea);
+    var message = el("div", "note"); message.setAttribute("role", "status"); message.hidden = true; c.appendChild(message);
+    var importButton = el("button", "btn sec", "Проверить и импортировать");
+    importButton.onclick = function () {
+      try {
+        var parsed = JSON.parse(textarea.value); window.ProgressData.object(parsed); window.ProgressData.state(parsed.kind === "de-b1-backup" ? parsed.state : parsed);
+        if (parsed.drafts) window.Practice.validateImport(parsed.drafts);
+        if (!confirm("Заменить текущий прогресс резервной копией? Сначала скачайте текущий JSON.")) return;
+        S = Store.importBackup(textarea.value); message.textContent = "Резервная копия восстановлена.";
+      } catch (error) { message.textContent = "Файл не прошел проверку. Текущий прогресс не изменен."; }
+      message.hidden = false;
+    }; c.appendChild(importButton);
+    var attempts = (S.attempts || []).slice(-20).reverse();
+    if (attempts.length) {
+      c.appendChild(el("h2", null, "История попыток"));
+      attempts.forEach(function (attempt) {
+        var details = document.createElement("details");
+        details.appendChild(el("summary", null, "Урок " + attempt.n + ", день " + (attempt.di + 1) + ": " + attempt.score + "/" + attempt.of));
+        details.appendChild(el("div", "muted", new Date(attempt.at).toLocaleString("ru") + ". С теорией: " + (attempt.hints || 0) + ". Без подтвержденной оценки: " + (attempt.uncertain || 0) + "."));
+        (attempt.records || []).forEach(function (record, index) {
+          if (!record || !record.result) return;
+          var draft = record.draft || {}, values = draft.values || draft.words;
+          var input = values ? values.map(function (value) { return value || "∅"; }).join(" / ") : draft.choice != null ? "вариант " + (draft.choice + 1) : draft.solved ? "соединено пар: " + draft.solved.length : "ответ не записан в старом формате";
+          var result = record.result.ok ? "верно" : record.result.verdict === "needs-review" ? "нужна проверка смысла" : "ошибка";
+          details.appendChild(el("div", "muted", esc((index + 1) + ". " + input + " - " + result + (record.result.usedHint ? ", с теорией" : ""))));
+        });
+        c.appendChild(details);
+      });
+    }
     app.appendChild(c);
+  }
+  function download(text, name) {
+    var url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    var link = document.createElement("a"); link.href = url; link.download = name; link.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
   try {
     var t = localStorage.getItem("de-theme");
@@ -560,19 +579,16 @@
   } catch (e) {}
 
   /* ---------- карточки слов ----------
-     Лестница интервалов: 1 → 3 → 7 → 14 → 30 дней. Верный ответ с первого
-     раза поднимает на ступень; ответ на вершине (30 дней) закрывает слово
-     совсем. «Не знаю» с первого раза опускает на ступень вниз, и дальнейшие
-     ответы в этой же сессии на интервал уже не влияют — слово просто
-     крутится в сессии, пока не вспомнится. */
-  var VLADDER = Store.LADDER;
+     Первый ответ меняет расписание через vocabReview. Повторы внутри
+     сессии помогают извлечению, но не увеличивают интервал. Параметры
+     короткого обучения и дневного лимита заданы в srs-config.js. */
   var CFG = window.SRS_CONFIG || {};
   var V_SESSION = CFG.sessionNew || 10;   /* потолок обычной сессии */
   var V_NEW = CFG.sessionNew || 10;       /* столько новых даёт добор по кнопке */
 
   var V_LEVELS = 5;
 
-  /* слова уроков (f = 0, идут первыми) плюс общий словарь A2–B1 со ступенями частотности */
+  /* слова уроков (f = 0, идут первыми) плюс общий словарь A2–B1 со группами словаря */
   function vocabPool() {
     var out = [];
     (window.COURSE.lessons || []).forEach(function (l) {
@@ -598,7 +614,7 @@
   }
 
   /* новые слова: сначала лексика урока, потом общий словарь — ближе всего
-     к текущей ступени частотности */
+     к текущей группе словаря */
   function vocabSortFresh(fresh) {
     var lvl = S.vocabLevel || 1;
     return fresh.sort(function (a, b) {
@@ -650,12 +666,27 @@
      повторить, остаток добивается новыми словами. Когда повторять нечего —
      сессия целиком из новых, и добор идёт по кнопке.
      mode === "new" — добор десяти новых слов по запросу, без повторений. */
+  function vocabNewRemaining() {
+    var today = window.ProgressData.day(new Date()), introduced = {};
+    Object.keys(S.vocab).forEach(function (key) {
+      var v = S.vocab[key];
+      if (v.introducedDay === today) introduced[key.slice(0, -3)] = true;
+    });
+    return Math.max(0, (CFG.maxNewPerDay || 10) - Object.keys(introduced).length);
+  }
+
   function vocabPlan(mode) {
-    var sp = vocabSplit(), taken = {};
-    if (mode === "new") return vocabOnePerWord(sp.fresh, taken).slice(0, V_NEW);
-    var due = vocabOnePerWord(sp.due, taken).slice(0, V_SESSION);
-    if (due.length >= V_SESSION) return due;
-    var fresh = vocabOnePerWord(sp.fresh, taken).slice(0, V_SESSION - due.length);
+    var sp = vocabSplit(), taken = {}, budget = vocabNewRemaining();
+    var due = mode === "new" ? [] : vocabOnePerWord(sp.due, taken).slice(0, V_SESSION);
+    if (due.length >= V_SESSION || sp.due.length > (CFG.newBacklogLimit || 20)) return due;
+    var current = findNext();
+    var fresh = vocabOnePerWord(sp.fresh, taken).filter(function (it) {
+      var started = S.vocab[it.key.slice(0, -3) + "|de"] || S.vocab[it.key.slice(0, -3) + "|ru"];
+      if (started) return true;
+      if (it.n && current && it.n > current.n) return false;
+      if (budget <= 0) return false;
+      budget--; return true;
+    }).slice(0, mode === "new" ? V_NEW : V_SESSION - due.length);
     return due.concat(fresh);
   }
 
@@ -684,7 +715,7 @@
 
   function vocabRepeatPending() { return vocabRepeatPlan().length; }
 
-  /* Калибровка: по четыре незнакомых слова с каждой ступени частотности.
+  /* Калибровка: по четыре незнакомых слова из каждой группы словаря.
      Ответы не влияют на расписание — знакомое сразу закрывается, незнакомое
      остаётся нетронутым. По долям знакомого выставляется стартовая ступень. */
   var CALIB_PER_LEVEL = 4;
@@ -715,28 +746,25 @@
      конкретной вкладки, а не то, что ты выучил. */
   var SESSION_KEY = "de-b1-session-v1";
   var DAY_KEY = "de-b1-day-v1";
-  var SESSION_TTL = 12 * 3600e3;
 
-  function daySave(st) { try { localStorage.setItem(DAY_KEY, JSON.stringify(st)); } catch (e) {} }
-  function dayClear() { try { localStorage.removeItem(DAY_KEY); } catch (e) {} }
+
+  function dayClear() { window.Practice.clear(); try { localStorage.removeItem(DAY_KEY); } catch (e) {} }
   function dayLoad(n, di) {
-    try {
-      var raw = JSON.parse(localStorage.getItem(DAY_KEY));
-      if (!raw || raw.n !== n || raw.di !== di) return null;
-      if (Date.now() - (raw.at || 0) > SESSION_TTL) return null;
-      return raw;
-    } catch (e) { return null; }
+    var L = window["L" + n];
+    return L && L.days[di] ? window.Practice.load(n, di, L.days[di].ex) : null;
   }
 
   function sessionLoad() {
     try {
       var raw = JSON.parse(localStorage.getItem(SESSION_KEY));
-      if (!raw || !raw.keys || Date.now() - (raw.at || 0) > SESSION_TTL) return null;
+      if (!raw) return null;
+      window.ProgressData.safe(raw);
+      if (!Array.isArray(raw.keys) || !raw.keys.every(function (k) { return typeof k === "string"; }) || raw.i !== Math.floor(raw.i) || raw.i < 0) return null;
       if (raw.i >= raw.keys.length) return null;
       return raw;
     } catch (e) { return null; }
   }
-  function sessionSave(st) { try { localStorage.setItem(SESSION_KEY, JSON.stringify(st)); } catch (e) {} }
+  function sessionSave(st) { try { localStorage.setItem(SESSION_KEY, JSON.stringify(st)); } catch (e) { Store.warn("Сессия слов не сохранена. Не закрывайте страницу; экспортируйте хранилище в разделе «Ещё»."); } }
   function sessionClear() { try { localStorage.removeItem(SESSION_KEY); } catch (e) {} }
 
   /* если новые слова уходят с первого раза — берём следующую порцию реже
@@ -753,11 +781,11 @@
   function vocabPending() { return vocabPlan().length; }
 
   /* firstTry === false — ответ-повтор внутри сессии, расписание не трогаем */
-  function vocabGrade(it, ok, firstTry, fast) {
-    if (firstTry) S = Store.mutate("vocabGrade", { key: it.key, ok: ok, fast: !!fast });
+  function vocabGrade(it, ok, firstTry) {
+    if (firstTry) S = Store.mutate("vocabReview", { key: it.key, ok: ok, day: window.ProgressData.day(new Date()) });
   }
 
-  /* слово выучено, только когда оба направления прошли всю лестницу интервалов */
+  /* Закрытые ранее слова включают самооценку, поэтому это не доказанное знание. */
   function vocabWordStats() {
     var pool = vocabPool(), learned = 0, started = 0;
     pool.forEach(function (it) {
@@ -773,7 +801,7 @@
     function v(x) { return loading ? "—" : x; }
     return '<div class="bar"><i style="width:' + (loading ? 0 : pct) + '%"></i></div>' +
       '<div class="stats">' +
-      '<div class="stat"><b>' + v(ws.learned) + "</b><span>выучено</span></div>" +
+      '<div class="stat"><b>' + v(ws.learned) + "</b><span>закрыто</span></div>" +
       '<div class="stat"><b>' + v(ws.started) + "</b><span>в работе</span></div>" +
       '<div class="stat"><b>' + v(ws.total - ws.learned - ws.started) + "</b><span>не начато</span></div>" +
       '<div class="stat"><b>' + (loading ? "—" : pct + "%") + "</b><span>словаря</span></div>" +
@@ -783,8 +811,10 @@
   function vocabWhen(key) {
     var v = S.vocab[key];
     if (!v) return "новое слово";
-    if (v.learned) return "выучено";
-    var d = Math.round((v.due - Date.now()) / 864e5);
+    if (v.learned) return "закрыто";
+    var distance = v.due - Date.now();
+    if (distance > 0 && distance < 3600e3) return "через " + Math.ceil(distance / 60000) + " мин.";
+    var d = Math.ceil(distance / 864e5);
     if (d <= 0) return "снова сегодня";
     if (d === 1) return "через день";
     if (d < 5) return "через " + d + " дня";
@@ -794,13 +824,16 @@
 
   /* ---------- экран карточек ---------- */
   function viewVocab(mode) {
+    if (Store.blocked()) return viewMore();
+    working = true;
     var byKey = {};
     vocabCards().forEach(function (c) { byKey[c.key] = c; });
 
     var calib = mode === "calib";
     var calibStat = {};   /* ступень → {показано, знакомо} */
-    var saved = (mode === "new" || calib) ? null : sessionLoad();
+    var saved = sessionLoad();
     if (saved && (saved.mode || "") !== (mode || "")) saved = null;
+    if (saved) calibStat = saved.calibStat || {};
     var list, startI = 0, startDone = 0, startFirst = {}, startNewSeen = 0, startNewKnown = 0;
 
     if (saved) {
@@ -836,9 +869,10 @@
           ? "Всё, что пора повторить, пройдено. Можно взять новые слова."
           : "Слова кончились: весь словарь уже в работе."));
       head.insertAdjacentHTML("beforeend", vocabBar(ws0));
+      head.appendChild(el("div", "note", "Новых слов можно начать сегодня: " + vocabNewRemaining() + ". Сначала повторите просроченные карточки."));
       var r0 = el("div", "btnrow");
-      if (sp.fresh.length) {
-        var bn = el("button", "btn", "Взять 10 новых слов");
+      if (vocabPlan("new").length) {
+        var bn = el("button", "btn", "Начать новые карточки");
         bn.onclick = function () { go("/vocab/new"); };
         r0.appendChild(bn);
       }
@@ -859,7 +893,7 @@
         at: Date.now(), mode: mode || "", i: i, done: doneCnt,
         keys: list.map(function (it) { return it.key; }),
         newKeys: list.filter(function (it) { return it.isNew; }).map(function (it) { return it.key; }),
-        first: firstAnswered, newSeen: newSeen, newKnown: newKnown
+        first: firstAnswered, newSeen: newSeen, newKnown: newKnown, peeked: peeked, calibStat: calibStat
       });
     }
 
@@ -883,15 +917,9 @@
     fitScreen();
     window.onresize = fitScreen;
 
-    var i = startI, revealed = false, busy = false;
+    var i = startI, revealed = false, busy = false, view = routeId;
 
-    /* Быстрый ответ — знак того, что слово уже знакомо: оно перескакивает
-       ступеньку лестницы интервалов. Подсмотрел перевод — ответ быстрым
-       не считается, это уже не «знал», а «узнал». */
-    var FAST_MS = CFG.fastMs || 2000;
-    var shownAt = 0, peeked = false;
-
-    function answeredFast() { return !peeked && (Date.now() - shownAt) <= FAST_MS; }
+    var peeked = false;
 
     function faceFront(it) {
       var f = el("div", "vface vfront");
@@ -944,9 +972,15 @@
           '<span class="r">знаю →</span>'));
 
       bindCard(drag, flip, tint);
+      var controls = el("div", "vcontrols");
+      var revealButton = el("button", "btn sec", "Показать ответ"); revealButton.onclick = flipCard;
+      var noButton = el("button", "btn sec", calib ? "Не знаю" : "Не вспомнил"); noButton.onclick = function () { answer(false); };
+      var yesButton = el("button", "btn", calib ? "Знаю без подсказки" : "Вспомнил"); yesButton.onclick = function () { answer(true); };
+      controls.appendChild(revealButton); controls.appendChild(noButton); controls.appendChild(yesButton);
+      host.appendChild(controls);
 
-      shownAt = Date.now();
-      peeked = false;
+      peeked = !!(saved && saved.i === i && saved.peeked);
+      saved = null;
     }
 
     /* Жесты и физика.
@@ -1089,13 +1123,14 @@
       var flip = host.querySelector(".vflip");
       if (!flip) return;
       revealed = true;
-      peeked = true;   /* подсмотрел перевод — быстрым ответ уже не считается */
+      peeked = true; stash();   /* Подсказка сохраняется при переходах и перезагрузке. */
       flip.classList.toggle("flipped");
     }
 
     /* «уже знаю»: слово закрывается целиком, обоими направлениями */
     function answerKnown() {
-      if (busy) return;
+      if (busy || view !== routeId) return;
+      if (peeked) { answer(true); return; }
       var it = list[i];
       var base = it.key.slice(0, -3);
       if (!firstAnswered[it.key] && it.isNew) { newSeen++; newKnown++; }
@@ -1104,7 +1139,7 @@
       S = Store.mutate("vocabKnown", { key: base });
       syncTabs();
       doneCnt++;
-      i++;
+      i++; peeked = false;
       stash();
       step();
     }
@@ -1117,14 +1152,15 @@
     }
 
     function answer(ok) {
-      if (busy) return;
+      if (busy || view !== routeId) return;
+      if (calib && peeked) ok = false;
       var it = list[i];
       if (calib) {
         /* калибровка ничего не планирует: знакомое закрываем, незнакомое не трогаем */
         bumpCalib(it, ok);
         if (ok) S = Store.mutate("vocabKnown", { key: it.key.slice(0, -3) });
         doneCnt++;
-        i++;
+        i++; peeked = false;
         stash();
         step();
         return;
@@ -1132,7 +1168,7 @@
       var first = !firstAnswered[it.key];
       firstAnswered[it.key] = true;
       if (first && it.isNew) { newSeen++; if (ok) newKnown++; }
-      vocabGrade(it, ok, first, answeredFast());
+      vocabGrade(it, ok, first);
       syncTabs();
       if (ok) {
         doneCnt++;
@@ -1143,6 +1179,7 @@
         list.splice(i, 1);
         list.push(it);
       }
+      peeked = false;
       stash();
       step();
     }
@@ -1165,9 +1202,9 @@
       var ws = vocabWordStats();
       var c = el("div", "card hero");
       c.innerHTML = '<div class="kicker">Сессия закрыта</div><h1>' + total + " карточек пройдено</h1>" +
-        '<div class="muted">Ступень частотности: ' + S.vocabLevel + " из " + V_LEVELS +
-        (moved === "up" ? " — новые слова шли легко, дальше беру менее частотные."
-          : moved === "down" ? " — новые слова буксовали, возвращаюсь к более ходовым." : "") +
+        '<div class="muted">Ступень словаря: ' + S.vocabLevel + " из " + V_LEVELS +
+        (moved === "up" ? " — новые слова шли легко, дальше беру следующую группу словаря."
+          : moved === "down" ? " — новые слова буксовали, возвращаюсь к предыдущей группе словаря." : "") +
         (sp.due.length ? "<br>Ждут повторения прямо сейчас: " + sp.due.length + "." : "") + "</div>" +
         vocabBar(ws);
       var r = el("div", "btnrow");
@@ -1177,8 +1214,8 @@
         br.onclick = function () { sessionClear(); location.hash = "/vocab/repeat"; route(); };
         r.appendChild(br);
       }
-      if (sp.fresh.length) {
-        var bn2 = el("button", "btn" + (repLeft ? " sec" : ""), "Ещё 10 новых слов");
+      if (vocabPlan("new").length) {
+        var bn2 = el("button", "btn" + (repLeft ? " sec" : ""), "Начать новые карточки");
         bn2.onclick = function () { sessionClear(); location.hash = "/vocab/new"; route(); };
         r.appendChild(bn2);
       }
@@ -1189,8 +1226,8 @@
       app.appendChild(c);
     }
 
-    stash();
     step();
+    stash();
 
     /* Итог калибровки: ступень — самая высокая, где знакомо хотя бы половину,
        плюс одна сверху, чтобы было куда расти. */
@@ -1202,7 +1239,7 @@
         known += st.known; shown += st.shown;
         if (st.known / st.shown >= 0.5) lvl = k;
       }
-      lvl = Math.min(V_LEVELS, lvl + (known && known === shown ? 2 : 1));
+      lvl = known ? Math.min(V_LEVELS, lvl + (known === shown ? 2 : 1)) : 1;
       S = Store.mutate("calibrate", { level: lvl });
       syncTabs();
 
@@ -1234,6 +1271,8 @@
   var syncText = "";
   Store.onStatus(function (txt, cls) {
     syncText = txt;
+    var warning = document.getElementById("storage-warning");
+    if (warning) { var text = Store.storageError(); warning.hidden = !text; warning.querySelector("span").textContent = text; }
     var e = document.getElementById("sync");
     if (!e) return;
     e.textContent = txt;

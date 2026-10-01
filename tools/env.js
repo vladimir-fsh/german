@@ -65,7 +65,7 @@ function load(files, opts) {
   opts = opts || {};
   var win = {};
   win.window = win;
-  win.localStorage = makeStorage(opts.storage);
+  win.localStorage = opts.localStorage || makeStorage(opts.storage);
   /* обработчики событий запоминаем, чтобы тест мог их дёрнуть: win._fire("visibilitychange") */
   var handlers = {};
   function on(type, fn) { (handlers[type] = handlers[type] || []).push(fn); }

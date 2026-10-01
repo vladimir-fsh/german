@@ -11,7 +11,7 @@ window.COURSE = {
       topic: "Personenbeschreibung, Kleidung", days: 7 },
     { n: 19, status: "ready", slug: "lektion_19_nebenstze_1_dass_weil",
       title: "Nebensätze 1: dass, weil", ru: "Придаточные с dass и weil",
-      topic: "Erziehung, Rassismus", days: 4 },
+      topic: "Erziehung, Rassismus", days: 1, plannedDays: 4 },
     { n: 20, status: "ready", slug: "lektion_20__nebenstze_2_abhngige_fragestze_wennstze",
       title: "Nebensätze 2 + Verben mit Präposition", ru: "Косвенные вопросы, wenn-Sätze, глаголы с предлогами",
       topic: "Probleme von Jugendlichen, Zeitung, Interview", days: 6 },

@@ -44,11 +44,11 @@ window.L21 = {
 <p>Два правила меняют форму, и оба видны на слух.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 3 · короткое слово с a, o, u — ставь точки</span>
-  Односложные прилагательные с <b>a, o, u</b> почти всегда получают умлаут:
+  <span class="lbl">Хак № 3 · умлаут запоминаем вместе со словом</span>
+  Некоторые частые односложные прилагательные с <b>a, o, u</b> получают умлаут. По одной гласной предсказать это нельзя:
   <span class="big">alt → <u>ä</u>lter · jung → j<u>ü</u>nger · groß → gr<u>ö</u>ßer</span>
   <span class="de">kalt → kälter, warm → wärmer, arm → ärmer, klug → klüger, lang → länger, kurz → kürzer, dumm → dümmer</span>
-  Без a, o, u умлаута нет вовсе: <span class="de">schnell → schneller, leicht → leichter</span>. Исключения среди слов с a, o, u — <span class="de">voll → voller, klar → klarer, froh → froher</span>.
+  Без a, o, u умлаута нет вовсе: <span class="de">schnell → schneller, leicht → leichter</span>. Без умлаута, например: <span class="de">voll → voller, klar → klarer, froh → froher, bunt → bunter, schlau → schlauer</span>.
 </div>
 
 <div class="cut">

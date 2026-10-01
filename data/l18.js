@@ -11,12 +11,12 @@ window.L18 = {
       html: `
 <p>У прилагательного два положения в предложении, и от этого зависит всё.</p>
 
-<h3>1. После глагола — окончания нет никогда</h3>
-<p>Прилагательное стоит после <span class="de">sein, werden, bleiben</span> или относится к глаголу как наречие. Форма всегда голая, словарная.</p>
+<h3>1. Описание состояния или действия - без окончания</h3>
+<p>Прилагательное описывает состояние с <span class="de">sein, werden, bleiben</span> или само действие? Тогда оно не склоняется. Важно, к чему относится слово, а не только где стоит глагол.</p>
 <div class="ex"><span class="de">Das Wetter ist <b>gut</b>. · Es geht mir <b>gut</b>. · Ich habe <b>gut</b> geschlafen. · Es wird alles wieder <b>gut</b>.</span>
 <span class="ru">Погода хорошая. · У меня всё хорошо. · Я хорошо спал. · Всё снова будет хорошо.</span></div>
 
-<h3>2. Перед существительным — окончание обязательно</h3>
+<h3>2. Описание существительного - обычно с окончанием</h3>
 <div class="ex"><span class="de">Ich habe einen <b>guten</b> Test geschrieben. · Herr Rot ist ein <b>guter</b> Lehrer. · Ich liebe das <b>gute</b> Wetter.</span>
 <span class="ru">Я написал хороший тест. · Господин Рот — хороший учитель. · Я люблю хорошую погоду.</span></div>
 
@@ -24,7 +24,7 @@ window.L18 = {
   <span class="lbl">Хак № 1 · тест на бутерброд</span>
   Прилагательное зажато между артиклем и существительным, как котлета в булке?
   <span class="big">ein · <u>gut__</u> · Lehrer → окончание есть</span>
-  Стоит после глагола, справа ничего нет? <b>Голая форма, всегда.</b>
+  Описывает состояние или действие? <b>Словарная форма.</b> В <span class="de">Ich sehe einen guten Lehrer</span> слово <span class="de">guten</span> тоже стоит после глагола, но описывает <span class="de">Lehrer</span> и склоняется. Есть отдельные несклоняемые слова, например <span class="de">rosa</span>.
 </div>
 
 <h3>Почему окончания вообще нужны</h3>
@@ -32,9 +32,9 @@ window.L18 = {
 
 <div class="hack">
   <span class="lbl">Хак № 2 · правило одного сигнала</span>
-  В связке «артикль + прилагательное» сигнал рода звучит <b>ровно один раз</b>.
+  Для основных форм этого урока удобно смотреть, показывает ли артикль род и падеж.
   <span class="big">Артикль сказал → прилагательное молчит (-e / -en)<br>Артикль промолчал → прилагательное говорит (-er / -es)</span>
-  Это единственное правило, из которого выводятся все три таблицы склонения. Запомни его — таблицы потом соберутся сами.
+  Это подсказка для выбора таблицы, а не универсальный закон. Проверяй род, число и падеж: в Genitiv мужского и среднего рода без артикля будет <span class="de">-en</span>, а не <span class="de">-es</span>. Genitiv подробнее разбирается позже.
 </div>
 
 <div class="flow">
@@ -51,14 +51,14 @@ window.L18 = {
 
 <div class="hack">
   <span class="lbl">Хак № 3 · отрежь хвост у артикля</span>
-  Не помнишь окончание? Возьми <i>определённый</i> артикль, отрежь последнюю букву и прилепи её к прилагательному.
+  Не помнишь окончание после голого <span class="de">ein</span>? Сравни с <i>определённым</i> артиклем: <span class="de">der</span> напоминает <span class="end">-er</span>, <span class="de">das</span> напоминает <span class="end">-es</span>. Добавляй полное окончание, не одну букву.
   <div class="cut">
     de<span class="tail">R</span> Mann <span class="arrow">→</span> ein gute<span class="tail">r</span> Mann
-    <small>der → -r</small>
+    <small>der: окончание -er</small>
     da<span class="tail">S</span> Kind <span class="arrow">→</span> ein gute<span class="tail">s</span> Kind
-    <small>das → -s</small>
+    <small>das: окончание -es</small>
   </div>
-  Работает всегда, когда артикль — голое <span class="de">ein / kein / mein</span>. Женский род и множественное в этом хаке не нуждаются: у <span class="de">eine</span> сигнал уже есть.
+  Подсказка работает в Nominativ мужского и среднего рода и в Akkusativ среднего рода, когда артикль - голое <span class="de">ein / kein / mein</span>. Женский род и множественное в этом хаке не нуждаются: у <span class="de">eine</span> сигнал уже есть.
 </div>
 
 <div class="scrollx">
@@ -188,7 +188,7 @@ window.L18 = {
 <span class="ru">Я помогаю пожилому мужчине. Книга принадлежит маленькому ребёнку. Он живёт в маленьком городе. Мы помогаем маленьким людям.</span></div>
 
 <h3>Артикля нет вообще — прилагательное работает за двоих</h3>
-<p>Вещество, абстракция, множественное число: <span class="de">Kaffee, Wasser, Milch, Kinder</span>. Артикля нет — сигнала нет — прилагательное берёт хвост определённого артикля целиком.</p>
+<p>Вещество, абстракция, множественное число: <span class="de">Kaffee, Wasser, Milch, Kinder</span>. Артикля нет — сигнала нет — прилагательное берет сильное окончание. Сверяйся с таблицей; Genitiv мужского и среднего рода имеет отдельное правило.</p>
 
 <div class="cut">
   de<span class="tail">R</span> Kaffee <span class="arrow">→</span> kalte<span class="tail">r</span> Kaffee
@@ -313,10 +313,10 @@ window.L18 = {
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 18 · пять слов, которые не склоняются вообще</span>
-  <span class="big">rosa · lila · orange · prima · super</span>
+  <span class="lbl">Хак № 18 · слова с особым склонением</span>
+  <span class="big">rosa · lila · prima · super</span>
   <span class="de">eine <b>rosa</b> Jacke · ein <b>lila</b> Hemd · die <b>orange</b> Mütze</span>
-  Никаких окончаний, даже если очень хочется.
+  В стандартной форме этого урока окончания не добавляем. У <span class="de">orange</span> возможны два варианта: <span class="de">ein orange Kleid / ein oranges Kleid</span>. Поэтому «orange никогда не склоняется» - неверное правило.
 </div>
 
 <div class="ex"><span class="de">Sie klettern schnell die <b>hohe</b> Leiter hinauf und sehen die <b>beiden</b> Diebe in dem <b>dunklen</b> Zimmer. Der <b>erste</b> Polizist hält einen <b>großen</b> Säbel in seiner <b>rechten</b> Hand.</span>
@@ -595,7 +595,7 @@ window.L18 = {
           q: "Ich helfe ___ Mann.",
           opts: ["einem alten", "einen alten", "ein alter"], a: 0,
           ru: "Я помогаю пожилому мужчине.",
-          why: "helfen требует Dativ. В Dativ прилагательное всегда на -en: einem alten Mann." },
+          why: "helfen требует Dativ. В Dativ после einem прилагательное на -en: einem alten Mann." },
 
         { type: "choice",
           q: "Das Buch gehört ___ Kind.",
@@ -758,9 +758,9 @@ window.L18 = {
 
         { type: "choice",
           q: "Sie trägt eine ___ Jacke.",
-          opts: ["rosa", "rosae", "rosane"], a: 0,
+          opts: ["rosa", "rosae", "rosaen"], a: 0,
           ru: "Она носит розовую куртку.",
-          why: "rosa, lila, orange не склоняются никогда — окончания у них не бывает." },
+          why: "В этом стандартном варианте rosa остается без окончания: eine rosa Jacke. Для orange допускаются формы с окончанием; это другое слово." },
 
         { type: "translate",
           ru: "Что за куртку он носит?",
@@ -820,7 +820,7 @@ window.L18 = {
         { type: "fill",
           q: "Unter einer {wichtig} Bedingung helfe ich dir.", a: ["wichtigen"],
           ru: "При одном важном условии я тебе помогу.",
-          why: "unter → Dativ. В Dativ прилагательное всегда -en, независимо от рода: unter einer wichtigen Bedingung." },
+          why: "unter → Dativ. В Dativ после einer окончание -en: unter einer wichtigen Bedingung. Без артикля: unter wichtiger Bedingung." },
 
         { type: "fill",
           q: "Ich nehme an {ein} {interessant} Projekt teil.",
