@@ -622,7 +622,17 @@
     }
     app.appendChild(c);
   }
+  /* Внутри артефакта прямое скачивание ссылкой запрещено: файл отдаёт
+     платформа через capability downloads и сама спрашивает подтверждение.
+     Ссылка остаётся только для локального запуска. Если сохранить не вышло,
+     текст копии уже показан на экране — его можно скопировать. */
   function download(text, name) {
+    if (!window.claude || typeof claude.use !== "function") { linkDownload(text, name); return; }
+    claude.use("downloads").then(function (downloads) {
+      if (downloads) downloads.save({ filename: name, data: text }).then(null, function () {});
+    }, function () {});
+  }
+  function linkDownload(text, name) {
     var url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
     var link = document.createElement("a"); link.href = url; link.download = name; link.click();
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
