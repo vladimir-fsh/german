@@ -61,7 +61,7 @@ lehrerlenz.de, Lektionen 18–32. Оттуда берутся последова
 ## Где это живёт
 
 Рабочая копия для телефона — артефакт claude.ai:
-https://claude.ai/artifact/RTpbFXCnadZoeUwTKicZcu
+https://claude.ai/artifact/6gw5HPVT3ENPoGivE5aF6X
 
 Публикация: инструментом Artifact, тем же `url`, файлы передаются картой
 `index.html` + `css/app.css` + `js/*.js` + `data/*.js` + `icon-180.png`.
