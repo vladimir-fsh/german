@@ -9,7 +9,7 @@
      чтение состояния и вызов мутаций — прямых присваиваний в S больше нет. */
   var Store = window.Store;
   var S = Store.state();
-  var working = false, routeId = 0, disposeAssistant = null;
+  var working = false, routeId = 0, disposeAssistant = null, disposeUpdates = null;
 
   Store.onChange(function (next) {
     S = next;
@@ -63,6 +63,7 @@
   window.addEventListener("hashchange", route);
 
   function route() {
+    if (disposeUpdates) { disposeUpdates(); disposeUpdates = null; }
     if (disposeAssistant) { disposeAssistant(); disposeAssistant = null; }
     routeId++; working = false; document.onkeydown = null;
     var h = curPath();
@@ -497,7 +498,7 @@
       var mine = b.getAttribute("data-go");
       b.className = "tab" + (mine === root ? " on" : "");
       var badge = b.querySelector(".tbadge");
-      if (!badge) return;
+      if (!badge || mine === "/more") return;
       var n = mine === "/vocab" ? vocabPending() : srsDue().length;
       badge.textContent = n > 99 ? "99+" : n;
       badge.hidden = !n;
@@ -510,9 +511,8 @@
     app.innerHTML = "";
     var c = el("div", "card");
     c.innerHTML = '<h2>Настройки</h2>';
-    var versionMeta = document.querySelector('meta[name="app-version"]');
-    var version = versionMeta ? versionMeta.content : "local";
-    c.appendChild(el("div", "muted", version === "local" ? "Локальная версия" : "Версия " + esc(version)));
+    if (disposeUpdates) disposeUpdates();
+    disposeUpdates = window.AppUpdates.mount(c);
     var rows = el("div", "rows");
 
     var dark = document.documentElement.getAttribute("data-theme") === "dark";
@@ -1313,4 +1313,5 @@
 
   route();
   Store.start();
+  window.AppUpdates.start();
 })();

@@ -471,6 +471,8 @@ details.theory .gram { padding: 0 14px 14px; }
 .sample summary { cursor: pointer; margin-top: 10px; color: var(--text); }
 .backup-text { width: 100%; min-height: 110px; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font: inherit; }
 .rows { margin-top: 6px; }
+.app-updates .btnrow { display: grid; grid-template-columns: 1fr; }
+.app-updates .btn { min-height: 44px; }
 .row {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   width: 100%; border: 0; background: none; font: inherit; color: var(--text);

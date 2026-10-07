@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Check application
         run: |
-          node --test tools/test-regressions.js tools/test-openai.js tools/test-swipe-back.js
+          node --test tools/test-regressions.js tools/test-openai.js tools/test-swipe-back.js tools/test-updates.js
           node tools/test-sync.js
           node tools/test-lessons.js
       - name: Prepare website files

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Stamp the Pages HTML and asset URLs with the current workflow build."""
 import os
+import json
 import re
 import sys
 from pathlib import Path
@@ -25,4 +26,5 @@ if __name__ == "__main__":
     html, version = stamp(target.read_text(encoding="utf-8"),
                           os.environ["GITHUB_RUN_NUMBER"], os.environ["GITHUB_RUN_ATTEMPT"])
     target.write_text(html, encoding="utf-8")
+    target.with_name("version.json").write_text(json.dumps({"version": version}) + "\n", encoding="utf-8")
     print("Pages version: " + version)
