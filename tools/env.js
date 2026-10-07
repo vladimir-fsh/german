@@ -20,48 +20,6 @@ function makeStorage(seed) {
   };
 }
 
-/* Поддельная база артефакта: документы в памяти + подписки,
-   как у claude.use("db") — onSnapshot на документ и на коллекцию. */
-function makeDb() {
-  var docs = Object.create(null);
-  var docSubs = Object.create(null);
-  var colSubs = Object.create(null);
-
-  function notifyDoc(id) {
-    (docSubs[id] || []).forEach(function (fn) {
-      fn({ exists: docs[id] !== undefined, data: function () { return docs[id]; } });
-    });
-  }
-  function notifyCol(col) {
-    (colSubs[col] || []).forEach(function (fn) {
-      var list = [];
-      for (var id in docs) {
-        if (id.indexOf(col + "/") === 0) list.push({ id: id, data: (function (d) { return function () { return d; }; })(docs[id]) });
-      }
-      fn({ docs: list });
-    });
-  }
-
-  var db = {
-    doc: function (id) {
-      return {
-        set: function (data) { docs[id] = data; notifyDoc(id); notifyCol(id.split("/")[0]); return Promise.resolve(); },
-        get: function () { return Promise.resolve({ exists: docs[id] !== undefined, data: function () { return docs[id]; } }); },
-        onSnapshot: function (fn) { (docSubs[id] = docSubs[id] || []).push(fn); notifyDoc(id); },
-        acquire: function () { return Promise.resolve({ acquired: true }); }
-      };
-    },
-    collection: function (col) {
-      return { onSnapshot: function (fn) { (colSubs[col] = colSubs[col] || []).push(fn); notifyCol(col); } };
-    },
-    _docs: docs,
-    _seed: function (id, data) { docs[id] = data; },
-    _emitDoc: notifyDoc,
-    _emitCol: notifyCol
-  };
-  return db;
-}
-
 /* Загружает скрипты проекта в общий контекст и возвращает его window. */
 function load(files, opts) {
   opts = opts || {};
@@ -90,10 +48,6 @@ function load(files, opts) {
   win.Math = Math;
   win.JSON = JSON;
   win.console = console;
-  if (opts.db) {
-    var db = opts.db;
-    win.claude = { use: function (what) { return Promise.resolve(what === "db" ? db : null); } };
-  }
   var ctx = vm.createContext(win);
   files.forEach(function (f) {
     vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), ctx, { filename: f });
@@ -106,4 +60,4 @@ function settle(ms) {
   return new Promise(function (res) { setTimeout(res, ms || 5); });
 }
 
-module.exports = { load: load, makeDb: makeDb, makeStorage: makeStorage, settle: settle, ROOT: ROOT };
+module.exports = { load: load, makeStorage: makeStorage, settle: settle, ROOT: ROOT };

@@ -85,15 +85,8 @@ button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; to
 
 /* Долгое нажатие на карточке не должно выделять слово и звать меню iOS.
    Теория и примеры остаются выделяемыми — оттуда удобно копировать немецкий. */
-.vdeck, .vlegend, .tabbar, .progline, .btn, .opt, .chip, .pair, .day, .lesson, .row, .ver {
+.vdeck, .vlegend, .tabbar, .progline, .btn, .opt, .chip, .pair, .day, .lesson, .row {
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
-}
-
-/* версия сборки: тихая подпись над панелью вкладок */
-.ver {
-  position: fixed; right: 10px; z-index: 29; pointer-events: none;
-  bottom: calc(62px + env(safe-area-inset-bottom));
-  font-size: 10px; letter-spacing: .02em; color: var(--text-dim); opacity: .45;
 }
 
 /* ---------- нижняя панель вкладок (как в iOS) ---------- */

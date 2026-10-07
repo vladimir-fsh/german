@@ -1,23 +1,15 @@
-/* Sync engine: журнал операций вместо перезаписи состояния.
+/* Хранилище прогресса: журнал операций вместо перезаписи состояния.
 
-   Идея. Интерфейс читает только локальное состояние и никогда не ждёт сеть.
    Любое изменение — это операция (мутация) с меткой логических часов, она
-   применяется локально сразу и ложится в журнал. Журнал уезжает в облако.
+   применяется сразу и ложится в журнал в localStorage.
    Состояние = детерминированная свёртка снапшота и всех журналов.
+   Порядок задают часы Лампорта, ничья разрешается по идентификатору автора.
 
-   Почему без сервера. Авторитетного узла, который выполняет мутации, у нас нет:
-   хранилище артефакта умеет только документы. Его роль берёт на себя свёртка —
-   она детерминирована, поэтому все устройства из одних и тех же операций
-   получают одно и то же состояние. Порядок задают часы Лампорта, ничья
-   разрешается по идентификатору устройства.
-
-   Каждый экземпляр страницы пишет собственный журнал `oplogs/<writer>`
-   и свой ключ localStorage. Даже вкладки одного устройства не заменяют
-   записи друг друга. Материализованное состояние является только кешем.
-
-   Компакция. Журналы растут, поэтому изредка состояние сворачивается в снапшот
-   `sync/snapshot` с курсором «какие операции в него уже вошли», а устройства
-   подрезают свои журналы по этому курсору с запасом. */
+   Каждый экземпляр страницы пишет собственный ключ localStorage, поэтому
+   вкладки одного браузера не заменяют записи друг друга, а видят их через
+   событие storage. Материализованное состояние является только кешем.
+   Снапшот с курсором «какие операции в него уже вошли» остался от прежних
+   версий и из резервных копий; новые операции поверх него сворачиваются. */
 window.Store = (function () {
   "use strict";
 
@@ -27,7 +19,7 @@ window.Store = (function () {
   var LS_OPS = "de-b1-oplog-v1";        /* прежний общий журнал, только для чтения */
   var LOG_PREFIX = "de-b1-oplog-v2:";    /* отдельная запись на каждого автора */
   var LS_DEV = "de-b1-device-v1";       /* идентификатор устройства */
-  var LS_FOREIGN = "de-b1-foreign-v1"; /* принятые журналы нужны и после офлайн-перезапуска */
+  var LS_FOREIGN = "de-b1-foreign-v1"; /* журналы других авторов, записанные прежними версиями */
   var storageError = "", blocked = false, externalWarnings = {};
   function warning() { return storageError || Object.keys(externalWarnings).map(function (key) { return externalWarnings[key]; }).join(" "); }
 
@@ -62,10 +54,6 @@ window.Store = (function () {
     var k = ((h >>> 0) % 1000) / 1000;            /* 0..1 */
     return Math.max(IV_MIN, Math.round(iv * (1 + (k * 2 - 1) * FUZZ)));
   }
-
-  var COMPACT_AT = 250;   /* столько операций в сумме — пора сворачивать */
-  var TRIM_MARGIN = 50;   /* столько последних операций не подрезаем, страховка от гонки снапшотов */
-  var READY_WAIT = 4000;  /* столько ждём облако, прежде чем показать то, что есть */
 
   /* ---------- состояние ---------- */
 
@@ -328,18 +316,7 @@ window.Store = (function () {
   var foreign = lsGet(LS_FOREIGN, {});                /* device → массив операций */
   var state = lsGet(LS_STATE, null);
   var listeners = [], statusListeners = [];
-  var DB = null, pushTimer = null, pushing = false, dirty = false, legacyDone = false;
-
-  /* Готовность состояния. На телефоне localStorage переживает не каждое
-     открытие: у артефакта своё хранилище, и после публикации оно бывает
-     пустым. Тогда состояние приходит только из облака, и до его прихода
-     интерфейсу нечего показывать — нули вместо прогресса пугают сильнее
-     честного «подтягиваю». hydrated — состояние поднялось с диска,
-     cloudSeen — облако уже ответило (пусть даже пустотой). */
   var hydrated = !!state;
-  var cloudSeen = false;
-  var readyTimer = null;
-  var connectAt = 0;
   try {
     DATA.journal(mine); collectDiskLogs();
     if (state) DATA.state(state);
@@ -390,13 +367,6 @@ window.Store = (function () {
     });
   }
 
-  function markCloudSeen() {
-    if (cloudSeen) return;
-    cloudSeen = true;
-    clearTimeout(readyTimer);
-    notify();
-  }
-
   function materialize() {
     var ops = mine.ops.slice();
     for (var d in foreign) if (d !== DEV) ops = ops.concat(foreign[d]);
@@ -412,6 +382,12 @@ window.Store = (function () {
     if (!snapshot || !snapshot.cursor) return ops;
     var cur = snapshot.cursor;
     return ops.filter(function (op) { return op.seq > (cur[op.device] || 0); });
+  }
+
+  function totalOps() {
+    var ops = mine.ops.slice();
+    for (var d in foreign) ops = ops.concat(foreign[d]);
+    return dropCovered(ops).length;
   }
 
   function setStatus(txt, cls) {
@@ -439,184 +415,23 @@ window.Store = (function () {
     mine.ops.push(op);
     lsSet(OWN_LOG, mine);
     materialize();
-    schedulePush();
-    setStatus(DB ? "синк…" : "только это устройство");
+    setStatus("только это устройство");
     return state;
   }
 
-  /* ---------- транспорт ---------- */
-
-  function schedulePush() {
-    if (!DB) return;
-    clearTimeout(pushTimer);
-    pushTimer = setTimeout(push, 900);
-  }
-
-  function push() {
-    if (!DB) return;
-    /* После офлайн-перезагрузки прежние авторы уже не отправят свои записи.
-       Переносим их операции в своем документе с исходными идентификаторами;
-       документ соседней вкладки никогда не перезаписывается. */
-    var relayed = localRelays();
-    if (!mine.ops.length && !relayed.length) return;
-    if (pushing) { dirty = true; return; }
-    pushing = true; dirty = false;
-    setStatus("синк…");
-    DB.doc("oplogs/" + DEV).set({ device: DEV, seq: mine.seq, lc: mine.lc, ops: clone(mine.ops), relayed: relayed, at: Date.now() })
-      .then(function () {
-        pushing = false;
-        setStatus("синк ✓", "ok");
-        if (dirty) push();
-        else maybeCompact();
-      }, function () {
-        pushing = false;
-        setStatus("синк ✗", "bad");
-      });
-  }
-
-  function onSnapshotDoc(snap) {
-    markCloudSeen();
-    if (!snap.exists) return;
-    var d = snap.data();
-    if (!d || !d.state) return;
-    if ((d.v || 0) > SCHEMA) { setStatus("обнови страницу", "bad"); return; }
-    try { DATA.snapshot({ state: d.state, cursor: d.cursor || {}, at: d.at || 0, lc: d.lc || 0 }); } catch (e) { setStatus("Некорректные данные облака; локальный прогресс сохранен.", "bad"); return; }
-    if (snapshot && !snapshot.recovered && (d.at || 0) < snapshot.at) return;
-    snapshot = { v: d.v, state: d.state, cursor: d.cursor || {}, at: d.at || 0, lc: d.lc || 0 };
-    advanceFromSnapshot();
-    lsSet("de-b1-snapshot-v1", snapshot);
-    trimMine();
-    materialize();
-  }
-
-  /* свои операции, давно попавшие в снапшот, можно выбросить — но с запасом,
-     на случай если снапшот перезапишет более старый */
-  function trimMine() {
-    var covered = (snapshot && snapshot.cursor && snapshot.cursor[DEV]) || 0;
-    var keepFrom = covered - TRIM_MARGIN;
-    if (keepFrom <= 0) return;
-    var before = mine.ops.length;
-    mine.ops = mine.ops.filter(function (op) { return op.seq > keepFrom; });
-    if (mine.ops.length !== before) { lsSet(OWN_LOG, mine); schedulePush(); }
-  }
-
-  function onLogs(qsnap) {
-    markCloudSeen();
-    var seen = clone(foreign);
-    qsnap.docs.forEach(function (doc) {
-      var d = doc.data();
-      if (!d || !d.ops) return;
-      try { DATA.journal(d); } catch (e) { setStatus("Некорректный журнал облака; локальный прогресс сохранен.", "bad"); return; }
-      [d].concat(d.relayed || []).forEach(function (log) {
-        if (log.device === DEV) { mine.ops = mergeOps(mine.ops, log.ops); mine.seq = Math.max(mine.seq, log.seq || 0); }
-        else seen[log.device] = mergeOps(seen[log.device] || [], log.ops);
-        if (log.lc > mine.lc) mine.lc = log.lc;
-      });
-    });
-    foreign = seen;
-    lsSet(OWN_LOG, mine);
-    materialize();
-  }
-
-  /* Разовый перенос: состояние из старого документа v2 складывается в снапшот,
-     чтобы прогресс с устройства, ещё не обновившегося, не потерялся. */
-  function importLegacy() {
-    if (legacyDone || !DB) return;
-    legacyDone = true;
-    DB.doc("progress/main").get().then(function (snap) {
-      if (!snap.exists) return;
-      var old = snap.data();
-      if (!old || !old.done) return;
-      var base = snapshot ? clone(snapshot.state) : blank();
-      var changed = false, k;
-      for (k in (old.done || {})) if (!base.done[k]) { base.done[k] = old.done[k]; changed = true; }
-      for (k in (old.vocab || {})) {
-        var mineV = base.vocab[k];
-        if (!mineV || (old.vocab[k].t || 0) > (mineV.t || 0)) { base.vocab[k] = old.vocab[k]; changed = true; }
-      }
-      ["totalCorrect", "totalTried", "streak"].forEach(function (f) {
-        if ((old[f] || 0) > (base[f] || 0)) { base[f] = old[f]; changed = true; }
-      });
-      if (old.lastDay && (!base.lastDay || old.lastDay > base.lastDay)) { base.lastDay = old.lastDay; changed = true; }
-      if (!changed) return;
-      snapshot = { v: SCHEMA, state: base, cursor: (snapshot && snapshot.cursor) || {}, at: Date.now() };
-      lsSet("de-b1-snapshot-v1", snapshot);
-      materialize();
-      writeSnapshot();
-    }, function () {});
-  }
-
-  /* ---------- компакция ---------- */
-
-  function totalOps() {
-    var ops = mine.ops.slice();
-    for (var d in foreign) ops = ops.concat(foreign[d]);
-    return dropCovered(ops).length;
-  }
-
-  function maybeCompact() {
-    if (!DB || totalOps() < COMPACT_AT) return;
-    /* аренда: сворачивает кто-то один, остальные пропускают ход */
-    DB.doc("sync/snapshot").acquire({ holder: DEV, ttlMs: 20000 }).then(function (res) {
-      if (res && res.acquired) writeSnapshot();
-    }, function () {});
-  }
-
-  function writeSnapshot() {
-    if (!DB) return;
-    var cursor = clone((snapshot && snapshot.cursor) || {});
-    cursor[DEV] = Math.max(cursor[DEV] || 0, mine.seq);
-    for (var d in foreign) {
-      var ops = foreign[d];
-      ops.forEach(function (op) { cursor[op.device] = Math.max(cursor[op.device] || 0, op.seq); });
-    }
-    var sent = { v: SCHEMA, state: clone(state), cursor: cursor, at: Date.now(), by: DEV, lc: mine.lc };
-    DB.doc("sync/snapshot").set(sent)
-      .then(function () {
-        if (!snapshot || snapshot.recovered || snapshot.at <= sent.at) snapshot = { v: SCHEMA, state: sent.state, cursor: sent.cursor, at: sent.at, lc: sent.lc };
-        lsSet("de-b1-snapshot-v1", snapshot);
-        trimMine();
-      }, function () {});
-  }
-
-  /* возврат к приложению: дожать журнал в облако и перерисовать интерфейс */
+  /* Возврат к приложению: соседняя вкладка могла записать ответы, пока эта
+     была скрыта. iOS замораживает страницу с экрана «Домой», поэтому при
+     возврате видимости разворачиваем состояние заново и будим слушателей. */
   function resume() {
     if (document.hidden) return;
     if (!storageError) refreshDisk();
-    /* таймер ожидания мог простоять замороженным вместе со страницей,
-       поэтому срок проверяем по стенным часам, а не по факту срабатывания */
-    if (!cloudSeen && connectAt && Date.now() - connectAt > READY_WAIT) markCloudSeen();
-    materialize();
-    schedulePush();
+    if (!blocked) materialize();
   }
 
-  /* ---------- подключение ---------- */
-
-  function connect() {
-    if (!window.claude || typeof claude.use !== "function") { markCloudSeen(); return; }
-    /* если облако молчит, интерфейс не должен ждать его вечно */
-    connectAt = Date.now();
-    readyTimer = setTimeout(markCloudSeen, READY_WAIT);
-    claude.use("db").then(function (db) {
-      if (!db) { markCloudSeen(); return; }
-      DB = db;
-      setStatus("синк…");
-      db.doc("sync/snapshot").onSnapshot(onSnapshotDoc, function () { setStatus("синк ✗", "bad"); });
-      db.collection("oplogs").onSnapshot(onLogs, function () { setStatus("синк ✗", "bad"); });
-      importLegacy();
-      push();
-    }, function () { markCloudSeen(); });
-
-    /* офлайн-очередь: журнал уже на диске, при возврате сети просто дожимаем */
-    window.addEventListener("online", function () { schedulePush(); });
+  function start() {
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) resume();
     });
-    /* iOS замораживает страницу приложения с экрана «Домой»: ответ облака
-       приходит, пока вкладка скрыта, и экран остаётся тем, каким его
-       заморозили. Поэтому при возврате видимости разворачиваем состояние
-       заново и будим слушателей — иначе прогресс появляется только после
-       переключения вкладки вручную. */
     window.addEventListener("pageshow", resume);
     window.addEventListener("focus", resume);
   }
@@ -632,19 +447,6 @@ window.Store = (function () {
       if (key && key.indexOf(LOG_PREFIX) === 0) keys.push(key);
     }
     return keys;
-  }
-  function localRelays() {
-    var relayed = [];
-    try {
-      [LS_OPS].concat(diskLogKeys()).forEach(function (key) {
-        var raw = localStorage.getItem(key), log = raw && JSON.parse(raw); if (!log || log.device === DEV) return;
-        DATA.journal(log);
-        if (key !== LS_OPS && key !== LOG_PREFIX + log.device) throw new Error("Неверный автор журнала");
-        var ops = dropCovered(log.ops);
-        if (ops.length) relayed.push({ device: log.device, seq: log.seq, lc: log.lc, ops: clone(ops) });
-      });
-    } catch (e) { setStatus("Не удалось перенести локальные журналы в облако. Исходные записи сохранены.", "bad"); }
-    return relayed;
   }
   function collectDiskLogs() {
     [LS_OPS].concat(diskLogKeys()).forEach(function (key) {
@@ -679,13 +481,13 @@ window.Store = (function () {
     LADDER: LADDER,
     device: DEV,
     state: function () { return state; },
-    /* false, пока состояние не поднято ни с диска, ни из облака */
-    ready: function () { return !blocked && (hydrated || cloudSeen); },
+    /* false, пока сохраненные данные повреждены */
+    ready: function () { return !blocked; },
     blocked: function () { return blocked; },
     storageError: warning,
     warn: function (message, source) { externalWarnings[source || "session"] = message; setStatus(message, "bad"); },
-    clearWarning: function (source) { delete externalWarnings[source]; setStatus(DB ? "синхронизация включена" : "только это устройство"); },
-    flush: function () { saveLocal(); setStatus("Сохранено на устройстве", "ok"); push(); },
+    clearWarning: function (source) { delete externalWarnings[source]; setStatus("только это устройство"); },
+    flush: function () { saveLocal(); setStatus("Сохранено на устройстве", "ok"); },
     exportBackup: function () { return JSON.stringify({ kind: "de-b1-backup", version: 2, at: Date.now(), state: state, drafts: window.Practice ? window.Practice.exportDrafts() : null, sessions: window.Sessions ? window.Sessions.exportSessions() : null }, null, 2); },
     exportRaw: function () { var raw = {}; [LS_STATE, LS_OPS, LS_FOREIGN, "de-b1-snapshot-v1", "de-b1-days-v2", "de-b1-day-v1", "de-b1-session-v1", "de-b1-review-v1"].concat(diskLogKeys()).forEach(function (key) { try { raw[key] = localStorage.getItem(key); } catch (e) { raw[key] = null; } }); return JSON.stringify(raw, null, 2); },
     importBackup: function (text) {
@@ -705,7 +507,7 @@ window.Store = (function () {
     mutate: mutate,
     onChange: function (fn) { listeners.push(fn); },
     onStatus: function (fn) { statusListeners.push(fn); fn(warning() || "только это устройство", warning() ? "bad" : ""); },
-    connect: connect,
+    start: start,
     /* для отладки и тестов */
     _debug: function () {
       return { mine: mine, foreign: foreign, snapshot: snapshot, ops: totalOps() };

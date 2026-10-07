@@ -20,10 +20,7 @@
   /* Перерисовывать можно там, где нет незавершённого прохода: экран задания
      или карточки пересобирать нельзя, иначе ответ пропадёт на полуслове.
      Списки и главная перерисовываются всегда — именно на них видно прогресс. */
-  /* Текущий маршрут. Всё, что не похоже на наш маршрут, считается главной:
-     обёртка артефакта (например, при запуске с экрана «Домой» на iOS) может
-     подставить в адрес свой хеш, и тогда главная переставала перерисовываться
-     после прихода прогресса из облака — висело «Подтягиваю прогресс…». */
+  /* Текущий маршрут. Всё, что не похоже на наш маршрут, считается главной. */
   var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|review|more(\/openai)?|l\d+(\/(g|d)\d+)?)?$/;
   function curPath() {
     var h = location.hash.replace(/^#/, "");
@@ -107,9 +104,7 @@
     var words = vocabPending();
     var acc = S.totalTried ? Math.round((S.totalCorrect / S.totalTried) * 100) : 0;
 
-    /* Хранилище артефакта на телефоне переживает не каждое открытие, и тогда
-       прогресс приходит только из облака. Нули в это время — вранье, поэтому
-       до первого ответа облака показываем прочерки, а не «0 дней пройдено». */
+    /* Поврежденное хранилище: нули были бы враньем, показываем прочерки. */
     var loading = !Store.ready();
     function val(x) { return loading ? "—" : x; }
 
@@ -484,12 +479,6 @@
     step();
   }
 
-  /* версия сборки — чтобы было видно, доехала ли до устройства свежая публикация */
-  (function () {
-    var e = document.getElementById("ver");
-    if (e) e.textContent = window.APP_VERSION || "";
-  })();
-
   /* ---------- нижние вкладки ---------- */
   var tabs = document.querySelectorAll(".tab");
 
@@ -622,17 +611,7 @@
     }
     app.appendChild(c);
   }
-  /* Внутри артефакта прямое скачивание ссылкой запрещено: файл отдаёт
-     платформа через capability downloads и сама спрашивает подтверждение.
-     Ссылка остаётся только для локального запуска. Если сохранить не вышло,
-     текст копии уже показан на экране — его можно скопировать. */
   function download(text, name) {
-    if (!window.claude || typeof claude.use !== "function") { linkDownload(text, name); return; }
-    claude.use("downloads").then(function (downloads) {
-      if (downloads) downloads.save({ filename: name, data: text }).then(null, function () {});
-    }, function () {});
-  }
-  function linkDownload(text, name) {
     var url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
     var link = document.createElement("a"); link.href = url; link.download = name; link.click();
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
@@ -1322,19 +1301,13 @@
     }
   }
 
-  /* ---------- синхронизация ----------
-     Вся механика в js/sync.js. Здесь только статус в интерфейсе. */
-  var syncText = "";
-  Store.onStatus(function (txt, cls) {
-    syncText = txt;
+  /* ---------- предупреждение о сохранении ----------
+     Вся механика в js/sync.js. Здесь только показ ошибки хранилища. */
+  Store.onStatus(function () {
     var warning = document.getElementById("storage-warning");
     if (warning) { var text = Store.storageError(); warning.hidden = !text; warning.querySelector("span").textContent = text; }
-    var e = document.getElementById("sync");
-    if (!e) return;
-    e.textContent = txt;
-    e.className = "val sync" + (cls ? " " + cls : "");
   });
 
   route();
-  Store.connect();
+  Store.start();
 })();
