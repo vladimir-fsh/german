@@ -7,6 +7,38 @@ const T = Date.UTC(2026, 9, 1, 12);
 
 function stored() { return { v: 4, done: { L18D0: { at: T, score: 14, of: 16 } }, srs: {}, vocab: {}, vocabLevel: 1, calibrated: true, streak: 2, lastDay: "2026-09-30", totalTried: 16, totalCorrect: 14, resetAt: 0 }; }
 
+test("повседневные варианты сохраняют старые ключи повторения, сессии и калибровки", () => {
+  const win = env.load(["data/lessons.js", "data/vocab.js"].concat(SYNC));
+  const source = require("node:fs").readFileSync(env.ROOT + "/js/app.js", "utf8");
+  // Запускаем настоящие функции выбора карточек без мобильного DOM.
+  const context = require("node:vm").createContext({
+    window: win, S: win.Store.state(), V_LEVELS: 5, CFG: win.SRS_CONFIG,
+    E: { shuffle: (items) => items }
+  });
+  require("node:vm").runInContext(source.slice(source.indexOf("  function vocabPool()"),
+    source.indexOf("  /* Незакрытая сессия")), context);
+  const cards = context.vocabCards();
+  assert.equal(new Set(cards.map((card) => card.key)).size, cards.length);
+  assert.equal(new Set(win.VOCAB.map((word) => word.de)).size, win.VOCAB.length);
+  const word = win.VOCAB.find((word) => word.de === "genug");
+  assert.equal(word.id, "ausreichend");
+  assert.equal(word.f, 1);
+  assert.match(word.reg, /ausreichend/);
+  for (const direction of ["de", "ru"]) {
+    const savedKey = "V:ausreichend|" + direction;
+    const restoredCard = cards.find((card) => card.key === savedKey);
+    assert.equal(restoredCard.w.de, "genug");
+    win.Store.mutate("vocabReview", { key: savedKey, ok: true, day: "2026-10-07" });
+    assert.ok(win.Store.state().vocab[savedKey].due);
+  }
+  context.S = win.Store.state();
+  assert.ok(!context.vocabCalibPlan().some((card) => card.w.de === "genug"));
+  for (const changed of win.VOCAB.filter((word) => word.id)) {
+    assert.ok(changed.reg.includes(changed.id), changed.de + ": прежний вариант на обороте");
+    assert.ok(cards.some((card) => card.key === "V:" + changed.id + "|ru"));
+  }
+});
+
 test("офлайн-ответ сохраняет состояние, поднятое только из материализованного кеша", () => {
   const win = env.load(SYNC, { storage: { "de-b1-progress-v1": JSON.stringify(stored()) } });
   win.Store.mutate("answer", { ok: true });

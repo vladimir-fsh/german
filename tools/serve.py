@@ -5,6 +5,7 @@
     python3 tools/serve.py [порт]   # по умолчанию 8777
 """
 import sys
+import argparse
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -20,8 +21,12 @@ class NoStore(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8777
+    parser = argparse.ArgumentParser(description="Локальный сервер курса без кэша")
+    parser.add_argument("port", nargs="?", type=int, default=8777)
+    parser.add_argument("--host", default="127.0.0.1", help="Для телефона в локальной сети: 0.0.0.0")
+    args = parser.parse_args()
+    port = args.port
     root = Path(__file__).resolve().parent.parent
     handler = partial(NoStore, directory=str(root))
-    print("http://localhost:%d — %s" % (port, root))
-    ThreadingHTTPServer(("127.0.0.1", port), handler).serve_forever()
+    print("http://%s:%d - %s" % (args.host, port, root), flush=True)
+    ThreadingHTTPServer((args.host, port), handler).serve_forever()

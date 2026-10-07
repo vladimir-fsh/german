@@ -9,7 +9,7 @@
      чтение состояния и вызов мутаций — прямых присваиваний в S больше нет. */
   var Store = window.Store;
   var S = Store.state();
-  var working = false, routeId = 0;
+  var working = false, routeId = 0, disposeAssistant = null;
 
   Store.onChange(function (next) {
     S = next;
@@ -24,7 +24,7 @@
      обёртка артефакта (например, при запуске с экрана «Домой» на iOS) может
      подставить в адрес свой хеш, и тогда главная переставала перерисовываться
      после прихода прогресса из облака — висело «Подтягиваю прогресс…». */
-  var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|review|more|l\d+(\/(g|d)\d+)?)?$/;
+  var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|review|more(\/openai)?|l\d+(\/(g|d)\d+)?)?$/;
   function curPath() {
     var h = location.hash.replace(/^#/, "");
     return ROUTE_RE.test(h) ? h : "/";
@@ -66,12 +66,13 @@
   window.addEventListener("hashchange", route);
 
   function route() {
+    if (disposeAssistant) { disposeAssistant(); disposeAssistant = null; }
     routeId++; working = false; document.onkeydown = null;
     var h = curPath();
     var m;
     window.scrollTo(0, 0);
     window.onresize = null;
-    app.classList.remove("tight");
+    app.classList.remove("tight", "result-screen");
     syncTabs();
     if (h === "/") return viewHome();
     if (h === "/review") return viewReview();
@@ -80,6 +81,10 @@
     if (h === "/vocab/repeat") return viewVocab("repeat");
     if (h === "/vocab/calibrate") return viewVocab("calib");
     if (h === "/more") return viewMore();
+    if (h === "/more/openai") {
+      working = true; app.innerHTML = "";
+      disposeAssistant = window.mountGermanAI(app, function () { go("/more"); }); return;
+    }
     if ((m = h.match(/^\/l(\d+)$/))) return viewLesson(+m[1]);
     if ((m = h.match(/^\/l(\d+)\/g(\d+)$/))) return viewGrammar(+m[1], +m[2]);
     if ((m = h.match(/^\/l(\d+)\/d(\d+)$/))) return viewDay(+m[1], +m[2]);
@@ -389,7 +394,8 @@
       S = Store.mutate("dayDone", op);
       touchStreak(); window.Practice.remove(n, di);
       app.innerHTML = "";
-      var c = el("div", "card hero");
+      showResultLayout();
+      var c = el("div", "card hero result-card");
       c.innerHTML = manual
         ? '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " засчитан</div><h1>День засчитан вручную</h1>" +
           '<div class="muted">' + (of
@@ -403,11 +409,19 @@
         (stats.hints ? '<div class="note">Попыток с открытой теорией: ' + stats.hints + ". Проверьте навык позже без подсказки.</div>" : "");
       var buttons = el("div", "btnrow"), nx = findNext();
       if (nx) { var b1 = el("button", "btn", "Следующий день"); b1.onclick = function () { go("/l" + nx.n + "/d" + nx.d); }; buttons.appendChild(b1); }
-      var b2 = el("button", "btn sec", "Пройти день заново"); b2.onclick = function () { window.Practice.remove(n, di); routeId++; viewDay(n, di); };
+      var b2 = el("button", "btn sec", "Пройти день заново"); b2.onclick = function () { window.Practice.remove(n, di); route(); };
       var b3 = el("button", "btn sec", "К программе"); b3.onclick = function () { go("/"); };
       buttons.appendChild(b2); buttons.appendChild(b3); c.appendChild(buttons); app.appendChild(c);
     }
     step();
+  }
+
+  /* Итог по центру; длинный блок остаётся в обычном потоке страницы. */
+  function showResultLayout() {
+    window.onresize = null;
+    app.classList.remove("tight");
+    app.classList.add("result-screen");
+    window.scrollTo(0, 0);
   }
 
   /* ---------- повторение ---------- */
@@ -506,7 +520,7 @@
     working = true;
     app.innerHTML = "";
     var c = el("div", "card");
-    c.innerHTML = '<div class="kicker">Настройки</div><h2>Ещё</h2>';
+    c.innerHTML = '<h2>Настройки</h2>';
     var rows = el("div", "rows");
 
     var dark = document.documentElement.getAttribute("data-theme") === "dark";
@@ -520,8 +534,9 @@
     };
     rows.appendChild(themeRow);
 
-    rows.appendChild(el("div", "row static",
-      'Синхронизация<span class="val sync" id="sync">' + esc(syncText || "только это устройство") + "</span>"));
+    var aiRow = el("button", "row", 'Подключение OpenAI<span class="val">Ключ и модель →</span>');
+    aiRow.onclick = function () { go("/more/openai"); };
+    rows.appendChild(aiRow);
 
     var acc = S.totalTried ? Math.round((S.totalCorrect / S.totalTried) * 100) : 0;
     rows.appendChild(el("div", "row static",
@@ -546,10 +561,32 @@
     c.appendChild(el("h2", null, "Резервные копии"));
     c.appendChild(el("div", "muted", "JSON переносит прогресс, черновики занятий и незавершенные сессии слов и ошибок. Импорт заменяет текущий прогресс после проверки. Исходное хранилище можно скачать для восстановления поврежденных данных."));
     var copies = el("div", "btnrow");
-    var exportButton = el("button", "btn", "Скачать резервную копию"); exportButton.onclick = function () { download(Store.exportBackup(), "deutsch-progress.json"); };
-    var rawButton = el("button", "btn sec", "Скачать исходное хранилище"); rawButton.onclick = function () { download(Store.exportRaw(), "deutsch-storage-original.json"); };
+    var showButton = el("button", "btn", "Показать прогресс текстом"); showButton.onclick = function () { showBackup(Store.exportBackup()); };
+    var exportButton = el("button", "btn sec", "Скачать резервную копию"); exportButton.onclick = function () { var text = Store.exportBackup(); showBackup(text); download(text, "deutsch-progress.json"); };
+    var rawButton = el("button", "btn sec", "Скачать исходное хранилище"); rawButton.onclick = function () { var text = Store.exportRaw(); showBackup(text); download(text, "deutsch-storage-original.json"); };
     var retryButton = el("button", "btn sec", "Повторить сохранение"); retryButton.onclick = function () { Store.flush(); window.Practice.flush(); window.Sessions.flush(); };
-    copies.appendChild(exportButton); copies.appendChild(rawButton); copies.appendChild(retryButton); c.appendChild(copies);
+    copies.appendChild(showButton); copies.appendChild(exportButton); copies.appendChild(rawButton); copies.appendChild(retryButton); c.appendChild(copies);
+    var output = el("div"); output.hidden = true;
+    var outputLabel = el("label", null, "Текст резервной копии"); outputLabel.htmlFor = "backup-export"; output.appendChild(outputLabel);
+    var exportText = document.createElement("textarea"); exportText.id = "backup-export"; exportText.className = "backup-text"; exportText.readOnly = true; exportText.spellcheck = false; output.appendChild(exportText);
+    var copyButton = el("button", "btn", "Копировать весь текст"); output.appendChild(copyButton);
+    var copyMessage = el("div", "note"); copyMessage.setAttribute("role", "status"); output.appendChild(copyMessage); c.appendChild(output);
+    function showBackup(text) {
+      exportText.value = text; output.hidden = false;
+      copyMessage.textContent = "Если скачивание недоступно, скопируйте весь текст и сохраните в заметках. Для переноса вставьте его в поле импорта на другом устройстве.";
+    }
+    function selectBackup() {
+      exportText.focus(); exportText.select(); exportText.setSelectionRange(0, exportText.value.length);
+      copyMessage.textContent = "Текст выделен. Нажмите на него и выберите «Скопировать» в меню телефона.";
+    }
+    copyButton.onclick = function () {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) { selectBackup(); return; }
+      try {
+        navigator.clipboard.writeText(exportText.value).then(function () {
+          copyMessage.textContent = "Резервная копия скопирована. Сохраните её в заметках или вставьте в поле импорта на другом устройстве.";
+        }, selectBackup);
+      } catch (error) { selectBackup(); }
+    };
     var label = el("label", null, "Вставьте JSON резервной копии"); label.htmlFor = "backup-json"; c.appendChild(label);
     var textarea = document.createElement("textarea"); textarea.id = "backup-json"; textarea.className = "backup-text"; textarea.maxLength = 10000000; c.appendChild(textarea);
     var message = el("div", "note"); message.setAttribute("role", "status"); message.hidden = true; c.appendChild(message);
@@ -561,7 +598,7 @@
         window.ProgressData.state(parsed.kind === "de-b1-backup" ? parsed.state : parsed);
         if (parsed.drafts) window.Practice.validateImport(parsed.drafts);
         window.Sessions.validateImport(parsed.sessions || {});
-        if (!confirm("Заменить текущий прогресс резервной копией? Сначала скачайте текущий JSON.")) return;
+        if (!confirm("Заменить текущий прогресс резервной копией? Сначала сохраните текущий JSON файлом или текстом.")) return;
         S = Store.importBackup(textarea.value); message.textContent = "Резервная копия восстановлена.";
       } catch (error) { message.textContent = "Файл не прошел проверку. Текущий прогресс не изменен."; }
       message.hidden = false;
@@ -615,7 +652,7 @@
       L.words.forEach(function (w) { out.push({ n: l.n, w: w, key: "L" + l.n + ":" + w.de, f: 0 }); });
     });
     (window.VOCAB || []).forEach(function (w) {
-      out.push({ n: null, w: w, key: "V:" + w.de, f: w.f || 1 });
+      out.push({ n: null, w: w, key: "V:" + (w.id || w.de), f: w.f || 1 });
     });
     return out;
   }
@@ -743,8 +780,9 @@
       var bucket = [];
       (window.VOCAB || []).forEach(function (w) {
         if ((w.f || 1) !== lvl) return;
-        if (S.vocab["V:" + w.de + "|de"]) return;
-        bucket.push({ n: null, w: w, f: w.f, dir: "de", key: "V:" + w.de + "|de" });
+        var key = "V:" + (w.id || w.de) + "|de";
+        if (S.vocab[key]) return;
+        bucket.push({ n: null, w: w, f: w.f, dir: "de", key: key });
       });
       out = out.concat(E.shuffle(bucket).slice(0, CALIB_PER_LEVEL));
     }
@@ -1204,8 +1242,11 @@
       var sp = vocabSplit();
       app.innerHTML = "";
       var ws = vocabWordStats();
-      var c = el("div", "card hero");
-      c.innerHTML = '<div class="kicker">Сессия закрыта</div><h1>' + total + " карточек пройдено</h1>" +
+      showResultLayout();
+      var c = el("div", "card hero result-card");
+      var ending = total % 100 >= 11 && total % 100 <= 14 ? "карточек пройдено"
+        : total % 10 === 1 ? "карточка пройдена" : total % 10 >= 2 && total % 10 <= 4 ? "карточки пройдены" : "карточек пройдено";
+      c.innerHTML = '<div class="kicker">Сессия закрыта</div><h1>' + total + " " + ending + "</h1>" +
         '<div class="muted">Ступень словаря: ' + S.vocabLevel + " из " + V_LEVELS +
         (moved === "up" ? " — новые слова шли легко, дальше беру следующую группу словаря."
           : moved === "down" ? " — новые слова буксовали, возвращаюсь к предыдущей группе словаря." : "") +
@@ -1248,7 +1289,8 @@
       syncTabs();
 
       app.innerHTML = "";
-      var c = el("div", "card hero");
+      showResultLayout();
+      var c = el("div", "card hero result-card");
       var rows = "";
       for (var m = 1; m <= V_LEVELS; m++) {
         var s2 = calibStat[m];
