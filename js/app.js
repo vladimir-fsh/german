@@ -510,6 +510,9 @@
     app.innerHTML = "";
     var c = el("div", "card");
     c.innerHTML = '<h2>Настройки</h2>';
+    var versionMeta = document.querySelector('meta[name="app-version"]');
+    var version = versionMeta ? versionMeta.content : "local";
+    c.appendChild(el("div", "muted", version === "local" ? "Локальная версия" : "Версия " + esc(version)));
     var rows = el("div", "rows");
 
     var dark = document.documentElement.getAttribute("data-theme") === "dark";

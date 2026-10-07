@@ -28,6 +28,7 @@ jobs:
           cp index.html icon-180.png _site/
           cp -R css js data _site/
           touch _site/.nojekyll
+          python3 tools/stamp-pages.py _site/index.html
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
