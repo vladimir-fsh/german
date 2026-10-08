@@ -475,6 +475,58 @@ details.theory .gram { padding: 0 14px 14px; }
 .vlegend .l { color: var(--bad); }
 .vlegend .r { color: var(--ok); }
 
+/* Ответы доступны большим пальцем. Высота карточки подстраивается под остаток экрана. */
+.vscreen .vhost { flex: 1; min-height: 0; width: 100%; justify-content: center; margin: 8px 0 12px; }
+.vscreen .vstage { flex: 0 1 360px; min-height: 170px; max-height: 360px; }
+.vscreen .vdeck { height: 100%; }
+.vactions { flex-shrink: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.vactions-calib { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.vaction { min-height: 54px; padding: 10px 4px; border: 1px solid var(--border); border-radius: 15px; font: inherit; font-size: 14px; font-weight: 600; touch-action: manipulation; }
+.vaction.forget { color: var(--bad); background: var(--bad-soft); }
+.vaction.known { color: var(--accent); background: var(--accent-soft); }
+.vaction.remember { color: var(--ok); background: var(--ok-soft); }
+.vaction:active { transform: scale(.96); }
+.vaction:disabled { opacity: .6; }
+.vframe-old { animation: frame-retire .4s ease-out forwards; }
+.vframe-upgrade { animation: frame-upgrade .75s cubic-bezier(.2,.7,.3,1) both; }
+.vframe-confirm { animation: frame-confirm .42s ease-out both; }
+.vframe-mastered { animation: frame-mastered .95s ease-out both; }
+.vframe-downgrade { animation: frame-downgrade .65s ease-out both; }
+.vframe-miss { animation: frame-miss .42s ease-out both; }
+@keyframes frame-downgrade {
+  0% { opacity: 0; transform: scale(1.025); filter: brightness(1); }
+  40% { opacity: 1; transform: scale(.97); filter: brightness(.7) saturate(.5); }
+  75% { transform: scale(1.006); filter: brightness(.9); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+@keyframes frame-miss {
+  0%, 100% { transform: translateX(0); filter: brightness(1); }
+  25% { transform: translateX(-3px); filter: brightness(.8); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-1px); }
+}
+@keyframes frame-confirm {
+  0%, 100% { filter: brightness(1); }
+  40% { filter: brightness(1.35) drop-shadow(0 0 5px var(--frame-light)); }
+}
+@keyframes frame-mastered {
+  0% { opacity: 0; transform: scale(.9); filter: brightness(1); }
+  35% { opacity: 1; transform: scale(1.035); filter: brightness(1.9) drop-shadow(0 0 14px #ffc85a); }
+  65% { transform: scale(1); filter: brightness(1.3) drop-shadow(0 0 7px #ffc85a); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+@keyframes frame-retire { to { opacity: 0; transform: scale(1.035); } }
+@keyframes frame-upgrade {
+  0% { opacity: 0; transform: scale(.96); filter: brightness(1); }
+  35% { opacity: 1; transform: scale(1.025); filter: brightness(1.8) drop-shadow(0 0 9px var(--frame-light)); }
+  70% { transform: scale(1); filter: brightness(1.2) drop-shadow(0 0 4px var(--frame-mid)); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vframe-old { display: none; }
+  .vframe-upgrade, .vframe-confirm, .vframe-mastered, .vframe-downgrade, .vframe-miss { animation: none; }
+}
+
 @media (max-width: 700px) {
   .vdeck { height: 360px; }
   .vface { padding: 30px 18px; }

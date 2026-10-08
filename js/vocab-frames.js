@@ -12,7 +12,7 @@ window.VocabFrames = (function () {
   ];
   function rank(v) {
     var days = (window.SRS_CONFIG || {}).frameDays || [0, 3, 7, 30, 100];
-    var iv = v && v.stage !== "learning" ? v.iv || 0 : 0, index = 0;
+    var iv = v && (v.learned || v.stage !== "learning") ? v.iv || 0 : 0, index = 0;
     for (var i = 1; i < ranks.length; i++) if (iv >= days[i]) index = i;
     return ranks[index];
   }
@@ -60,12 +60,31 @@ window.VocabFrames = (function () {
       '</svg>';
   }
   function decorate(face, v) {
-    var r = rank(v), frame = document.createElement("div");
+    decorateRank(face, rank(v));
+  }
+  function decorateRank(face, r) {
+    var frame = document.createElement("div");
     face.classList.add("vranked", "rank-" + r.id);
     frame.className = "vframe";
     frame.setAttribute("aria-hidden", "true");
     frame.innerHTML = art("vframe-" + (++sequence), r.id);
     face.appendChild(frame);
   }
-  return { rank: rank, decorate: decorate };
+  function isUpgrade(before, after) {
+    return ranks.indexOf(rank(after)) > ranks.indexOf(rank(before));
+  }
+  function transition(host, before, after, effect) {
+    var faces = host.querySelectorAll(".vface"), oldRank = rank(before).id;
+    var from = ranks.indexOf(rank(before)), to = ranks.indexOf(rank(after));
+    /* Эффект показывает одну соседнюю ступень; сохранённое расписание не меняется. */
+    var nextRank = ranks[from + (to > from ? 1 : to < from ? -1 : 0)];
+    for (var i = 0; i < faces.length; i++) {
+      var face = faces[i], oldFrame = face.querySelector(".vframe");
+      if (oldFrame) oldFrame.classList.add("rank-" + oldRank, "vframe-old");
+      ranks.forEach(function (r) { face.classList.remove("rank-" + r.id); });
+      decorateRank(face, nextRank);
+      face.lastChild.classList.add(effect);
+    }
+  }
+  return { rank: rank, decorate: decorate, isUpgrade: isUpgrade, transition: transition };
 })();

@@ -27,6 +27,11 @@ test("рамка сохраняется на половине интервала
   assert.equal(win.VocabFrames.rank({ iv: 6 }).id, "silver");
   assert.equal(win.VocabFrames.rank({ iv: 29 }).id, "gold");
   assert.equal(win.VocabFrames.rank({ iv: 99 }).id, "platinum");
+  assert.equal(win.VocabFrames.isUpgrade({ iv: 3 }, { iv: 8 }), true);
+  assert.equal(win.VocabFrames.isUpgrade({ iv: 30 }, { iv: 30, pairRu: true }), false);
+  assert.equal(win.VocabFrames.isUpgrade({ iv: 100 }, { iv: 100, stage: "learning" }), false);
+  const known = win.Store._reduce(failed, [{ type: "vocabKnown", key: "V:Test", device: "one", seq: 3, lc: 3, t: T + 1000 }]);
+  assert.equal(win.VocabFrames.isUpgrade(failed.vocab["V:Test|ru"], known.vocab["V:Test|ru"]), true);
 });
 
 test("до 30 дней работает только русский → немецкий; ранний ответ не меняет срок", () => {

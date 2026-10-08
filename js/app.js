@@ -956,6 +956,17 @@
     card.appendChild(intervalProgress);
     var host = el("div", "vhost");
     card.appendChild(host);
+    var actions = el("div", "vactions" + (calib ? " vactions-calib" : ""));
+    var forgetButton = el("button", "vaction forget", "Не помню");
+    var knownButton = el("button", "vaction known", "Уже знаю");
+    var rememberButton = el("button", "vaction remember", "Знаю");
+    forgetButton.onclick = function () { answer(false, "button"); };
+    knownButton.onclick = function () { answerKnown("known-button"); };
+    rememberButton.onclick = function () { answer(true, "button"); };
+    actions.appendChild(forgetButton);
+    if (!calib) actions.appendChild(knownButton);
+    actions.appendChild(rememberButton);
+    card.appendChild(actions);
     app.appendChild(card);
     app.classList.add("tight");
 
@@ -973,6 +984,32 @@
     var i = startI, revealed = false, busy = false, view = routeId, expectedDue = 0;
 
     var peeked = false;
+
+    /* Ответ и следующая позиция уже сохранены до эффекта. Уход со страницы
+       не теряет прогресс; повторное нажатие во время эффекта не отвечает за следующую карточку. */
+    function advance(it, before, source, ok) {
+      var after = vocabSchedule(it);
+      var closed = source === "known-button" && after && after.learned;
+      var promoted = window.VocabFrames.isUpgrade(before, after);
+      var demoted = window.VocabFrames.isUpgrade(after, before);
+      if (source !== "button" && source !== "known-button") { step(); return; }
+      busy = true;
+      forgetButton.disabled = knownButton.disabled = rememberButton.disabled = true;
+      if (closed || promoted || demoted) {
+        window.VocabFrames.transition(host, before, after, closed ? "vframe-mastered" : demoted ? "vframe-downgrade" : "vframe-upgrade");
+      }
+      else {
+        var frames = host.querySelectorAll(".vframe");
+        for (var f = 0; f < frames.length; f++) frames[f].classList.add(ok ? "vframe-confirm" : "vframe-miss");
+      }
+      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      setTimeout(function () {
+        if (view !== routeId) return;
+        busy = false;
+        forgetButton.disabled = knownButton.disabled = rememberButton.disabled = false;
+        step();
+      }, reduced ? 150 : closed ? 1000 : promoted ? 780 : demoted ? 680 : 440);
+    }
 
     function faceFront(it) {
       var f = el("div", "vface vfront");
@@ -1025,11 +1062,6 @@
 
       stage.appendChild(deck);
       host.appendChild(stage);
-      host.appendChild(el("div", "vlegend", calib
-        ? '<span class="l">← не знаю</span><span class="r">знаю →</span>'
-        : '<span class="l">← не помню</span>' +
-          '<span class="u">↑ уже знаю</span>' +
-          '<span class="r">знаю →</span>'));
 
       bindCard(drag, flip, tint);
 
@@ -1123,6 +1155,7 @@
       function release() {
         if (!on) return;
         on = false;
+        if (busy || view !== routeId) return;
         drag.classList.remove("held");
 
         if (axis === "y") {
@@ -1174,6 +1207,7 @@
     }
 
     function flipCard() {
+      if (busy || view !== routeId) return;
       var flip = host.querySelector(".vflip");
       if (!flip) return;
       revealed = true;
@@ -1182,10 +1216,10 @@
     }
 
     /* «уже знаю»: слово закрывается целиком, обоими направлениями */
-    function answerKnown() {
+    function answerKnown(source) {
       if (busy || view !== routeId) return;
-      if (peeked) { answer(true); return; }
-      var it = list[i];
+      if (peeked) { answer(true, source === "known-button" ? "button" : source); return; }
+      var it = list[i], before = vocabSchedule(it);
       var base = it.key.slice(0, -3);
       if (!firstAnswered[it.key] && it.isNew) { newSeen++; newKnown++; }
       firstAnswered[it.key] = true;
@@ -1195,7 +1229,7 @@
       doneCnt++;
       i++; peeked = false;
       stash();
-      step();
+      advance(it, before, source, true);
     }
 
     function bumpCalib(it, known) {
@@ -1205,10 +1239,10 @@
       if (known) st.known++;
     }
 
-    function answer(ok) {
+    function answer(ok, source) {
       if (busy || view !== routeId) return;
       if (calib && peeked) ok = false;
-      var it = list[i];
+      var it = list[i], before = vocabSchedule(it);
       if (calib) {
         /* калибровка ничего не планирует: знакомое закрываем, незнакомое не трогаем */
         bumpCalib(it, ok);
@@ -1216,7 +1250,7 @@
         doneCnt++;
         i++; peeked = false;
         stash();
-        step();
+        advance(it, before, source, ok);
         return;
       }
       var first = !firstAnswered[it.key];
@@ -1244,7 +1278,7 @@
       }
       peeked = false;
       stash();
-      step();
+      advance(it, before, source, ok);
     }
 
     document.onkeydown = function (e) {
