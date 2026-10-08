@@ -241,16 +241,15 @@
       wc.appendChild(el("h2", null, "Слова урока"));
       var learnedN = 0;
       L.words.forEach(function (w) {
-        var a = S.vocab["L" + n + ":" + w.de + "|de"], b = S.vocab["L" + n + ":" + w.de + "|ru"];
-        if (a && a.learned && b && b.learned) learnedN++;
+        var v = Store.vocabSchedule(S.vocab, "L" + n + ":" + w.de);
+        if (v && v.learned) learnedN++;
       });
       wc.appendChild(el("div", "muted", L.words.length + " слов · закрыто " + learnedN +
         " · карточки идут общей очередью со всем курсом"));
       var wl = el("div", "wordlist");
       L.words.forEach(function (w) {
         var line = el("div", null, "<b>" + esc(w.de) + "</b> — <span>" + esc(w.ru) +
-          "</span><i>узнать: " + esc(vocabWhen("L" + n + ":" + w.de + "|de")) +
-          " · вспомнить: " + esc(vocabWhen("L" + n + ":" + w.de + "|ru")) + "</i>");
+          "</span><i>повторение: " + esc(vocabWhen("L" + n + ":" + w.de + "|ru")) + "</i>");
         wl.appendChild(line);
       });
       wc.appendChild(wl);
@@ -625,7 +624,7 @@
   } catch (e) {}
 
   /* ---------- карточки слов ----------
-     Первый ответ меняет расписание через vocabReview. Повторы внутри
+     Первый ответ меняет расписание через vocabWordReview. Повторы внутри
      сессии помогают извлечению, но не увеличивают интервал. Параметры
      короткого обучения и дневного лимита заданы в srs-config.js. */
   var CFG = window.SRS_CONFIG || {};
@@ -649,7 +648,7 @@
     return out;
   }
 
-  /* каждое слово даёт две независимые карточки: узнавание и извлечение */
+  /* Оба вида карточек нужны для восстановления сессий. Расписание общее. */
   function vocabCards() {
     var out = [];
     vocabPool().forEach(function (it) {
@@ -675,28 +674,24 @@
   function vocabSplit() {
     var now = Date.now(), due = [], fresh = [], learned = 0;
     vocabCards().forEach(function (it) {
-      var v = S.vocab[it.key];
+      var v = window.Store.vocabSchedule(S.vocab, it.key.slice(0, -3));
+      var dir = window.Store.vocabPaired(v) && v.pairRu ? "de" : "ru";
+      if (it.dir !== dir) return;
       if (!v) {
-        /* Обратное направление открывается после того, как слово узнал
-           с немецкого, и не раньше чем через сутки: иначе те же слова
-           возвращаются «новыми» в следующей же сессии. */
-        if (it.dir === "ru") {
-          var base = S.vocab[it.key.slice(0, -3) + "|de"];
-          if (!base || !(base.reps > 0)) return;
-          if (now - (base.t || 0) < REVERSE_DELAY) return;
-        }
         fresh.push(it);
         return;
       }
       if (v.learned) { learned++; return; }
       if ((v.due || 0) <= now) due.push(it);
     });
-    due.sort(function (a, b) { return (S.vocab[a.key].due || 0) - (S.vocab[b.key].due || 0); });
+    due.sort(function (a, b) { return (vocabSchedule(a).due || 0) - (vocabSchedule(b).due || 0); });
     return { due: due, fresh: vocabSortFresh(fresh), learned: learned };
   }
 
-  /* одно слово — одна карточка за сессию: узнавание и извлечение
-     не должны идти подряд, иначе второе направление решается по памяти о первом */
+  function vocabSchedule(it) { return window.Store.vocabSchedule(S.vocab, it.key.slice(0, -3)); }
+
+  /* В начальную очередь попадает одна сторона слова.
+     Вторая половина длинного интервала добавляется в конец после ответа. */
   function vocabOnePerWord(items, taken) {
     var out = [];
     items.forEach(function (it) {
@@ -741,17 +736,10 @@
      Порядок: короткий интервал вперёд, при равных — что свежее, затем что
      просрочено дольше. Потолок сессии — 20 слов. */
   var V_REPEAT = CFG.sessionRepeat || 20;
-  var REVERSE_DELAY = (CFG.reverseDelayDays != null ? CFG.reverseDelayDays : 1) * 864e5;
-
   function vocabRepeatPlan() {
-    var now = Date.now(), pool = [], taken = {};
-    vocabCards().forEach(function (it) {
-      var v = S.vocab[it.key];
-      if (!v || v.learned) return;
-      if ((v.due || 0) <= now) pool.push(it);
-    });
+    var pool = vocabSplit().due, taken = {};
     pool.sort(function (a, b) {
-      var va = S.vocab[a.key], vb = S.vocab[b.key];
+      var va = vocabSchedule(a), vb = vocabSchedule(b);
       if ((va.iv || 0) !== (vb.iv || 0)) return (va.iv || 0) - (vb.iv || 0);
       if ((vb.t || 0) !== (va.t || 0)) return (vb.t || 0) - (va.t || 0);
       return (va.due || 0) - (vb.due || 0);
@@ -772,9 +760,9 @@
       var bucket = [];
       (window.VOCAB || []).forEach(function (w) {
         if ((w.f || 1) !== lvl) return;
-        var key = "V:" + (w.id || w.de) + "|de";
-        if (S.vocab[key]) return;
-        bucket.push({ n: null, w: w, f: w.f, dir: "de", key: key });
+        var base = "V:" + (w.id || w.de), key = base + "|ru";
+        if (window.Store.vocabSchedule(S.vocab, base)) return;
+        bucket.push({ n: null, w: w, f: w.f, dir: "ru", key: key });
       });
       out = out.concat(E.shuffle(bucket).slice(0, CALIB_PER_LEVEL));
     }
@@ -821,17 +809,17 @@
   function vocabPending() { return vocabPlan().length; }
 
   /* firstTry === false — ответ-повтор внутри сессии, расписание не трогаем */
-  function vocabGrade(it, ok, firstTry) {
-    if (firstTry) S = Store.mutate("vocabReview", { key: it.key, ok: ok, day: window.ProgressData.day(new Date()) });
+  function vocabGrade(it, ok, firstTry, expectedDue) {
+    if (firstTry) S = Store.mutate("vocabWordReview", { key: it.key, ok: ok, expectedDue: expectedDue, day: window.ProgressData.day(new Date()) });
   }
 
   /* Закрытые ранее слова включают самооценку, поэтому это не доказанное знание. */
   function vocabWordStats() {
     var pool = vocabPool(), learned = 0, started = 0;
     pool.forEach(function (it) {
-      var a = S.vocab[it.key + "|de"], b = S.vocab[it.key + "|ru"];
-      if (a && a.learned && b && b.learned) learned++;
-      else if (a || b) started++;
+      var v = Store.vocabSchedule(S.vocab, it.key);
+      if (v && v.learned) learned++;
+      else if (v) started++;
     });
     return { total: pool.length, learned: learned, started: started };
   }
@@ -849,9 +837,10 @@
   }
 
   function vocabWhen(key) {
-    var v = S.vocab[key];
+    var v = Store.vocabSchedule(S.vocab, key.slice(0, -3));
     if (!v) return "новое слово";
     if (v.learned) return "закрыто";
+    if (v.pairRu) return "½ интервала · осталось немецкий → русский";
     var distance = v.due - Date.now();
     if (distance > 0 && distance < 3600e3) return "через " + Math.ceil(distance / 60000) + " мин.";
     var d = Math.ceil(distance / 864e5);
@@ -860,6 +849,27 @@
     if (d < 5) return "через " + d + " дня";
     if (d < 31) return "через " + d + " дней";
     return "через месяц";
+  }
+
+  /* В старой сессии могли остаться независимые немецкие карточки.
+     Выполненная часть сохраняется; оставшаяся получает актуальное направление. */
+  function vocabResume(saved, byKey) {
+    if (!saved || saved.policy === 2) return saved;
+    saved = JSON.parse(JSON.stringify(saved));
+    var keys = saved.keys.slice(0, saved.i), taken = {}, newKeys = [];
+    saved.keys.slice(saved.i).forEach(function (key) {
+      var base = key.slice(0, -3), v = Store.vocabSchedule(S.vocab, base);
+      if (taken[base] || (v && v.learned)) return;
+      taken[base] = true;
+      var dir = Store.vocabPaired(v) && v.pairRu ? "de" : "ru";
+      var next = base + "|" + dir;
+      if (!byKey[next]) return;
+      keys.push(next);
+      if (!v) newKeys.push(next);
+      if (key !== next && saved.first) delete saved.first[next];
+    });
+    saved.keys = keys; saved.newKeys = newKeys; saved.policy = 2;
+    return saved;
   }
 
   /* ---------- экран карточек ---------- */
@@ -873,6 +883,7 @@
     var calibStat = {};   /* ступень → {показано, знакомо} */
     var saved = sessionLoad();
     if (saved && (saved.mode || "") !== (mode || "")) saved = null;
+    saved = vocabResume(saved, byKey);
     if (saved) calibStat = saved.calibStat || {};
     var list, startI = 0, startDone = 0, startFirst = {}, startNewSeen = 0, startNewKnown = 0;
 
@@ -889,7 +900,7 @@
       startNewKnown = saved.newKnown || 0;
     } else {
       list = vocabSession(mode);
-      list.forEach(function (it) { it.isNew = !S.vocab[it.key]; });
+      list.forEach(function (it) { it.isNew = !vocabSchedule(it); });
     }
 
     app.innerHTML = "";
@@ -930,7 +941,7 @@
 
     function stash() {
       sessionSave({
-        at: Date.now(), mode: mode || "", i: i, done: doneCnt,
+        at: Date.now(), policy: 2, mode: mode || "", i: i, done: doneCnt,
         keys: list.map(function (it) { return it.key; }),
         newKeys: list.filter(function (it) { return it.isNew; }).map(function (it) { return it.key; }),
         first: firstAnswered, newSeen: newSeen, newKnown: newKnown, peeked: peeked, calibStat: calibStat
@@ -941,6 +952,8 @@
     var pl = el("div", "progline");
     pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>';
     card.appendChild(pl);
+    var intervalProgress = el("div", "vinterval muted");
+    card.appendChild(intervalProgress);
     var host = el("div", "vhost");
     card.appendChild(host);
     app.appendChild(card);
@@ -957,7 +970,7 @@
     fitScreen();
     window.onresize = fitScreen;
 
-    var i = startI, revealed = false, busy = false, view = routeId;
+    var i = startI, revealed = false, busy = false, view = routeId, expectedDue = 0;
 
     var peeked = false;
 
@@ -985,6 +998,11 @@
       if (i >= list.length) return finish();
       var it = list[i];
       revealed = false;
+      var schedule = vocabSchedule(it), paired = Store.vocabPaired(schedule);
+      expectedDue = schedule ? schedule.due || 0 : 0;
+      intervalProgress.textContent = calib ? "Русский → немецкий" : paired
+        ? "Интервал: " + (schedule.pairRu ? "½" : "0") + " из 1 · " + (it.dir === "ru" ? "русский → немецкий" : "немецкий → русский")
+        : it.dir === "ru" ? "Русский → немецкий" : "Немецкий → русский";
 
       pl.querySelector(".cnt").textContent = doneCnt + " / " + total;
       pl.querySelector("i").style.width = Math.round((doneCnt / total) * 100) + "%";
@@ -1202,7 +1220,16 @@
       var first = !firstAnswered[it.key];
       firstAnswered[it.key] = true;
       if (first && it.isNew) { newSeen++; if (ok) newKnown++; }
-      vocabGrade(it, ok, first);
+      vocabGrade(it, ok, first, expectedDue);
+      var schedule = vocabSchedule(it);
+      if (first && ok && it.dir === "ru" && Store.vocabPaired(schedule) && schedule.pairRu) {
+        var other = byKey[it.key.slice(0, -3) + "|de"];
+        if (!list.slice(i + 1).some(function (item) { return item.key === other.key; })) {
+          /* Вторую половину проверяем в конце круга. */
+          other.isNew = false;
+          list.push(other); total++;
+        }
+      }
       syncTabs();
       if (ok) {
         doneCnt++;

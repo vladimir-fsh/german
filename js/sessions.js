@@ -10,6 +10,7 @@ window.Sessions = (function () {
     if (value == null) return null;
     DATA.safe(value); DATA.object(value); integer(value.i); integer(value.at);
     if (kind === "vocab") {
+      if (value.policy != null && value.policy !== 2) throw new Error("Неизвестное расписание сессии");
       if (["", "new", "repeat", "calib"].indexOf(value.mode || "") < 0) throw new Error("Неизвестная сессия");
       list(value.keys).forEach(function (key) { text(key); if (!/\|(de|ru)$/.test(key)) throw new Error("Некорректная карточка"); });
       if (value.i > value.keys.length) throw new Error("Некорректная позиция");

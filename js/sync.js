@@ -13,7 +13,7 @@
 window.Store = (function () {
   "use strict";
 
-  var SCHEMA = 6;
+  var SCHEMA = 7;
   var DATA = window.ProgressData;
   var LS_STATE = "de-b1-progress-v1";   /* материализованное состояние, для мгновенного старта */
   var LS_OPS = "de-b1-oplog-v1";        /* прежний общий журнал, только для чтения */
@@ -104,6 +104,24 @@ window.Store = (function () {
     Object.keys(st || {}).forEach(function (k) { next[k] = st[k]; });
     next.v = SCHEMA;
     return migrateVocabShape(next);
+  }
+
+  /* Старые направления сохраняются в журнале. Для нового расписания берём
+     русский → немецкий, а если его ещё нет - прежнюю немецкую карточку.
+     Перенос выполняется при первом новом ответе, не при чтении состояния. */
+  function vocabSchedule(vocab, base) {
+    var ru = vocab[base + "|ru"], de = vocab[base + "|de"];
+    if (!ru && !de) return null;
+    var v = clone(ru || de);
+    if (v.iv == null) v = fromBox(v);
+    if (!v.wordSchedule) {
+      v.learned = !!(ru && ru.learned && de && de.learned);
+      v.pairRu = false;
+    }
+    return v;
+  }
+  function vocabPaired(v) {
+    return !!(v && !v.learned && (v.stage || (v.reps ? "review" : "learning")) === "review" && v.iv >= cfg("pairedReviewDays", 30));
   }
 
   /* ---------- редьюсер ----------
@@ -239,6 +257,30 @@ window.Store = (function () {
         v.t = op.t; s.vocab[op.key] = v;
         return s;
 
+      /* Общее расписание слова: на длинном интервале два ответа = один шаг.
+         expectedDue и направление защищают от повторного ответа другой вкладки. */
+      case "vocabWordReview":
+        var base = op.key.slice(0, -3), dir = op.key.slice(-2);
+        v = vocabSchedule(s.vocab, base);
+        if (v && (v.learned || v.due > op.t)) return s;
+        if ((v ? v.due || 0 : 0) !== op.expectedDue) return s;
+        var paired = vocabPaired(v);
+        if (dir !== (paired && v.pairRu ? "de" : "ru")) return s;
+        v = v || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false,
+          introducedAt: op.t, introducedDay: op.day, stage: "learning", step: 0 };
+        v.wordSchedule = 1;
+        if (paired && op.ok && dir === "ru") {
+          v.pairRu = true;
+          v.t = op.t;
+          s.vocab[base + "|ru"] = v;
+          return s;
+        }
+        v.pairRu = false;
+        s.vocab[base + "|ru"] = v;
+        /* Исторический алгоритм коротких шагов остаётся неизменным. */
+        apply(s, { type: "vocabReview", key: base + "|ru", ok: op.ok, t: op.t, seq: op.seq, day: op.day });
+        return s;
+
       case "vocabLevel":
         s.vocabLevel = op.level;
         return s;
@@ -249,6 +291,7 @@ window.Store = (function () {
           var e = s.vocab[op.key + dir] || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false };
           if (e.box != null && e.iv == null) e = fromBox(e);
           e.learned = true;
+          e.pairRu = false;
           e.selfAssessed = true;
           e.due = 0;
           e.iv = IV_LEARNED;
@@ -481,6 +524,8 @@ window.Store = (function () {
     LADDER: LADDER,
     device: DEV,
     state: function () { return state; },
+    vocabSchedule: vocabSchedule,
+    vocabPaired: vocabPaired,
     /* false, пока сохраненные данные повреждены */
     ready: function () { return !blocked; },
     blocked: function () { return blocked; },

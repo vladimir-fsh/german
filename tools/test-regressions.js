@@ -7,6 +7,104 @@ const T = Date.UTC(2026, 9, 1, 12);
 
 function stored() { return { v: 4, done: { L18D0: { at: T, score: 14, of: 16 } }, srs: {}, vocab: {}, vocabLevel: 1, calibrated: true, streak: 2, lastDay: "2026-09-30", totalTried: 16, totalCorrect: 14, resetAt: 0 }; }
 
+function wordOp(seq, dir, ok, t = T, due = T) {
+  return { type: "vocabWordReview", key: "V:Test|" + dir, ok, expectedDue: due,
+    t, day: "2026-10-01", device: "one", seq, lc: seq };
+}
+function reviewWord(iv) {
+  const state = stored(); state.v = 6;
+  state.vocab["V:Test|ru"] = { iv, ease: 2.5, reps: 4, lapses: 0, due: T, t: T - 86400000, stage: "review", learned: false };
+  return state;
+}
+
+test("до 30 дней работает только русский → немецкий; ранний ответ не меняет срок", () => {
+  const store = env.load(SYNC).Store, base = reviewWord(29);
+  const invalid = store._reduce(base, [wordOp(1, "de", true)]);
+  assert.equal(invalid.vocab["V:Test|ru"].iv, 29);
+  const early = store._reduce(base, [wordOp(1, "ru", true, T - 1)]);
+  assert.equal(early.vocab["V:Test|ru"].due, T);
+  const next = store._reduce(base, [wordOp(1, "ru", true)]);
+  assert.ok(next.vocab["V:Test|ru"].due > T);
+  assert.equal(next.vocab["V:Test|ru"].pairRu, false);
+  const fresh = store._reduce(null, [wordOp(1, "ru", true, T, 0)]);
+  assert.equal(fresh.vocab["V:Test|ru"].due, T + 600000);
+});
+
+test("на 30 и 100 днях две стороны завершают один интервал, дубликаты не дают прогресс", () => {
+  const store = env.load(SYNC).Store;
+  for (const iv of [30, 100]) {
+    const base = reviewWord(iv), first = wordOp(1, "ru", true);
+    const duplicate = { ...first, device: "other", seq: 1, lc: 2 };
+    const half = store._reduce(base, [first, duplicate]);
+    assert.equal(half.vocab["V:Test|ru"].pairRu, true);
+    assert.equal(half.vocab["V:Test|ru"].iv, iv);
+    assert.equal(half.vocab["V:Test|ru"].due, T);
+    assert.equal(half.vocab["V:Test|ru"].reps, 4);
+    const second = wordOp(3, "de", true, T + 1000);
+    const ops = [first, duplicate, second, { ...second, device: "other", lc: 4 }];
+    const full = store._reduce(base, ops), v = full.vocab["V:Test|ru"];
+    assert.equal(v.pairRu, false); assert.equal(v.reps, 5);
+    assert.ok(v.due > T); assert.ok(v.iv <= 100);
+    assert.deepEqual(full, store._reduce(base, ops.slice().reverse()));
+    assert.equal(v.learned, false);
+  }
+});
+
+test("промах на любой стороне убирает половину и возвращает короткое обучение", () => {
+  const store = env.load(SYNC).Store;
+  for (const dir of ["ru", "de"]) {
+    const ops = dir === "ru" ? [] : [wordOp(1, "ru", true)];
+    ops.push(wordOp(2, dir, false));
+    const state = store._reduce(reviewWord(100), ops), v = state.vocab["V:Test|ru"];
+    assert.equal(v.pairRu, false); assert.equal(v.stage, "learning");
+    assert.equal(v.due, T + 60000); assert.equal(v.lapses, 1);
+    assert.equal(store.vocabPaired(v), false);
+  }
+});
+
+test("половина интервала переживает перезагрузку и экспорт; перенос не теряет старое расписание", () => {
+  const base = reviewWord(30);
+  base.vocab["V:Test|de"] = { ...base.vocab["V:Test|ru"], iv: 100 };
+  const win = env.load(SYNC, { storage: { "de-b1-progress-v1": JSON.stringify(base) } });
+  win.Store.mutate("vocabWordReview", { key: "V:Test|ru", ok: true, expectedDue: T, day: "2026-10-01" });
+  const reload = env.load(SYNC, { storage: { ...win.localStorage._dump() } });
+  assert.equal(reload.Store.state().v, 7);
+  assert.equal(reload.Store.vocabSchedule(reload.Store.state().vocab, "V:Test").pairRu, true);
+  const imported = env.load(SYNC); imported.Store.importBackup(reload.Store.exportBackup());
+  assert.equal(imported.Store.vocabSchedule(imported.Store.state().vocab, "V:Test").pairRu, true);
+  assert.equal(imported.Store.state().vocab["V:Test|de"].iv, 100);
+  delete base.vocab["V:Test|ru"];
+  const moved = win.Store._reduce(base, [wordOp(1, "ru", true)]);
+  assert.equal(moved.vocab["V:Test|ru"].iv, 100);
+  assert.equal(moved.vocab["V:Test|ru"].pairRu, true);
+  assert.deepEqual(moved.vocab["V:Test|de"], base.vocab["V:Test|de"]);
+});
+
+test("новая очередь, калибровка и старые сессии начинают с русского; половина открывает немецкую сторону", () => {
+  const win = env.load(SYNC);
+  win.COURSE = { lessons: [] }; win.VOCAB = [{ de: "Test", ru: "тест", f: 1 }];
+  const source = require("node:fs").readFileSync(env.ROOT + "/js/app.js", "utf8");
+  const context = require("node:vm").createContext({ window: win, Store: win.Store,
+    S: win.Store.state(), V_LEVELS: 5, CFG: win.SRS_CONFIG, E: { shuffle: (items) => items } });
+  require("node:vm").runInContext(source.slice(source.indexOf("  function vocabPool()"), source.indexOf("  /* Незакрытая сессия")), context);
+  require("node:vm").runInContext(source.slice(source.indexOf("  function vocabResume("), source.indexOf("  /* ---------- экран карточек")), context);
+  assert.equal(context.vocabSplit().fresh[0].dir, "ru");
+  assert.equal(context.vocabSplit().fresh.length, 1);
+  assert.equal(context.vocabCalibPlan()[0].dir, "ru");
+  context.S = win.Store._reduce(reviewWord(30), []);
+  assert.equal(context.vocabRepeatPlan()[0].dir, "ru");
+  context.S = win.Store._reduce(reviewWord(30), [wordOp(1, "ru", true)]);
+  assert.equal(context.vocabRepeatPlan()[0].dir, "de");
+  assert.equal(context.vocabSplit().fresh.length, 0);
+  const cards = {}; context.vocabCards().forEach((card) => { cards[card.key] = card; });
+  context.S = win.Store._reduce(reviewWord(1), []);
+  const saved = { keys: ["V:Done|de", "V:Test|de", "V:Test|ru"], i: 1, done: 1, first: { "V:Done|de": true }, at: T };
+  const resumed = context.vocabResume(saved, cards);
+  assert.deepEqual(Array.from(resumed.keys), ["V:Done|de", "V:Test|ru"]);
+  assert.equal(resumed.i, 1); assert.equal(resumed.done, 1);
+  assert.equal(saved.keys.length, 3);
+});
+
 test("повседневные варианты сохраняют старые ключи повторения, сессии и калибровки", () => {
   const win = env.load(["data/lessons.js", "data/vocab.js"].concat(SYNC));
   const source = require("node:fs").readFileSync(env.ROOT + "/js/app.js", "utf8");

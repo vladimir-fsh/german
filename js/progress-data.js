@@ -44,7 +44,7 @@ window.ProgressData = (function () {
   }
   function state(value) {
     safe(value, 0); object(value);
-    if ([2, 3, 4, 5, 6].indexOf(value.v) < 0) fail();
+    if ([2, 3, 4, 5, 6, 7].indexOf(value.v) < 0) fail();
     object(value.done); object(value.srs); object(value.vocab);
     Object.keys(value.done).forEach(function (k) {
       if (!/^L\d+D\d+$/.test(k)) fail();
@@ -57,6 +57,8 @@ window.ProgressData = (function () {
       var r = object(value.vocab[k]); ["box", "iv", "ease", "reps", "lapses", "due", "t", "step"].forEach(function (f) { optional(r[f], number); });
       if (r.learned != null && typeof r.learned !== "boolean") fail();
       if (r.stage != null && ["learning", "review"].indexOf(r.stage) < 0) fail();
+      if (r.wordSchedule != null && r.wordSchedule !== 1) fail();
+      if (r.pairRu != null && typeof r.pairRu !== "boolean") fail();
     });
     ["streak", "totalTried", "totalCorrect", "totalUncertain", "resetAt"].forEach(function (f) { optional(value[f], number); });
     if (value.totalCorrect > value.totalTried) fail();
@@ -78,12 +80,13 @@ window.ProgressData = (function () {
   function operation(op) {
     safe(op, 0); object(op); text(op.type, 40); identifier(op.device); number(op.seq); number(op.lc); number(op.t);
     if (Math.floor(op.seq) !== op.seq || Math.floor(op.lc) !== op.lc) fail();
-    if (["answer", "reviewAnswer", "dayDone", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabKnown", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
-    if (op.type === "answer" || op.type === "reviewAnswer" || op.type === "vocabGrade" || op.type === "vocabReview" || op.type === "srsHit") { if (typeof op.ok !== "boolean") fail(); }
+    if (["answer", "reviewAnswer", "dayDone", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabWordReview", "vocabKnown", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
+    if (op.type === "answer" || op.type === "reviewAnswer" || op.type === "vocabGrade" || op.type === "vocabReview" || op.type === "vocabWordReview" || op.type === "srsHit") { if (typeof op.ok !== "boolean") fail(); }
     if (op.type === "dayDone") { number(op.n, 999); number(op.di, 999); number(op.score); number(op.of); if (op.score > op.of) fail(); }
     if (op.records != null) { if (!Array.isArray(op.records)) fail(); op.records.forEach(record); }
     if (op.type === "touchDay" && !validDay(op.day)) fail();
-    if (/^(vocabGrade|vocabReview|vocabKnown)$/.test(op.type)) { identifier(op.key); if (op.type !== "vocabKnown" && !/\|(de|ru)$/.test(op.key)) fail(); }
+    if (/^(vocabGrade|vocabReview|vocabWordReview|vocabKnown)$/.test(op.type)) { identifier(op.key); if (op.type !== "vocabKnown" && !/\|(de|ru)$/.test(op.key)) fail(); }
+    if (op.type === "vocabWordReview") { number(op.expectedDue); if (!validDay(op.day)) fail(); }
     if (op.type === "srsAdd" || op.type === "srsHit") identifier(op.id);
     if (op.type === "reviewAnswer") { identifier(op.id); identifier(op.attemptId); number(op.expectedBox, 3); number(op.expectedDue); }
     if (op.attemptId != null) identifier(op.attemptId);

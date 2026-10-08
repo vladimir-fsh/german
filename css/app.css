@@ -386,6 +386,7 @@ details.theory .gram { padding: 0 14px 14px; }
 /* ---------- карточки слов ---------- */
 /* Экран карточек без обёрток: одна большая карточка по центру экрана. */
 .vscreen { display: flex; flex-direction: column; margin: 10px 0 0; overflow: hidden; }
+.vinterval { font-size: 12px; text-align: center; padding: 4px 0; }
 .vhost { position: relative; display: flex; flex-direction: column; margin: auto 0; }   /* карточка по центру */
 
 .vstage { perspective: 1100px; margin: 10px 0 6px; }
