@@ -17,6 +17,18 @@ function reviewWord(iv) {
   return state;
 }
 
+test("рамка сохраняется на половине интервала и меняется только вместе с расписанием", () => {
+  const win = env.load(SYNC.concat(["js/vocab-frames.js"]));
+  const half = win.Store._reduce(reviewWord(100), [wordOp(1, "ru", true)]);
+  assert.equal(win.VocabFrames.rank(half.vocab["V:Test|ru"]).id, "legend");
+  const failed = win.Store._reduce(half, [wordOp(2, "de", false)]);
+  assert.equal(win.VocabFrames.rank(failed.vocab["V:Test|ru"]).id, "bronze");
+  assert.equal(win.VocabFrames.rank(null).id, "bronze");
+  assert.equal(win.VocabFrames.rank({ iv: 6 }).id, "silver");
+  assert.equal(win.VocabFrames.rank({ iv: 29 }).id, "gold");
+  assert.equal(win.VocabFrames.rank({ iv: 99 }).id, "platinum");
+});
+
 test("до 30 дней работает только русский → немецкий; ранний ответ не меняет срок", () => {
   const store = env.load(SYNC).Store, base = reviewWord(29);
   const invalid = store._reduce(base, [wordOp(1, "de", true)]);

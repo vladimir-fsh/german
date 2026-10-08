@@ -432,6 +432,35 @@ details.theory .gram { padding: 0 14px 14px; }
   background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; max-width: 100%;
 }
 
+/* Ранги повторения: металлическая оправа, скошенные углы и эмблема.
+   Все детали принадлежат лицу карточки и переворачиваются вместе с ним. */
+.vstage { margin-top: 18px; margin-bottom: 24px; }
+.vface.vranked { padding: 36px 30px; border-radius: 24px; }
+.rank-bronze {
+  --frame-dark: #573824; --frame-mid: #b77b49; --frame-light: #f5d4a1;
+  --frame-gem: #cf8a4a;
+}
+.rank-silver {
+  --frame-dark: #414d5e; --frame-mid: #9eaeba; --frame-light: #f3f8fc;
+  --frame-gem: #bce1ed;
+}
+.rank-gold {
+  --frame-dark: #78501a; --frame-mid: #d9a331; --frame-light: #fff0a6;
+  --frame-gem: #f9c735;
+}
+.rank-platinum {
+  --frame-dark: #365c79; --frame-mid: #81c2d3; --frame-light: #f1ffff;
+  --frame-gem: #ae9be4;
+}
+.rank-legend {
+  --frame-dark: #833824; --frame-mid: #ed9d24; --frame-light: #fff1a7;
+  --frame-gem: #b07aff; --frame-fire: #ff8b32;
+}
+.vframe { position: absolute; inset: -3px; pointer-events: none; filter: drop-shadow(0 2px 2px #0004); }
+.vframe svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.rank-platinum .vframe { filter: drop-shadow(0 0 4px #68bedb66) drop-shadow(0 2px 2px #0004); }
+.rank-legend .vframe { filter: drop-shadow(0 0 5px #ff9d3977) drop-shadow(0 2px 2px #8a392855); }
+.rank-legend .vflame { filter: drop-shadow(0 0 3px #ff622c); }
 .vtint {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 20px;
   pointer-events: none; opacity: 0; display: grid; place-items: center;
@@ -453,6 +482,12 @@ details.theory .gram { padding: 0 14px 14px; }
 @media (max-width: 560px) {
   .vword { font-size: 30px; }
   .vword.vsmall { font-size: 23px; }
+}
+@media (max-height: 700px) {
+  .vdeck { height: 280px; }
+  .vface.vranked { padding: 30px; }
+  .vranked .vinner { gap: 8px; }
+  .vranked .vex { font-size: 14px; line-height: 1.4; }
 }
 
 .wordlist { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin-top: 10px; }

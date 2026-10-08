@@ -979,6 +979,7 @@
       var inner = el("div", "vinner");
       inner.appendChild(el("div", "vword", esc(it.dir === "de" ? it.w.de : it.w.ru)));
       f.appendChild(inner);
+      window.VocabFrames.decorate(f, vocabSchedule(it));
       return f;
     }
 
@@ -991,6 +992,7 @@
           (it.w.exru ? "<i>" + esc(it.w.exru) + "</i>" : "") + "</div>" : "") +
         (it.w.reg ? '<div class="vreg">' + esc(it.w.reg) + "</div>" : "");
       b.appendChild(inner);
+      window.VocabFrames.decorate(b, vocabSchedule(it));
       return b;
     }
 
