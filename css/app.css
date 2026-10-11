@@ -435,7 +435,20 @@ details.theory .gram { padding: 0 14px 14px; }
 /* Ранги повторения: металлическая оправа, скошенные углы и эмблема.
    Все детали принадлежат лицу карточки и переворачиваются вместе с ним. */
 .vstage { margin-top: 18px; margin-bottom: 24px; }
-.vface.vranked { padding: 36px 30px; border-radius: 24px; }
+.vface.vranked {
+  padding: 36px 30px; border-radius: 0; background: none; box-shadow: none;
+}
+.vdrag.held .vface.vranked { box-shadow: none; }
+/* Подложка повторяет скошенный контур SVG, не выступая за оправу. */
+.vface.vranked::before {
+  content: ""; position: absolute; inset: -3px; pointer-events: none;
+  clip-path: polygon(6.944% 2.5%, 93.056% 2.5%, 97.5% 6.944%, 97.5% 93.056%, 93.056% 97.5%, 6.944% 97.5%, 2.5% 93.056%, 2.5% 6.944%);
+  background-color: var(--surface);
+  background-image:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--frame-mid) 10%, transparent), transparent 65%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--frame-gem) 7%, transparent), transparent 60%);
+}
+.vranked .vinner { position: relative; }
 .rank-bronze {
   --frame-dark: #573824; --frame-mid: #b77b49; --frame-light: #f5d4a1;
   --frame-gem: #cf8a4a;
@@ -461,70 +474,31 @@ details.theory .gram { padding: 0 14px 14px; }
 .rank-platinum .vframe { filter: drop-shadow(0 0 4px #68bedb66) drop-shadow(0 2px 2px #0004); }
 .rank-legend .vframe { filter: drop-shadow(0 0 5px #ff9d3977) drop-shadow(0 2px 2px #8a392855); }
 .rank-legend .vflame { filter: drop-shadow(0 0 3px #ff622c); }
-.vtint {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 20px;
-  pointer-events: none; opacity: 0; display: grid; place-items: center;
-}
-.vtint.good { background: var(--ok-soft); box-shadow: inset 0 0 0 2px var(--ok); }
-.vtint.bad { background: var(--bad-soft); box-shadow: inset 0 0 0 2px var(--bad); }
-
-.vtint.known { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
-
-.vlegend { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-dim); padding: 0 4px; }
-.vlegend .u { color: var(--accent); }
-.vlegend .l { color: var(--bad); }
-.vlegend .r { color: var(--ok); }
-
-/* Ответы доступны большим пальцем. Высота карточки подстраивается под остаток экрана. */
 .vscreen .vhost { flex: 1; min-height: 0; width: 100%; justify-content: center; margin: 8px 0 12px; }
 .vscreen .vstage { flex: 0 1 360px; min-height: 170px; max-height: 360px; }
 .vscreen .vdeck { height: 100%; }
-.vactions { flex-shrink: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.vactions-calib { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.vaction { min-height: 54px; padding: 10px 4px; border: 1px solid var(--border); border-radius: 15px; font: inherit; font-size: 14px; font-weight: 600; touch-action: manipulation; }
-.vaction.forget { color: var(--bad); background: var(--bad-soft); }
-.vaction.known { color: var(--accent); background: var(--accent-soft); }
-.vaction.remember { color: var(--ok); background: var(--ok-soft); }
-.vaction:active { transform: scale(.96); }
-.vaction:disabled { opacity: .6; }
-.vframe-old { animation: frame-retire .4s ease-out forwards; }
-.vframe-upgrade { animation: frame-upgrade .75s cubic-bezier(.2,.7,.3,1) both; }
-.vframe-confirm { animation: frame-confirm .42s ease-out both; }
-.vframe-mastered { animation: frame-mastered .95s ease-out both; }
-.vframe-downgrade { animation: frame-downgrade .65s ease-out both; }
-.vframe-miss { animation: frame-miss .42s ease-out both; }
-@keyframes frame-downgrade {
-  0% { opacity: 0; transform: scale(1.025); filter: brightness(1); }
-  40% { opacity: 1; transform: scale(.97); filter: brightness(.7) saturate(.5); }
-  75% { transform: scale(1.006); filter: brightness(.9); }
-  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
-}
-@keyframes frame-miss {
-  0%, 100% { transform: translateX(0); filter: brightness(1); }
-  25% { transform: translateX(-3px); filter: brightness(.8); }
-  50% { transform: translateX(3px); }
-  75% { transform: translateX(-1px); }
-}
-@keyframes frame-confirm {
+.vframe-preview { opacity: 0; }
+.vframe { transition: opacity .18s ease-out; --frame-fire: #ff8b32; }
+.held .vframe { transition: none; }
+.vcommit-good .vframe { animation: frame-spark .3s ease-out both; }
+.vcommit-bad .vframe { animation: frame-soften .3s ease-out both; }
+.vcommit-known .vframe { animation: frame-close .4s ease-out both; }
+@keyframes frame-spark {
   0%, 100% { filter: brightness(1); }
-  40% { filter: brightness(1.35) drop-shadow(0 0 5px var(--frame-light)); }
+  40% { filter: brightness(1.6) drop-shadow(0 0 7px var(--frame-light)); }
 }
-@keyframes frame-mastered {
-  0% { opacity: 0; transform: scale(.9); filter: brightness(1); }
-  35% { opacity: 1; transform: scale(1.035); filter: brightness(1.9) drop-shadow(0 0 14px #ffc85a); }
-  65% { transform: scale(1); filter: brightness(1.3) drop-shadow(0 0 7px #ffc85a); }
-  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+@keyframes frame-soften {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(.975); filter: brightness(.8); }
 }
-@keyframes frame-retire { to { opacity: 0; transform: scale(1.035); } }
-@keyframes frame-upgrade {
-  0% { opacity: 0; transform: scale(.96); filter: brightness(1); }
-  35% { opacity: 1; transform: scale(1.025); filter: brightness(1.8) drop-shadow(0 0 9px var(--frame-light)); }
-  70% { transform: scale(1); filter: brightness(1.2) drop-shadow(0 0 4px var(--frame-mid)); }
-  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+@keyframes frame-close {
+  0% { filter: brightness(1); }
+  50% { transform: scale(1.035); filter: brightness(1.7) drop-shadow(0 0 10px var(--frame-gem)); }
+  100% { transform: scale(1); filter: brightness(1); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .vframe-old { display: none; }
-  .vframe-upgrade, .vframe-confirm, .vframe-mastered, .vframe-downgrade, .vframe-miss { animation: none; }
+  .vframe, .vflip { transition: none; }
+  .vcommit-good .vframe, .vcommit-bad .vframe, .vcommit-known .vframe { animation: none; }
 }
 
 @media (max-width: 700px) {

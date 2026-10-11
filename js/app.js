@@ -956,17 +956,6 @@
     card.appendChild(intervalProgress);
     var host = el("div", "vhost");
     card.appendChild(host);
-    var actions = el("div", "vactions" + (calib ? " vactions-calib" : ""));
-    var forgetButton = el("button", "vaction forget", "Не помню");
-    var knownButton = el("button", "vaction known", "Уже знаю");
-    var rememberButton = el("button", "vaction remember", "Знаю");
-    forgetButton.onclick = function () { answer(false, "button"); };
-    knownButton.onclick = function () { answerKnown("known-button"); };
-    rememberButton.onclick = function () { answer(true, "button"); };
-    actions.appendChild(forgetButton);
-    if (!calib) actions.appendChild(knownButton);
-    actions.appendChild(rememberButton);
-    card.appendChild(actions);
     app.appendChild(card);
     app.classList.add("tight");
 
@@ -985,30 +974,17 @@
 
     var peeked = false;
 
-    /* Ответ и следующая позиция уже сохранены до эффекта. Уход со страницы
-       не теряет прогресс; повторное нажатие во время эффекта не отвечает за следующую карточку. */
-    function advance(it, before, source, ok) {
-      var after = vocabSchedule(it);
-      var closed = source === "known-button" && after && after.learned;
-      var promoted = window.VocabFrames.isUpgrade(before, after);
-      var demoted = window.VocabFrames.isUpgrade(after, before);
-      if (source !== "button" && source !== "known-button") { step(); return; }
+    var finishGesture = null;
+    /* Ответ и позиция сохраняются до эффекта, следующий свайп блокируется. */
+    function advance(source, ok) {
       busy = true;
-      forgetButton.disabled = knownButton.disabled = rememberButton.disabled = true;
-      if (closed || promoted || demoted) {
-        window.VocabFrames.transition(host, before, after, closed ? "vframe-mastered" : demoted ? "vframe-downgrade" : "vframe-upgrade");
-      }
-      else {
-        var frames = host.querySelectorAll(".vframe");
-        for (var f = 0; f < frames.length; f++) frames[f].classList.add(ok ? "vframe-confirm" : "vframe-miss");
-      }
+      if (finishGesture) finishGesture(source === "known-swipe" || (calib && ok) ? "known" : ok ? "good" : "bad");
       var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       setTimeout(function () {
         if (view !== routeId) return;
         busy = false;
-        forgetButton.disabled = knownButton.disabled = rememberButton.disabled = false;
         step();
-      }, reduced ? 150 : closed ? 1000 : promoted ? 780 : demoted ? 680 : 440);
+      }, reduced ? 120 : 460);
     }
 
     function faceFront(it) {
@@ -1055,155 +1031,93 @@
       var flip = el("div", "vflip");
       flip.appendChild(faceFront(it));
       flip.appendChild(faceBack(it));
-      var tint = el("div", "vtint");
-      drag.appendChild(flip); drag.appendChild(tint);
+      drag.appendChild(flip);
       slot.appendChild(drag);
       deck.appendChild(slot);
 
       stage.appendChild(deck);
       host.appendChild(stage);
 
-      bindCard(drag, flip, tint);
+      bindCard(drag, flip);
 
       peeked = !!(saved && saved.i === i && saved.peeked);
       saved = null;
     }
 
-    /* Жесты и физика.
-       Тап — переворот. Свайп вправо — «знаю», влево — «не помню».
-       Угол наклона зависит от точки захвата: держишь карточку за низ —
-       уводит в другую сторону, как настоящую бумагу вокруг опоры.
-       За порогом ход сжимается (резина), при отпускании либо вылет со
-       скоростью броска, либо возврат пружиной с лёгким перелётом. */
-    function bindCard(drag, flip, tint) {
-      var x0 = 0, y0 = 0, dx = 0, on = false, axis = "", axisLocked = false, moved = false;
-      var lastX = 0, lastT = 0, vx = 0, dyLast = 0, anchor = 1;
-      var W = Math.max(46, Math.min(90, window.innerWidth * 0.15));
-      var UP = Math.max(70, Math.min(140, window.innerHeight * 0.12));   /* порог «уже знаю» */
-      var LIMIT = W * 2.2;   /* дальше хода почти нет, карточка упирается */
+    /* Цвет следует за пальцем; отпускание подтверждает ответ до анимации. */
+    function bindCard(drag, flip) {
+      var x0 = 0, y0 = 0, dx = 0, dy = 0, pointer = null, axis = "", locked = false, moved = false;
+      var lastX = 0, lastT = 0, vx = 0;
+      var W = Math.max(46, Math.min(90, window.innerWidth * 0.18));
+      var UP = Math.max(70, Math.min(120, window.innerHeight * 0.12));
+      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var preview = window.VocabFrames.prepareGesture(drag, vocabSchedule(list[i]));
 
-      function damp(v) {
-        var a = Math.abs(v);
-        if (a <= LIMIT) return v;
-        return (v < 0 ? -1 : 1) * (LIMIT + (a - LIMIT) * 0.32);
+      function reset() {
+        drag.classList.remove("held");
+        drag.style.transition = reduced ? "none" : "transform .28s cubic-bezier(.2,.8,.3,1)";
+        drag.style.transform = "";
+        preview(0, 0);
       }
-
-      function paint(ox, oy, rot, lift) {
-        drag.style.transform = "translate(" + ox.toFixed(1) + "px," + oy.toFixed(1) +
-          "px) rotate(" + rot.toFixed(2) + "deg) scale(" + lift.toFixed(3) + ")";
-      }
+      finishGesture = function (kind) {
+        var direction = kind === "bad" ? -1 : 1;
+        preview(direction, 1);
+        drag.classList.remove("held");
+        drag.classList.add("vcommit-" + kind);
+        /* На время эффекта остаёмся в точке отпускания, без возврата к центру. */
+        if (!reduced) setTimeout(function () {
+          if (view !== routeId) return;
+          drag.style.transition = "transform .24s ease-in, opacity .24s ease-in";
+          drag.style.transform = "translate(" + (kind === "known" ? 0 : direction * 170) + "px," + (kind === "known" ? -180 : -8) + "px) rotate(" + (kind === "known" ? 0 : direction * 8) + "deg) scale(.92)";
+          drag.style.opacity = 0;
+        }, 210);
+      };
 
       drag.addEventListener("pointerdown", function (e) {
-        if (busy) return;
-        on = true; axis = ""; axisLocked = false; moved = false; dx = 0; vx = 0;
-        x0 = e.clientX; y0 = e.clientY;
-        lastX = e.clientX; lastT = Date.now();
-        /* точка захвата: выше середины — поворот в сторону движения, ниже — против */
-        var r = drag.getBoundingClientRect();
-        anchor = e.clientY < r.top + r.height / 2 ? 1 : -1;
-        try { drag.setPointerCapture(e.pointerId); } catch (err) {}
+        if (busy || pointer !== null || e.isPrimary === false || (e.button !== undefined && e.button !== 0)) return;
+        pointer = e.pointerId;
+        axis = ""; locked = false; moved = false; dx = 0; dy = 0; vx = 0;
+        x0 = lastX = e.clientX; y0 = e.clientY; lastT = Date.now();
+        try { drag.setPointerCapture(pointer); } catch (err) {}
         drag.style.transition = "none";
         drag.classList.add("held");
       });
-
       drag.addEventListener("pointermove", function (e) {
-        if (!on) return;
-        dx = e.clientX - x0;
-        var dy = e.clientY - y0;
-        dyLast = dy;
-        /* Ось выбирается по соотношению сторон и не фиксируется, пока жест
-           короткий: палец идёт по дуге, и первые пиксели часто вертикальные.
-           Только после сорока пикселей направление считается решённым. */
-        if (!axisLocked) {
+        if (pointer !== e.pointerId || busy) return;
+        dx = e.clientX - x0; dy = e.clientY - y0;
+        if (!locked) {
           if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
           axis = Math.abs(dy) > Math.abs(dx) * 1.4 ? "y" : "x";
-          if (Math.max(Math.abs(dx), Math.abs(dy)) >= 40) axisLocked = true;
-        }
-
-        /* вверх — «уже знаю»: слово закрывается целиком, без лестницы интервалов.
-           В калибровке жеста нет: там «знаю» и так закрывает слово. */
-        if (axis === "y") {
-          if (calib) return;
-          moved = true;
-          var up = Math.min(0, dy);
-          var pu = Math.min(1, -up / UP);
-          paint(dx * 0.2, up, 0, 1.03);
-          tint.className = "vtint known";
-          tint.style.opacity = Math.min(0.8, pu);
-          return;
+          if (Math.max(Math.abs(dx), Math.abs(dy)) >= 40) locked = true;
         }
         moved = true;
         var now = Date.now(), dt = now - lastT;
-        if (dt > 0) { vx = (e.clientX - lastX) / dt; lastX = e.clientX; lastT = now; }
-
-        var ox = damp(dx), p = Math.min(1, Math.abs(dx) / W);
-        paint(ox, dy * 0.35, (ox / W) * 7 * anchor, 1.03);
-
-        /* содержимое отстаёт от карточки — появляется глубина.
-           Двигаем внутреннюю обёртку: на самом .vflip висит поворот,
-           и запись в его transform распрямила бы перевёрнутую карточку. */
-        var inners = drag.querySelectorAll(".vinner");
-        for (var q = 0; q < inners.length; q++) {
-          inners[q].style.transform = "translateX(" + (-ox * 0.05).toFixed(1) + "px)";
-        }
-
-        tint.className = "vtint " + (dx > 0 ? "good" : "bad");
-        tint.style.opacity = Math.min(0.8, p);
-
+        if (dt > 0) vx = (e.clientX - lastX) / dt;
+        lastX = e.clientX; lastT = now;
+        var vertical = axis === "y", allowed = !vertical || (!calib && dy < 0);
+        var amount = allowed ? Math.min(1, vertical ? -dy / UP : Math.abs(dx) / W) : 0;
+        preview(vertical ? 1 : dx < 0 ? -1 : 1, amount);
+        var ox = vertical ? dx * .1 : Math.max(-120, Math.min(120, dx * .65));
+        var oy = vertical ? (allowed ? Math.max(-110, dy * .65) : dy * .12) : dy * .12;
+        drag.style.transform = reduced ? "" : "translate(" + ox + "px," + oy + "px) rotate(" + (vertical ? 0 : ox * .035) + "deg)";
       });
-
-      function release() {
-        if (!on) return;
-        on = false;
+      function release(e) {
+        if (pointer !== e.pointerId) return;
+        pointer = null;
         if (busy || view !== routeId) return;
         drag.classList.remove("held");
-
-        if (axis === "y") {
-          if (!calib && dyLast <= -UP) {
-            busy = true;
-            drag.style.transition = "transform .26s cubic-bezier(.3,.1,.5,1), opacity .26s linear";
-            drag.style.transform = "translate(0," + -(window.innerHeight + 200) + "px) scale(.9)";
-            drag.style.opacity = "0";
-            setTimeout(function () { busy = false; answerKnown(); }, 200);
-            return;
-          }
-          drag.style.transition = "transform .42s cubic-bezier(.18,.89,.32,1.28)";
-          drag.style.transform = "";
-          tint.style.opacity = 0;
-          return;
+        var cancelled = e.type !== "pointerup";
+        if (!cancelled && moved) {
+          if (axis === "y" && !calib && dy <= -UP) { answerKnown("known-swipe"); return; }
+          var flick = Date.now() - lastT < 100 && Math.abs(vx) > .5 && Math.abs(dx) > 24 && (vx > 0) === (dx > 0);
+          if (axis === "x" && (Math.abs(dx) >= W || flick)) { answer(dx > 0, "swipe"); return; }
         }
-
-        var flick = Math.abs(vx) > 0.4 && Math.abs(dx) > 22 && (vx > 0) === (dx > 0);
-
-        if (moved && (Math.abs(dx) >= W || flick)) {
-          var know = dx > 0;
-          busy = true;
-          /* чем резче бросок, тем быстрее улетает */
-          var speed = Math.min(2.2, Math.max(0.35, Math.abs(vx)));
-          var ms = Math.round(Math.max(150, 420 - speed * 140));
-          drag.style.transition = "transform " + ms + "ms cubic-bezier(.3,.1,.5,1), opacity " + ms + "ms linear";
-          drag.style.transform = "translate(" + (know ? 1 : -1) * (window.innerWidth + 260) +
-            "px," + (dyLast * 0.35 - 30).toFixed(1) + "px) rotate(" +
-            (know ? 16 : -16) * anchor + "deg)";
-          drag.style.opacity = "0";
-          setTimeout(function () { busy = false; answer(know); }, Math.min(ms, 220));
-          return;
-        }
-
-        /* не дотянул — возврат пружиной с небольшим перелётом */
-        drag.style.transition = "transform .42s cubic-bezier(.18,.89,.32,1.28)";
-        drag.style.transform = "";
-        var back = drag.querySelectorAll(".vinner");
-        for (var z = 0; z < back.length; z++) {
-          back[z].style.transition = "transform .42s cubic-bezier(.18,.89,.32,1.28)";
-          back[z].style.transform = "";
-        }
-        tint.style.opacity = 0;
-        if (!moved) flipCard();
+        reset();
+        if (!cancelled && !moved) flipCard();
       }
-
       drag.addEventListener("pointerup", release);
       drag.addEventListener("pointercancel", release);
+      drag.addEventListener("lostpointercapture", release);
     }
 
     function flipCard() {
@@ -1218,8 +1132,8 @@
     /* «уже знаю»: слово закрывается целиком, обоими направлениями */
     function answerKnown(source) {
       if (busy || view !== routeId) return;
-      if (peeked) { answer(true, source === "known-button" ? "button" : source); return; }
-      var it = list[i], before = vocabSchedule(it);
+      if (peeked) { answer(true, "swipe"); return; }
+      var it = list[i];
       var base = it.key.slice(0, -3);
       if (!firstAnswered[it.key] && it.isNew) { newSeen++; newKnown++; }
       firstAnswered[it.key] = true;
@@ -1229,7 +1143,7 @@
       doneCnt++;
       i++; peeked = false;
       stash();
-      advance(it, before, source, true);
+      advance(source, true);
     }
 
     function bumpCalib(it, known) {
@@ -1242,7 +1156,7 @@
     function answer(ok, source) {
       if (busy || view !== routeId) return;
       if (calib && peeked) ok = false;
-      var it = list[i], before = vocabSchedule(it);
+      var it = list[i];
       if (calib) {
         /* калибровка ничего не планирует: знакомое закрываем, незнакомое не трогаем */
         bumpCalib(it, ok);
@@ -1250,7 +1164,7 @@
         doneCnt++;
         i++; peeked = false;
         stash();
-        advance(it, before, source, ok);
+        advance(source, ok);
         return;
       }
       var first = !firstAnswered[it.key];
@@ -1278,7 +1192,7 @@
       }
       peeked = false;
       stash();
-      advance(it, before, source, ok);
+      advance(source, ok);
     }
 
     document.onkeydown = function (e) {

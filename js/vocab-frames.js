@@ -47,11 +47,11 @@ window.VocabFrames = (function () {
       '<stop offset="1" stop-color="var(--frame-mid)"/></linearGradient>' +
       '<linearGradient id="' + id + '-gem" x2=".8" y2="1"><stop stop-color="var(--frame-light)"/>' +
       '<stop offset=".45" stop-color="var(--frame-gem)"/><stop offset="1" stop-color="var(--frame-dark)"/></linearGradient></defs>' +
-      '<path d="M25 9H335L351 25V335L335 351H25L9 335V25Z" fill="none" stroke="var(--frame-dark)" stroke-width="15"/>' +
-      '<path d="M25 9H335L351 25V335L335 351H25L9 335V25Z" fill="none" stroke="' + metal + '" stroke-width="11"/>' +
-      '<path d="M25 4H335L356 25V335L335 356H25L4 335V25Z" fill="none" stroke="var(--frame-light)" stroke-width="1"/>' +
-      '<path d="M28 19H332L341 28V332L332 341H28L19 332V28Z" fill="none" stroke="var(--frame-dark)" stroke-width="2"/>' +
-      '<path d="M28 21H332L339 28V332L332 339H28L21 332V28Z" fill="none" stroke="var(--frame-light)" stroke-width="1" opacity=".6"/>' +
+      '<path d="M25 9H335L351 25V335L335 351H25L9 335V25Z" fill="none" stroke="var(--frame-dark)" stroke-width="6.5"/>' +
+      '<path d="M25 9H335L351 25V335L335 351H25L9 335V25Z" fill="none" stroke="' + metal + '" stroke-width="4"/>' +
+      '<path d="M25 6H335L354 25V335L335 354H25L6 335V25Z" fill="none" stroke="var(--frame-light)" stroke-width="1"/>' +
+      '<path d="M28 15H332L345 28V332L332 345H28L15 332V28Z" fill="none" stroke="var(--frame-dark)" stroke-width="1"/>' +
+      '<path d="M28 17H332L343 28V332L332 343H28L17 332V28Z" fill="none" stroke="var(--frame-light)" stroke-width="1" opacity=".6"/>' +
       corners + ornament +
       '<path d="M164 9L180 0L196 9L180 22Z" fill="' + metal + '" stroke="var(--frame-dark)"/>' +
       '<path d="M172 9L180 4L188 9L180 16Z" fill="' + gem + '" stroke="var(--frame-light)"/>' +
@@ -73,18 +73,30 @@ window.VocabFrames = (function () {
   function isUpgrade(before, after) {
     return ranks.indexOf(rank(after)) > ranks.indexOf(rank(before));
   }
-  function transition(host, before, after, effect) {
-    var faces = host.querySelectorAll(".vface"), oldRank = rank(before).id;
-    var from = ranks.indexOf(rank(before)), to = ranks.indexOf(rank(after));
-    /* Эффект показывает одну соседнюю ступень; сохранённое расписание не меняется. */
-    var nextRank = ranks[from + (to > from ? 1 : to < from ? -1 : 0)];
+  /* Жест меняет только цвет оправы. Сохранённый ранг берётся из расписания. */
+  function prepareGesture(host, v) {
+    var index = ranks.indexOf(rank(v));
+    var faces = host.querySelectorAll(".vface"), layers = [];
     for (var i = 0; i < faces.length; i++) {
-      var face = faces[i], oldFrame = face.querySelector(".vframe");
-      if (oldFrame) oldFrame.classList.add("rank-" + oldRank, "vframe-old");
-      ranks.forEach(function (r) { face.classList.remove("rank-" + r.id); });
-      decorateRank(face, nextRank);
-      face.lastChild.classList.add(effect);
+      var base = faces[i].querySelector(".vframe"), pair = [];
+      [-1, 1].forEach(function (direction) {
+        var layer = document.createElement("div");
+        layer.className = "vframe vframe-preview rank-" + ranks[Math.max(0, Math.min(ranks.length - 1, index + direction))].id;
+        layer.setAttribute("aria-hidden", "true");
+        layer.innerHTML = art("vframe-" + (++sequence), ranks[index].id);
+        faces[i].appendChild(layer);
+        pair.push(layer);
+      });
+      layers.push({ base: base, pair: pair });
     }
+    return function (direction, amount) {
+      amount = Math.max(0, Math.min(1, amount));
+      for (var j = 0; j < layers.length; j++) {
+        layers[j].base.style.opacity = 1 - amount;
+        layers[j].pair[0].style.opacity = direction < 0 ? amount : 0;
+        layers[j].pair[1].style.opacity = direction > 0 ? amount : 0;
+      }
+    };
   }
-  return { rank: rank, decorate: decorate, isUpgrade: isUpgrade, transition: transition };
+  return { rank: rank, decorate: decorate, isUpgrade: isUpgrade, prepareGesture: prepareGesture };
 })();
