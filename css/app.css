@@ -477,7 +477,6 @@ details.theory .gram { padding: 0 14px 14px; }
 .vscreen .vhost { flex: 1; min-height: 0; width: 100%; justify-content: center; margin: 8px 0 12px; }
 .vscreen .vstage { flex: 0 1 360px; min-height: 170px; max-height: 360px; }
 .vscreen .vdeck { height: 100%; }
-.vframe-preview { opacity: 0; }
 .vframe { transition: opacity .18s ease-out; --frame-fire: #ff8b32; }
 .held .vframe { transition: none; }
 .vcommit-good .vframe { animation: frame-spark .3s ease-out both; }

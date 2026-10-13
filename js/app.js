@@ -997,9 +997,9 @@
 
     var finishGesture = null;
     /* Ответ и позиция сохраняются до эффекта, следующий свайп блокируется. */
-    function advance(source, ok) {
+    function advance(source, ok, schedule) {
       busy = true;
-      if (finishGesture) finishGesture(source === "known-swipe" || (calib && ok) ? "known" : ok ? "good" : "bad");
+      if (finishGesture) finishGesture(source === "known-swipe" || (calib && ok) ? "known" : ok ? "good" : "bad", schedule);
       var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       setTimeout(function () {
         if (view !== routeId) return;
@@ -1065,24 +1065,22 @@
       saved = null;
     }
 
-    /* Цвет следует за пальцем; отпускание подтверждает ответ до анимации. */
+    /* Отпускание сохраняет ответ; рамка получает фактическое расписание. */
     function bindCard(drag, flip) {
       var x0 = 0, y0 = 0, dx = 0, dy = 0, pointer = null, axis = "", locked = false, moved = false;
       var lastX = 0, lastT = 0, vx = 0;
       var W = Math.max(46, Math.min(90, window.innerWidth * 0.18));
       var UP = Math.max(70, Math.min(120, window.innerHeight * 0.12));
       var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      var preview = window.VocabFrames.prepareGesture(drag, vocabSchedule(list[i]));
 
       function reset() {
         drag.classList.remove("held");
         drag.style.transition = reduced ? "none" : "transform .28s cubic-bezier(.2,.8,.3,1)";
         drag.style.transform = "";
-        preview(0, 0);
       }
-      finishGesture = function (kind) {
+      finishGesture = function (kind, schedule) {
         var direction = kind === "bad" ? -1 : 1;
-        preview(direction, 1);
+        window.VocabFrames.update(drag, schedule);
         drag.classList.remove("held");
         drag.classList.add("vcommit-" + kind);
         /* На время эффекта остаёмся в точке отпускания, без возврата к центру. */
@@ -1116,8 +1114,6 @@
         if (dt > 0) vx = (e.clientX - lastX) / dt;
         lastX = e.clientX; lastT = now;
         var vertical = axis === "y", allowed = !vertical || (!calib && dy < 0);
-        var amount = allowed ? Math.min(1, vertical ? -dy / UP : Math.abs(dx) / W) : 0;
-        preview(vertical ? 1 : dx < 0 ? -1 : 1, amount);
         var ox = vertical ? dx * .1 : Math.max(-120, Math.min(120, dx * .65));
         var oy = vertical ? (allowed ? Math.max(-110, dy * .65) : dy * .12) : dy * .12;
         drag.style.transform = reduced ? "" : "translate(" + ox + "px," + oy + "px) rotate(" + (vertical ? 0 : ox * .035) + "deg)";
@@ -1164,7 +1160,7 @@
       doneCnt++;
       i++; peeked = false;
       stash();
-      advance(source, true);
+      advance(source, true, vocabSchedule(it));
     }
 
     function bumpCalib(it, known) {
@@ -1185,7 +1181,7 @@
         doneCnt++;
         i++; peeked = false;
         stash();
-        advance(source, ok);
+        advance(source, ok, vocabSchedule(it));
         return;
       }
       var first = !firstAnswered[it.key];
@@ -1213,7 +1209,7 @@
       }
       peeked = false;
       stash();
-      advance(source, ok);
+      advance(source, ok, schedule);
     }
 
     document.onkeydown = function (e) {

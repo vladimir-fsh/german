@@ -73,30 +73,17 @@ window.VocabFrames = (function () {
   function isUpgrade(before, after) {
     return ranks.indexOf(rank(after)) > ranks.indexOf(rank(before));
   }
-  /* Жест меняет только цвет оправы. Сохранённый ранг берётся из расписания. */
-  function prepareGesture(host, v) {
-    var index = ranks.indexOf(rank(v));
-    var faces = host.querySelectorAll(".vface"), layers = [];
+  /* Обе стороны показывают только ранг сохранённого расписания. */
+  function update(host, v) {
+    var next = rank(v), faces = host.querySelectorAll(".vface");
     for (var i = 0; i < faces.length; i++) {
-      var base = faces[i].querySelector(".vframe"), pair = [];
-      [-1, 1].forEach(function (direction) {
-        var layer = document.createElement("div");
-        layer.className = "vframe vframe-preview rank-" + ranks[Math.max(0, Math.min(ranks.length - 1, index + direction))].id;
-        layer.setAttribute("aria-hidden", "true");
-        layer.innerHTML = art("vframe-" + (++sequence), ranks[index].id);
-        faces[i].appendChild(layer);
-        pair.push(layer);
-      });
-      layers.push({ base: base, pair: pair });
+      if (faces[i].classList.contains("rank-" + next.id)) continue;
+      ranks.forEach(function (r) { faces[i].classList.remove("rank-" + r.id); });
+      var old = faces[i].querySelector(".vframe");
+      if (old) faces[i].removeChild(old);
+      decorateRank(faces[i], next);
     }
-    return function (direction, amount) {
-      amount = Math.max(0, Math.min(1, amount));
-      for (var j = 0; j < layers.length; j++) {
-        layers[j].base.style.opacity = 1 - amount;
-        layers[j].pair[0].style.opacity = direction < 0 ? amount : 0;
-        layers[j].pair[1].style.opacity = direction > 0 ? amount : 0;
-      }
-    };
   }
-  return { rank: rank, decorate: decorate, isUpgrade: isUpgrade, prepareGesture: prepareGesture };
+
+  return { rank: rank, decorate: decorate, isUpgrade: isUpgrade, update: update };
 })();
