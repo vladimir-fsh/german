@@ -518,13 +518,11 @@
     disposeUpdates = window.AppUpdates.mount(c);
     var rows = el("div", "rows");
 
-    var dark = document.documentElement.getAttribute("data-theme") === "dark";
+    var dark = window.Theme.current() === "dark";
     var themeRow = el("button", "row",
       'Тёмная тема<span class="val">' + (dark ? "включена" : "выключена") + "</span>");
     themeRow.onclick = function () {
-      var nextT = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", nextT);
-      try { localStorage.setItem("de-theme", nextT); } catch (e) {}
+      window.Theme.set(window.Theme.current() === "dark" ? "light" : "dark");
       viewMore();
     };
     rows.appendChild(themeRow);
@@ -625,10 +623,6 @@
     var link = document.createElement("a"); link.href = url; link.download = name; link.click();
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
-  try {
-    var t = localStorage.getItem("de-theme");
-    if (t) document.documentElement.setAttribute("data-theme", t);
-  } catch (e) {}
 
   /* ---------- карточки слов ----------
      Первый ответ меняет расписание через vocabWordReview. Повторы внутри

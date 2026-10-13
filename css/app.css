@@ -65,8 +65,9 @@
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
 body {
+  min-height: 100vh; min-height: 100dvh;
   background: var(--bg);
   color: var(--text);
   font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -93,9 +94,7 @@ button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; to
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
   display: flex; align-items: stretch;
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background: var(--bg);
   border-top: 1px solid var(--border);
   padding: 6px calc(4px + env(safe-area-inset-left)) calc(4px + env(safe-area-inset-bottom)) calc(4px + env(safe-area-inset-right));
 }
@@ -565,23 +564,35 @@ main.wrap.result-screen {
 .result-card .btn { min-height: 48px; width: 100%; text-align: center; }
 
 .word-chat-open { align-self: center; flex-shrink: 0; margin: 8px 0; min-height: 44px; }
-.word-chat { position: fixed; margin: 0 auto; inset: 0; width: 100%; max-width: 560px; max-height: none; padding: max(16px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom)); border: 0; background: var(--bg); color: var(--text); overflow: hidden; }
-.word-chat[open] { display: flex; flex-direction: column; gap: 10px; }
+.word-chat { position: fixed; margin: 0 auto; inset: 0; width: 100%; max-width: 560px; max-height: none; padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom)); border: 0; border-radius: 20px 20px 0 0; background: var(--surface); color: var(--text); overflow: hidden; }
+.word-chat[open] { display: flex; flex-direction: column; gap: 12px; }
+.word-chat [hidden] { display: none; }
 .word-chat::backdrop { background: #0008; }
-.word-chat-header { flex: 0 0 auto; overflow-wrap: anywhere; }
-.word-chat-header strong { font-size: 22px; }
-.word-chat-log { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-.word-chat-message, .word-chat-pinned { margin-bottom: 12px; padding: 14px; border-radius: 16px; background: var(--surface); overflow-wrap: anywhere; }
-.word-chat-message.user { background: var(--accent-soft); }
-.word-chat-pinned { border: 1px solid var(--accent); }
-.word-chat-text { white-space: pre-wrap; margin: 8px 0; }
-.word-chat-form { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; max-height: 65%; overflow-y: auto; }
-.word-chat-form textarea { resize: none; min-height: 64px; }
-.word-chat-form .btnrow { margin: 0; }
-.word-chat-form .btnrow > * { flex: 1; }
-.word-chat-settings { display: flex; align-items: center; min-height: 44px; }
-.word-chat .btn { min-height: 44px; }
-@media (max-height: 550px) { .word-chat-form > .note:last-child, .word-chat-settings { display: none; } .word-chat-header .muted { display: none; } .word-chat-form { gap: 4px; } }
+.word-chat-header { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.word-chat-title { min-width: 0; overflow-wrap: anywhere; }
+.word-chat-title strong { font-size: 20px; font-weight: 600; }
+.word-chat-title .muted { font-size: 14px; }
+.word-chat-close { flex: 0 0 44px; width: 44px; height: 44px; padding: 11px; border: 0; border-radius: 50%; background: transparent; color: var(--text-dim); }
+.word-chat-close svg, .word-chat-send svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.word-chat-log { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 0; }
+.word-chat-message { margin-bottom: 24px; overflow-wrap: anywhere; }
+.word-chat-message.user { width: fit-content; max-width: 86%; margin-left: auto; padding: 10px 16px; border-radius: 22px; background: var(--surface-2); }
+.word-chat-text { white-space: pre-wrap; margin: 0; line-height: 1.65; }
+.word-chat-pinned { margin-bottom: 24px; padding: 16px; border: 1px solid var(--border); border-radius: 20px; overflow-wrap: anywhere; }
+.word-chat-pinned strong { display: block; margin-bottom: 10px; font-size: 13px; font-weight: 500; color: var(--text-dim); }
+.word-chat-pin { min-height: 44px; padding: 8px 0; margin-top: 4px; border: 0; background: transparent; color: var(--text-dim); font: inherit; font-size: 13px; text-align: left; }
+.word-chat-pin:disabled { color: var(--accent); }
+.word-chat-form { flex: 0 0 auto; display: flex; flex-direction: column; align-items: stretch; gap: 8px; max-height: 60%; overflow-y: auto; }
+.word-chat-suggestion { align-self: flex-end; min-height: 44px; padding: 10px 16px; margin-bottom: 4px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; }
+.word-chat-composer { display: flex; align-items: flex-end; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 28px; background: var(--surface-2); }
+.word-chat-input { flex: 1; min-width: 0; width: 100%; min-height: 48px; max-height: 120px; margin: 0; padding: 12px 10px 12px 14px; border: 0; outline: none; resize: none; background: transparent; color: var(--text); font: inherit; font-size: 16px; line-height: 24px; }
+.word-chat-input::placeholder { color: var(--text-dim); }
+.word-chat-composer:focus-within { border-color: var(--accent); }
+.word-chat-send { flex: 0 0 44px; width: 44px; height: 44px; margin: 2px; padding: 11px; border: 0; border-radius: 50%; background: var(--text); color: var(--surface); }
+.word-chat-send:disabled { opacity: .3; }
+.word-chat-status { color: var(--text-dim); font-size: 13px; overflow-wrap: anywhere; }
+.word-chat-status:empty { display: none; }
+.word-chat-settings { display: flex; align-items: center; min-height: 44px; font-size: 14px; }
 .cloud-actions { flex-direction: column; margin-top: auto; padding-top: 16px; }
 .cloud-panel .btn, .cloud-config summary { min-height: 44px; }
 .cloud-config { margin-top: 20px; }

@@ -16,6 +16,7 @@ window.mountGermanAI = function (host, backToSettings) {
   card.appendChild(node("h2", "Подключение OpenAI"));
   card.appendChild(node("div", "Смахните вниз в начале или вверх в конце страницы, чтобы выйти.", "note"));
   card.appendChild(node("p", "Сохраните API-ключ и выберите модель. Чат открывается кнопкой «Спросить о слове» под карточкой.", "muted"));
+  card.appendChild(node("p", "Чат отправляет в OpenAI текущее слово и переписку. История чата хранится до выхода из тренировки; прикреплённая подсказка доступна без нового запроса.", "note"));
   var setup = node("form", null, "ai-settings");
   var key = field(setup, "API-ключ", "openai-key");
   key.type = "password"; key.placeholder = "sk-…"; key.maxLength = 1024; key.autocomplete = "off";
