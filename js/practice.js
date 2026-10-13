@@ -44,7 +44,7 @@ window.Practice = (function () {
   function create(n, di, exercises) { return { id: stamp(), n: n, di: di, i: 0, records: [], fingerprint: fingerprint(exercises), at: Date.now() }; }
   function flush() {
     if (blockedDrafts) { dirty = true; window.Store.warn("Исходные черновики повреждены и не перезаписаны. Новую работу экспортируйте перед восстановлением.", "practice"); return false; }
-    try { localStorage.setItem(KEY, JSON.stringify(memory)); dirty = false; window.Store.clearWarning("practice"); return true; }
+    try { localStorage.setItem(KEY, JSON.stringify(memory)); dirty = false; window.Store.clearWarning("practice"); if (window.dispatchEvent && window.Event) window.dispatchEvent(new window.Event("cloud-work-change")); return true; }
     catch (e) { dirty = true; window.Store.warn("Ответы занятия пока только в памяти. Не закрывайте страницу: экспортируйте резервную копию или повторите сохранение.", "practice"); return false; }
   }
   function save(draft) { var all = read(); all["L" + draft.n + "D" + draft.di] = draft; draft.at = Date.now(); dirty = true; flush(); }

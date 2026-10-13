@@ -45,6 +45,10 @@ window.ProgressData = (function () {
   function state(value) {
     safe(value, 0); object(value);
     if ([2, 3, 4, 5, 6, 7].indexOf(value.v) < 0) fail();
+    if (value.wordHints != null) {
+      object(value.wordHints);
+      Object.keys(value.wordHints).forEach(function (key) { identifier(key); text(value.wordHints[key], 24000); });
+    }
     object(value.done); object(value.srs); object(value.vocab);
     Object.keys(value.done).forEach(function (k) {
       if (!/^L\d+D\d+$/.test(k)) fail();
@@ -80,7 +84,7 @@ window.ProgressData = (function () {
   function operation(op) {
     safe(op, 0); object(op); text(op.type, 40); identifier(op.device); number(op.seq); number(op.lc); number(op.t);
     if (Math.floor(op.seq) !== op.seq || Math.floor(op.lc) !== op.lc) fail();
-    if (["answer", "reviewAnswer", "dayDone", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabWordReview", "vocabKnown", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
+    if (["answer", "reviewAnswer", "dayDone", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabWordReview", "vocabKnown", "wordHint", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
     if (op.type === "answer" || op.type === "reviewAnswer" || op.type === "vocabGrade" || op.type === "vocabReview" || op.type === "vocabWordReview" || op.type === "srsHit") { if (typeof op.ok !== "boolean") fail(); }
     if (op.type === "dayDone") { number(op.n, 999); number(op.di, 999); number(op.score); number(op.of); if (op.score > op.of) fail(); }
     if (op.records != null) { if (!Array.isArray(op.records)) fail(); op.records.forEach(record); }
@@ -92,6 +96,7 @@ window.ProgressData = (function () {
     if (op.attemptId != null) identifier(op.attemptId);
     if (op.type === "srsAdd") { exercise(op.ex); number(op.n, 999); }
     if (op.type === "vocabLevel" || op.type === "calibrate") { number(op.level, 5); if (op.level < 1 || Math.floor(op.level) !== op.level) fail(); }
+    if (op.type === "wordHint") { identifier(op.key); text(op.text, 24000); }
     if (op.type === "restore") state(op.state);
     return op;
   }

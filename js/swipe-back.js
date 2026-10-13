@@ -1,7 +1,7 @@
 /* Закрытие вложенной страницы жестом наружу от края прокрутки. */
 window.SwipeBack = (function () {
   "use strict";
-  function mount(host, back) {
+  function mount(host, back, scrollHost) {
     var start = null, distance = 0, dragging = false;
     var interactive = "input, textarea, select, button, a, summary, [contenteditable]";
     function reset() {
@@ -13,8 +13,8 @@ window.SwipeBack = (function () {
       reset();
       if (event.touches.length !== 1 || event.target.closest(interactive)) return;
       if (document.activeElement && document.activeElement.matches("input, textarea, select, [contenteditable]")) return;
-      var scroller = document.scrollingElement || document.documentElement;
-      var top = scroller.scrollTop, end = scroller.scrollHeight - window.innerHeight - top;
+      var scroller = scrollHost || document.scrollingElement || document.documentElement;
+      var top = scroller.scrollTop, end = scroller.scrollHeight - (scrollHost ? scrollHost.clientHeight : window.innerHeight) - top;
       if (top > 2 && end > 2) return;
       var touch = event.touches[0];
       start = { x: touch.clientX, y: touch.clientY, top: top <= 2, bottom: end <= 2 };

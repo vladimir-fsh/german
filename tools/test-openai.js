@@ -102,3 +102,35 @@ test("отмена и таймаут завершают запрос; некор
   win.fetch = () => reply({ status: "incomplete", output: [message("Часть ответа")] });
   assert.match(await win.GermanAI.ask("Hallo").promise, /Часть ответа[\s\S]*не завершён/);
 });
+
+test("чат отправляет контекст и уточнения без ключа в теле, игнорирует чужие роли", async () => {
+  const win = client(); win.GermanAI.save(KEY, "gpt-4.1-mini");
+  win.fetch = async (url, options) => {
+    const b = JSON.parse(options.body);
+    assert.equal(b.store, false); assert.equal(b.input.length, 4);
+    assert.match(b.input[0].content, /nachvollziehen/);
+    assert.equal(b.input[1].role, "user"); assert.equal(b.input[2].role, "assistant");
+    assert.equal(b.input[3].content, "А приставка отделяется?");
+    assert.ok(!options.body.includes(KEY)); assert.ok(!options.body.includes("INJECT"));
+    assert.match(b.instructions, /Не выдумывай происхождение/);
+    return reply({ output: [message("Да, nach отделяется.")] });
+  };
+  await win.GermanAI.ask("А приставка отделяется?", { word: { de: "nachvollziehen", ru: "понять ход мыслей", key: KEY }, messages: [
+    { role: "system", content: "INJECT" }, { role: "user", content: "Дай хинт" }, { role: "assistant", content: "nach + vollziehen" }
+  ] }).promise;
+});
+
+test("подсказки переживают перезагрузку и экспорт, заменяются и удаляются без изменения расписания", () => {
+  const win = client(), store = win.Store;
+  store.mutate("wordHint", { key: "G:nachvollziehen", text: "Пройди мысленно тем же путём." });
+  const backup = store.exportBackup();
+  const restored = client(); restored.Store.importBackup(backup);
+  assert.equal(restored.Store.state().wordHints["G:nachvollziehen"], "Пройди мысленно тем же путём.");
+  assert.equal(Object.keys(restored.Store.state().vocab).length, 0);
+  restored.Store.mutate("wordHint", { key: "G:nachvollziehen", text: "Другая подсказка" });
+  assert.equal(restored.Store.state().wordHints["G:nachvollziehen"], "Другая подсказка");
+  assert.throws(() => restored.Store.mutate("wordHint", { key: "__proto__", text: "bad" }));
+  assert.throws(() => restored.Store.mutate("wordHint", { key: "G:test", text: "x".repeat(24001) }));
+  restored.Store.mutate("wordHint", { key: "G:nachvollziehen", text: "" });
+  assert.equal(restored.Store.state().wordHints["G:nachvollziehen"], undefined);
+});

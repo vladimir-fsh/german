@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) { return request.auth != null && request.auth.uid == uid; }
+    function validPayload() {
+      return request.resource.data.keys().hasOnly(['payload'])
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() <= 800000;
+    }
+    match /users/{uid}/german/seed {
+      allow read: if owner(uid);
+      allow create: if owner(uid) && validPayload();
+      allow update: if owner(uid) && request.resource.data == resource.data;
+    }
+    match /users/{uid}/germanOperations/{operation} {
+      allow read: if owner(uid);
+      allow create: if owner(uid) && validPayload();
+      allow update: if owner(uid) && request.resource.data == resource.data;
+    }
+    match /users/{uid}/germanDevices/{device} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['payload', 'updatedAt'])
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() <= 800000
+        && request.resource.data.updatedAt == request.time;
+    }
+  }
+}

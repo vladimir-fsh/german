@@ -59,7 +59,7 @@ window.Store = (function () {
 
   function blank() {
     return {
-      v: SCHEMA, done: {}, srs: {}, vocab: {},
+      v: SCHEMA, done: {}, srs: {}, vocab: {}, wordHints: {},
       vocabLevel: 1, calibrated: false, streak: 0, lastDay: null,
       totalCorrect: 0, totalTried: 0, totalUncertain: 0, attempts: [], answered: {}, resetAt: 0
     };
@@ -281,6 +281,11 @@ window.Store = (function () {
         apply(s, { type: "vocabReview", key: base + "|ru", ok: op.ok, t: op.t, seq: op.seq, day: op.day });
         return s;
 
+      case "wordHint":
+        if (!s.wordHints) s.wordHints = {};
+        if (op.text) s.wordHints[op.key] = op.text;
+        else delete s.wordHints[op.key];
+        break;
       case "vocabLevel":
         s.vocabLevel = op.level;
         return s;
@@ -519,7 +524,72 @@ window.Store = (function () {
 
   if (!blocked && (hydrated || totalOps())) materialize();
 
+  /* Облако переносит общий стартовый снимок и отдельные операции, а не кеш. */
+  function cloudOperations() {
+    if (blocked || storageError) throw new Error(warning() || "Хранилище недоступно");
+    refreshDisk();
+    if (blocked) throw new Error(warning());
+    var ops = mine.ops.slice();
+    Object.keys(foreign).forEach(function (id) { if (id !== DEV) ops = mergeOps(ops, foreign[id]); });
+    return clone(dropCovered(ops));
+  }
+  function cloudSeed(id) {
+    var ops = cloudOperations(), cursor = clone(snapshot.cursor || {}), lc = snapshot.lc || 0;
+    ops.forEach(function (op) { cursor[op.device] = Math.max(cursor[op.device] || 0, op.seq); lc = Math.max(lc, op.lc); });
+    return { v: SCHEMA, cloudId: id, state: reduce(snapshot.state, ops), cursor: cursor, lc: lc, at: Date.now() };
+  }
+  function stableJSON(value) {
+    if (!value || typeof value !== "object") return JSON.stringify(value);
+    if (Array.isArray(value)) return "[" + value.map(stableJSON).join(",") + "]";
+    return "{" + Object.keys(value).sort().map(function (key) { return JSON.stringify(key) + ":" + stableJSON(value[key]); }).join(",") + "}";
+  }
+  function attachCloud(seed) {
+    DATA.snapshot(seed);
+    if (typeof seed.cloudId !== "string" || !seed.cloudId || seed.cloudId.length > 200) throw new Error("Некорректный облачный снимок");
+    if (blocked || storageError) throw new Error(warning());
+    refreshDisk();
+    if (blocked) throw new Error(warning());
+    if (snapshot.cloudId === seed.cloudId) return;
+    if (snapshot.cloudId) throw new Error("Это устройство уже связано с другим облачным прогрессом. Сначала экспортируйте данные.");
+    var local = reduce(snapshot.state, cloudOperations());
+    var empty = !local.totalTried && !Object.keys(local.done).length && !Object.keys(local.vocab).length &&
+      !Object.keys(local.srs).length && !Object.keys(local.wordHints || {}).length && !local.calibrated;
+    var covered = cloudOperations().filter(function (op) { return op.seq <= (seed.cursor[op.device] || 0); });
+    var original = reduce(snapshot.state, covered);
+    if (!empty && stableJSON(original) !== stableJSON(upgrade(seed.state))) {
+      throw new Error("На устройстве и в облаке разный начальный прогресс. Экспортируйте местную копию. Первый вход лучше выполнить на телефоне с основным прогрессом; автоматическая замена отключена.");
+    }
+    var previousAt = snapshot.at || 0;
+    snapshot = clone(seed); snapshot.at = Math.max(Date.now(), previousAt + 1);
+    advanceFromSnapshot(); materialize();
+    if (storageError) throw new Error(warning());
+  }
+  function mergeCloud(ops) {
+    if (blocked || storageError) throw new Error(warning());
+    if (!Array.isArray(ops)) throw new Error("Некорректный журнал облака");
+    ops.forEach(DATA.operation);
+    var existing = mine.ops.slice();
+    Object.keys(foreign).forEach(function (id) { existing = existing.concat(foreign[id]); });
+    var identities = Object.create(null);
+    existing.forEach(function (op) { identities[op.device + ":" + op.seq] = stableJSON(op); });
+    ops.forEach(function (op) {
+      var key = op.device + ":" + op.seq, json = stableJSON(op);
+      if (identities[key] && identities[key] !== json) throw new Error("Один ответ содержит разные данные. Журнал не изменён.");
+      identities[key] = json;
+    });
+    ops.forEach(function (op) {
+      if (op.device === DEV) mine.ops = mergeOps(mine.ops, [op]);
+      else foreign[op.device] = mergeOps(foreign[op.device] || [], [op]);
+      mine.lc = Math.max(mine.lc, op.lc);
+      if (op.device === DEV) mine.seq = Math.max(mine.seq, op.seq);
+    });
+    materialize();
+    if (storageError) throw new Error(warning());
+  }
+
   return {
+    cloudIdentity: function () { return snapshot && snapshot.cloudId || ""; },
+    cloudSeed: cloudSeed, attachCloud: attachCloud, cloudOperations: cloudOperations, mergeCloud: mergeCloud,
     SCHEMA: SCHEMA,
     LADDER: LADDER,
     device: DEV,

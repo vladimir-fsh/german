@@ -39,7 +39,7 @@ window.Sessions = (function () {
     kinds.forEach(function (name) {
       if (!dirty[name]) return;
       if (blocked[name]) { ok = false; window.Store.warn("Поврежденная сессия не перезаписана. Экспортируйте новую работу перед восстановлением.", "session-" + name); return; }
-      try { localStorage.setItem(keys[name], JSON.stringify(cache[name])); dirty[name] = false; window.Store.clearWarning("session-" + name); }
+      try { localStorage.setItem(keys[name], JSON.stringify(cache[name])); dirty[name] = false; window.Store.clearWarning("session-" + name); if (window.dispatchEvent && window.Event) window.dispatchEvent(new window.Event("cloud-work-change")); }
       catch (e) { ok = false; window.Store.warn("Сессия занятий пока только в памяти. Не закрывайте страницу: скачайте резервную копию или повторите сохранение.", "session-" + name); }
     }); return ok;
   }
