@@ -5,12 +5,12 @@ window.mountCloud = function (host, back) {
   var card = node("section", "", "card ai-panel cloud-panel");
   card.appendChild(node("h2", "Облако и вход"));
   card.appendChild(node("p", "Войдите в один Google-аккаунт на всех устройствах. Ответы, слова и прикреплённые подсказки будут общими.", "muted"));
-  card.appendChild(node("p", "Первое подключение выполните на телефоне с основным прогрессом. Если на устройствах уже разные исходные данные, приложение попросит сохранить копии и остановит автоматический перенос.", "note"));
+  card.appendChild(node("p", "Первый вход выполните на телефоне с основным прогрессом. Если на устройствах уже разные исходные данные, приложение попросит сохранить копии и остановит автоматический перенос.", "note"));
   var account = node("p", "", "cloud-account"); card.appendChild(account);
   var status = node("p", "", "note"); status.setAttribute("role", "status"); card.appendChild(status);
   var actions = node("div", "", "btnrow cloud-actions");
   var login = node("button", "Войти через Google", "btn"); login.type = "button";
-  var connect = node("button", "Подключить прогресс", "btn"); connect.type = "button";
+  var connect = node("button", "Повторить подключение", "btn"); connect.type = "button";
   var retry = node("button", "Синхронизировать", "btn"); retry.type = "button";
   var logout = node("button", "Выйти из аккаунта", "btn sec"); logout.type = "button";
   [login, connect, retry, logout].forEach(function (b) { actions.appendChild(b); }); card.appendChild(actions);
@@ -29,7 +29,7 @@ window.mountCloud = function (host, back) {
     account.textContent = state.user ? state.user.email || "Вы вошли в Google" : "Вход ещё не выполнен";
     status.textContent = state.message;
     login.hidden = !!state.user; login.disabled = !state.configured;
-    connect.hidden = !state.user || state.connected;
+    connect.hidden = !state.user || state.connected || state.busy;
     retry.hidden = !state.connected; retry.disabled = state.busy;
     logout.hidden = !state.user;
     load.disabled = !state.user || !state.connected;

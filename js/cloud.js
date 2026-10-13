@@ -3,10 +3,10 @@ window.Cloud = (function () {
   "use strict";
   var CONFIG = "de-firebase-config-v1", LINK = "de-firebase-link-v1";
   var client = null, auth = null, db = null, user = null, initialized = null;
-  var subscribed = null, running = false, writing = false, merging = false, timer = null, epoch = 0;
+  var subscribed = null, running = false, writing = false, merging = false, timer = null, epoch = 0, connection = null;
   var known = Object.create(null), lastAux = "", listeners = [], message = "Облако не подключено.", started = false;
   function emit(text) { message = text; listeners.slice().forEach(function (fn) { fn(status()); }); }
-  function status() { var configured = false; try { configured = !!config(); } catch (e) {} return { user: user, connected: running, busy: writing, message: message, configured: configured }; }
+  function status() { var configured = false; try { configured = !!config(); } catch (e) {} return { user: user, connected: running, busy: writing || !!connection, message: message, configured: configured }; }
   function parse(raw) { return raw ? JSON.parse(raw) : null; }
   function config() {
     var value = parse(localStorage.getItem(CONFIG)) || window.FIREBASE_CONFIG;
@@ -41,7 +41,7 @@ window.Cloud = (function () {
     return e && e.message || "Не удалось подключить Firebase.";
   }
   function stop() {
-    epoch++; running = false; writing = false; known = Object.create(null); lastAux = "";
+    epoch++; running = false; writing = false; connection = null; known = Object.create(null); lastAux = "";
     if (subscribed) { subscribed(); subscribed = null; }
     if (timer) clearTimeout(timer); timer = null;
   }
@@ -55,11 +55,11 @@ window.Cloud = (function () {
         client = window.firebase.initializeApp(cfg, "german"); auth = client.auth(); db = client.firestore();
         var first = true;
         auth.onAuthStateChanged(function (next) {
-          stop(); user = next; emit(next ? "Вход выполнен. Можно подключить прогресс." : "Войдите через Google.");
+          stop(); user = next; emit(next ? "Подключаю прогресс…" : "Войдите через Google.");
           if (first) { first = false; resolve(); }
           try {
             var link = parse(localStorage.getItem(LINK));
-            if (next && link && link.uid === next.uid && link.projectId === cfg.projectId) connect(false).catch(function (e) { emit(friendly(e)); });
+            if (next) connect(!(link && link.uid === next.uid && link.projectId === cfg.projectId)).catch(function (e) { emit(friendly(e)); });
           } catch (e) { emit(friendly(e)); }
         }, reject);
       } catch (e) { initialized = null; reject(e); }
@@ -70,7 +70,7 @@ window.Cloud = (function () {
     if (!auth) return Promise.reject(new Error("Подождите загрузки Firebase."));
     var provider = new window.firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
-    return auth.signInWithPopup(provider).catch(function (e) { emit(friendly(e)); throw new Error(friendly(e)); });
+    return auth.signInWithPopup(provider).then(function () { if (user) return connect(true); }).catch(function (e) { emit(friendly(e)); throw new Error(friendly(e)); });
   }
   function signOut() {
     stop(); localStorage.removeItem(LINK);
@@ -140,6 +140,19 @@ window.Cloud = (function () {
     }
   }
   function connect(create) {
+    if (connection) return connection;
+    var job = connectNow(create);
+    connection = job;
+    emit(message);
+    return job.then(function (result) {
+      if (connection === job) { connection = null; emit(message); }
+      return result;
+    }, function (e) {
+      if (connection === job) { connection = null; emit(friendly(e)); }
+      throw e;
+    });
+  }
+  function connectNow(create) {
     if (!user) return Promise.reject(new Error("Сначала войдите через Google."));
     if (running) return sync();
     var cfg = config(), uid = user.uid, generation = epoch, identity = window.Store.cloudIdentity();
@@ -199,7 +212,7 @@ window.Cloud = (function () {
       if (running) { schedule(); return; }
       try {
         var link = parse(localStorage.getItem(LINK));
-        if (user && link && link.uid === user.uid && link.projectId === config().projectId) connect(false).catch(function (e) { emit(friendly(e)); });
+        if (user) connect(!(link && link.uid === user.uid && link.projectId === config().projectId)).catch(function (e) { emit(friendly(e)); });
       } catch (e) { emit(friendly(e)); }
     }
     window.addEventListener("online", resume);

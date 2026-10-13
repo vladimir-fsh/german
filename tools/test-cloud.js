@@ -102,8 +102,8 @@ function fakeFirestore() {
   }}}};
   return {db,docs,setFail:value=>{fail=value}};
 }
-function transport(backend, uid='test-user') {
-  const win=client(), callbacks=[];let current=null;
+function transport(backend, uid='test-user', options={}) {
+  const win=client(options), callbacks=[];let current=options.signedIn?{uid,email:'test@example.invalid'}:null;
   const auth={onAuthStateChanged:fn=>{callbacks.push(fn);queueMicrotask(()=>fn(current))},signInWithPopup:()=>{current={uid,email:'test@example.invalid'};callbacks.forEach(fn=>fn(current));return Promise.resolve()},signOut:()=>{current=null;callbacks.forEach(fn=>fn(null));return Promise.resolve()}};
   win.firebase={initializeApp:()=>({auth:()=>auth,firestore:()=>backend.db}),auth:{GoogleAuthProvider:function(){this.setCustomParameters=()=>{}}},firestore:{FieldValue:{serverTimestamp:()=>1}}};
   win.FIREBASE_CONFIG={apiKey:'AIzaFakePublicConfig',projectId:'german-test',authDomain:'german-test.firebaseapp.com',appId:'1:123:web:abc'};
@@ -116,7 +116,7 @@ test('транспорт сохраняет источник, два устро�
   a.localStorage.setItem('de-openai-settings-v1','sk-fake-private-key');
   a.Store.mutate('answer',{ok:true});
   a.Cloud.start();b.Cloud.start();await a.Cloud.init();await b.Cloud.init();
-  assert.equal(db.docs.size,0);await a.Cloud.signIn();await b.Cloud.signIn();assert.equal(db.docs.size,0);
+  assert.equal(db.docs.size,0);await a.Cloud.signIn();await b.Cloud.signIn();assert.ok(db.docs.size>0);assert.equal(a.Cloud.status().connected,true);assert.equal(b.Cloud.status().connected,true);
   try {
     await a.Cloud.connect();await b.Cloud.connect();await env.settle();
     assert.equal(b.Store.state().totalCorrect,1);
@@ -138,7 +138,17 @@ test('вход в другой аккаунт не отправляет ему �
   Object.keys(original).filter(key=>key.startsWith('de-b1-')).forEach(key=>b.localStorage.setItem(key,original[key]));
   /* Перезагрузка поднимает связанное состояние с диска. */
   const b2=transport(db,'bob');b2.Store.attachCloud(JSON.parse([...db.docs].find(([key])=>key==='users/alice/german/seed')[1].payload));
-  await b2.Cloud.init();await b2.Cloud.signIn();
-  try {await assert.rejects(b2.Cloud.connect(),/другим облачным аккаунтом/);assert.ok(![...db.docs.keys()].some(key=>key.startsWith('users/bob/')))}
+  await b2.Cloud.init();
+  try {await assert.rejects(b2.Cloud.signIn(),/другим облачным аккаунтом/);assert.ok(![...db.docs.keys()].some(key=>key.startsWith('users/bob/')))}
   finally {await b2.Cloud.signOut();}
+});
+
+
+test('сохранённый Google-вход после перезагрузки автоматически возвращает синхронизацию', async () => {
+  const db=fakeFirestore(), a=transport(db);a.Store.mutate('answer',{ok:true});
+  await a.Cloud.init();await a.Cloud.signIn();
+  const restored=transport(db,'test-user',{storage:copy(a.localStorage._dump()),signedIn:true});
+  restored.Cloud.start();await restored.Cloud.init();await env.settle();
+  try {assert.equal(restored.Cloud.status().connected,true);assert.equal(restored.Store.state().totalCorrect,1);}
+  finally {await restored.Cloud.signOut();await a.Cloud.signOut();}
 });
