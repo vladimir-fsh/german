@@ -225,11 +225,13 @@ window.L21 = {
           pairs: [["alt", "am ältesten"], ["jung", "am jüngsten"], ["kalt", "am kältesten"], ["klug", "am klügsten"], ["kurz", "am kürzesten"], ["heiß", "am heißesten"]] },
 
         { type: "translate",
+          articleHint: "брат: mein- (мой)",
           ru: "Мой брат старше меня.",
           a: ["Mein Bruder ist älter als ich."],
           why: "Разница — als. alt → älter." },
 
         { type: "translate",
+          articleHint: "лето: d; дни: d; зима: d",
           ru: "Летом дни длиннее, чем зимой.",
           a: ["Im Sommer sind die Tage länger als im Winter.", "Die Tage sind im Sommer länger als im Winter."],
           why: "lang → länger, разница — als." }
@@ -319,16 +321,19 @@ window.L21 = {
           pairs: [["gut", "besser"], ["viel", "mehr"], ["gern", "lieber"], ["hoch", "höher"], ["nah", "näher"], ["groß", "größer"]] },
 
         { type: "translate",
+          articleHint: "пицца: ∅",
           ru: "Я больше всего люблю пиццу.",
           a: ["Ich esse am liebsten Pizza.", "Am liebsten esse ich Pizza.", "Ich mag Pizza am liebsten.", "Pizza esse ich am liebsten."],
           why: "gern → am liebsten: «больше всего нравится»." },
 
         { type: "translate",
+          articleHint: "отец: sein- (его)",
           ru: "Он такой же высокий, как его отец.",
           a: ["Er ist so groß wie sein Vater.", "Er ist genauso groß wie sein Vater."],
           why: "Равенство: so … wie." },
 
         { type: "translate",
+          articleHint: "",
           ru: "Лучше всего учиться утром.",
           a: ["Man lernt am besten morgens.", "Am besten lernt man morgens.", "Morgens lernt man am besten.", "Am besten lernt man am Morgen."],
           why: "gut → am besten, без существительного — с am." }
@@ -419,16 +424,19 @@ window.L21 = {
           why: "das Auto после ein — хвост от das: -es." },
 
         { type: "translate",
+          articleHint: "отель: d; Германия: ∅",
           ru: "Это самый дорогой отель в Германии.",
           a: ["Das ist das teuerste Hotel in Deutschland."],
           why: "Рекорд перед существительным — с определённым артиклем: das teuerste." },
 
         { type: "translate",
+          articleHint: "машина: e",
           ru: "У меня машина быстрее, чем у тебя.",
           a: ["Ich habe ein schnelleres Auto als du.", "Mein Auto ist schneller als dein Auto.", "Mein Auto ist schneller als deins."],
           why: "ein schnelleres Auto: -er степени плюс -es по роду." },
 
         { type: "translate",
+          articleHint: "игрок: d; команда: d",
           ru: "Он лучший игрок в команде.",
           a: ["Er ist der beste Spieler in der Mannschaft.", "Er ist der beste Spieler im Team.", "Er ist der beste Spieler der Mannschaft."],
           why: "der beste Spieler — рекорд с артиклем и окончанием -e." }
@@ -517,16 +525,19 @@ window.L21 = {
           pairs: [["der Torwart", "вратарь"], ["der Schiedsrichter", "судья"], ["die Mannschaft", "команда"], ["der Zuschauer", "зритель"], ["der Elfmeter", "пенальти"], ["das Trikot", "игровая футболка"]] },
 
         { type: "translate",
+          articleHint: "здание: d; город: d",
           ru: "Это самое высокое здание в городе.",
           a: ["Das ist das höchste Gebäude in der Stadt.", "Das ist das höchste Haus in der Stadt."],
           why: "hoch → das höchste, рекорд с определённым артиклем." },
 
         { type: "translate",
+          articleHint: "«Бавария»: ∅; команда: d",
           ru: "«Бавария» — лучшая команда.",
           a: ["Bayern ist die beste Mannschaft.", "Bayern München ist die beste Mannschaft.", "Bayern ist das beste Team."],
           why: "die Mannschaft, рекорд: die beste." },
 
         { type: "translate",
+          articleHint: "зима: d; осень: d",
           ru: "Зимой холоднее, чем осенью.",
           a: ["Im Winter ist es kälter als im Herbst.", "Es ist im Winter kälter als im Herbst."],
           why: "kalt → kälter, разница — als." }

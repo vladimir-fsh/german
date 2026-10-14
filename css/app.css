@@ -142,6 +142,12 @@ button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; to
 .btn.sec { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
 .btn:disabled { opacity: .45; cursor: default; }
 .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+.btnrow.exercise-actions { display: grid; grid-template-columns: 1fr 1fr; }
+.exercise-actions .primary-action { grid-column: 1 / -1; }
+.exercise-actions .btn, .exercise-remove .btn, .exercise-remove select { min-height: 44px; }
+.exercise-remove { margin-top: 14px; }
+.exercise-remove[hidden] { display: none; }
+.exercise-remove select { width: 100%; margin-top: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--text); font: inherit; }
 
 /* ---------- lesson list ---------- */
 .lesson {
@@ -528,7 +534,9 @@ details.theory .gram { padding: 0 14px 14px; }
 .storage-warning[hidden] { display: none; }
 .storage-warning button { display: block; margin-top: 10px; }
 .zero { border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); color: var(--text); min-height: 36px; min-width: 36px; margin-left: 3px; font: inherit; }
-.sample summary { cursor: pointer; margin-top: 10px; color: var(--text); }
+.sample { margin-top: 10px; color: var(--text); overflow-wrap: anywhere; }
+.article-hint { margin-bottom: 12px; font-size: 14px; color: var(--text); }
+.article-hint small { display: block; margin-top: 4px; color: var(--text-dim); line-height: 1.5; }
 .backup-text { width: 100%; min-height: 110px; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font: inherit; }
 .rows { margin-top: 6px; }
 .app-updates .btnrow { display: grid; grid-template-columns: 1fr; }

@@ -432,3 +432,90 @@ test("вкладки сходятся без повторяющегося цик
   storage.setItem("de-b1-foreign-v1", JSON.stringify(foreign));
   b._fire("storage", { key: "de-b1-foreign-v1" }); assert.equal(b.Store.state().totalTried, 3);
 });
+
+test("подсказки артиклей не сбрасывают старый черновик дня", () => {
+  const win = env.load(SYNC.concat(["js/practice.js"]));
+  const old = [{ type: "translate", ru: "Это дом.", a: ["Das ist ein Haus."] }];
+  const draft = win.Practice.create(18, 0, old);
+  draft.records = [{ draft: { values: ["Das ist"] } }];
+  win.Practice.save(draft);
+  const current = [{ ...old[0], articleHint: "дом: e" }];
+  assert.equal(win.Practice.load(18, 0, current).id, draft.id);
+  assert.equal(win.Practice.load(18, 0, current).records[0].draft.values[0], "Das ist");
+});
+
+test("перевод показывает артикли в старой сессии и образец сразу, включая восстановление", () => {
+  const win = env.load(["data/lessons.js", "data/l18.js", "js/engine.js"]);
+  function node(tag) {
+    return { tag, children: [], innerHTML: "", value: "", appendChild(child) { this.children.push(child); },
+      setAttribute() {}, addEventListener() {}, focus() {} };
+  }
+  win.document.createElement = node;
+  const exercise = win.L18.days[2].ex.find(e => e.type === "translate" && e.ru.includes("Учитель"));
+  const old = { ...exercise }; delete old.articleHint;
+  const host = node("div"); let calls = 0;
+  const api = win.Engine.render(old, host, () => calls++);
+  assert.match(host.children.find(n => n.className === "article-hint").innerHTML, /учитель: d; ученик: d/);
+  host.children.find(n => n.tag === "input").value = "Ich weiß nicht";
+  api.check();
+  const feedback = host.children.find(n => /feedback/.test(n.className));
+  assert.match(feedback.innerHTML, /Образец: <b>Der Lehrer fragt den frechen Schüler\./);
+  assert.doesNotMatch(feedback.innerHTML, /details|summary/);
+  assert.equal(api.result.verdict, "needs-review");
+  const restored = node("div");
+  win.Engine.render(old, restored, () => calls++, { draft: { values: ["Ich weiß nicht"], result: api.result } });
+  assert.match(restored.children.find(n => /feedback/.test(n.className)).innerHTML, /Образец:/);
+  assert.equal(calls, 1);
+});
+
+test("удаление задания переживает перезагрузку, облако и экспорт, повтор не возвращает его", () => {
+  const files = SYNC.concat(["js/practice.js", "js/review.js"]);
+  const a = env.load(files), b = env.load(files);
+  const ex = { type: "translate", ru: "Это дом.", a: ["Das ist ein Haus."], why: "Пример" };
+  const seed = a.Store.cloudSeed("project:user:deleted");
+  a.Store.attachCloud(seed); b.Store.attachCloud(seed);
+  a.Store.mutate("srsAdd", { id: "L18D0-0", n: 18, ex });
+  const old = a.ReviewPlan.create([{ id: "L18D0-0", r: a.Store.state().srs["L18D0-0"] }]);
+  a.Store.mutate("exerciseDelete", { id: "L18D0-0", ex, reason: "Механическая работа" });
+  a.Store.mutate("srsAdd", { id: "L18D0-0", n: 18, ex });
+  assert.equal(a.Store.state().srs["L18D0-0"], undefined);
+  assert.equal(a.ReviewPlan.pending(old.items[0], a.Store.state()), false);
+  b.Store.mergeCloud(a.Store.cloudOperations());
+  assert.equal(b.Store.state().deletedExercises["L18D0-0"].reason, "Механическая работа");
+  const reload = env.load(files, { storage: a.localStorage._dump() });
+  assert.equal(reload.Store.state().deletedExercises["L18D0-0"].ex.type, "translate");
+  const imported = env.load(files); imported.Store.importBackup(a.Store.exportBackup());
+  assert.equal(imported.Store.state().deletedExercises["L18D0-0"].reason, "Механическая работа");
+  assert.throws(() => a.Store.mutate("exerciseDelete", { id: "L18D0-0", ex, reason: "" }));
+});
+
+test("пропуск сохраняется только в сессии и не меняет отметку уже пройденного дня", () => {
+  const w = env.load(SYNC.concat(["js/practice.js"]));
+  const ex = [{ type: "fill", q: "{}", a: ["a"] }, { type: "fill", q: "{}", a: ["b"] }];
+  const run = w.Practice.create(18, 0, ex);
+  run.records = [{ omitted: "skipped", draft: { values: ["черновик"] } }, { result: { ok: true } }];
+  run.i = 2; w.Practice.save(run);
+  const reload = env.load(SYNC.concat(["js/practice.js"]), { storage: w.localStorage._dump() });
+  const restored = reload.Practice.load(18, 0, ex), stats = reload.Practice.stats(restored);
+  assert.equal(stats.skipped, 1); assert.equal(stats.answered, 1); assert.equal(stats.correct, 1);
+  reload.Store.mutate("practiceDone", { n: 18, di: 0, score: 1, of: 1, records: run.records, attemptId: "partial" });
+  assert.equal(reload.Store.state().done.L18D0, undefined);
+  assert.equal(reload.Store.state().totalTried, 0);
+  reload.Store.mutate("dayDone", { n: 18, di: 0, score: 2, of: 2 });
+  reload.Store.mutate("practiceDone", { n: 18, di: 0, score: 1, of: 1, records: run.records, attemptId: "partial2" });
+  assert.equal(reload.Store.state().done.L18D0.score, 2);
+  assert.equal(reload.Store.state().attempts.at(-1).partial, true);
+  reload.Practice.remove(18, 0);
+  assert.equal(reload.Practice.create(18, 0, ex).records.length, 0);
+});
+
+test("удалённый пример не используется вариантом другого задания", () => {
+  const w = env.load(SYNC.concat(["js/review.js"]));
+  const ex = { type: "fill", q: "a {}", a: ["a"], skill: "test" };
+  const alternative = { type: "fill", q: "b {}", a: ["b"], skill: "test" };
+  w.L18 = { days: [{ ex: [ex, alternative] }] };
+  w.Store.mutate("exerciseDelete", { id: "L18D0-1", ex: alternative, reason: "Ошибка в задании" });
+  const item = { id: "L18D0-0", r: { n: 18, box: 1, due: 0, ex } };
+  assert.equal(w.ReviewPlan.variant(item, w.Store.state()), ex);
+  assert.equal(w.ReviewPlan.deleted({ id: "L18D0-0", ex: alternative }, w.Store.state()), true);
+});

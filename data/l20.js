@@ -247,16 +247,19 @@ window.L20 = {
           why: "Главная ошибка урока: русский порядок «где живу я» тянет глагол вперёд. В придаточном — wo ich wohne." },
 
         { type: "translate",
+          articleHint: "",
           ru: "Я не знаю, где он живёт.",
           a: ["Ich weiß nicht, wo er wohnt."],
           why: "wo открывает придаточное, wohnt — в конец." },
 
         { type: "translate",
+          articleHint: "фильм: d",
           ru: "Скажи мне, когда начинается фильм.",
           a: ["Sag mir, wann der Film anfängt.", "Sag mir, wann der Film beginnt.", "Sage mir, wann der Film anfängt."],
           why: "anfangen отделяемый, но в придаточном он снова целый: wann der Film anfängt." },
 
         { type: "translate",
+          articleHint: "билет: d",
           ru: "Вы можете сказать мне, сколько стоит билет?",
           a: ["Können Sie mir sagen, wie viel die Fahrkarte kostet?", "Können Sie mir sagen, was die Fahrkarte kostet?", "Können Sie mir sagen, wie viel das Ticket kostet?", "Können Sie mir sagen, was das Ticket kostet?"],
           why: "Вежливый вопрос — сам по себе вопрос, поэтому в конце знак вопроса, но внутри придаточное: kostet в конце." }
@@ -345,16 +348,19 @@ window.L20 = {
           pairs: [["Kommst du?", "ob du kommst"], ["Wo wohnst du?", "wo du wohnst"], ["Hast du Zeit?", "ob du Zeit hast"], ["Wann kommst du?", "wann du kommst"], ["Was machst du?", "was du machst"], ["Bist du müde?", "ob du müde bist"]] },
 
         { type: "translate",
+          articleHint: "",
           ru: "Я не знаю, придёт ли он.",
           a: ["Ich weiß nicht, ob er kommt."],
           why: "«ли» → ob, глагол kommt в конце." },
 
         { type: "translate",
+          articleHint: "время: ∅",
           ru: "Спроси её, есть ли у неё время.",
           a: ["Frag sie, ob sie Zeit hat.", "Frage sie, ob sie Zeit hat."],
           why: "Вопрос «да/нет» заворачивается через ob, hat — в конец." },
 
         { type: "translate",
+          articleHint: "",
           ru: "Он хочет знать, сколько тебе лет.",
           a: ["Er möchte wissen, wie alt du bist.", "Er will wissen, wie alt du bist."],
           why: "Вопросительное слово wie alt остаётся, bist уходит в конец." }
@@ -443,16 +449,19 @@ window.L20 = {
           pairs: [["Wenn es regnet,", "nehme ich einen Schirm."], ["Wenn ich müde bin,", "gehe ich ins Bett."], ["Wenn ich Hunger habe,", "esse ich etwas."], ["Wenn es kalt ist,", "ziehe ich eine Jacke an."], ["Wenn der Bus nicht kommt,", "gehe ich zu Fuß."], ["Wenn ich krank bin,", "bleibe ich zu Hause."]] },
 
         { type: "translate",
+          articleHint: "",
           ru: "Если идёт дождь, я остаюсь дома.",
           a: ["Wenn es regnet, bleibe ich zu Hause.", "Wenn es regnet, bleibe ich daheim."],
           why: "Глагол — запятая — глагол: regnet, bleibe." },
 
         { type: "translate",
+          articleHint: "будильник: d",
           ru: "Когда звонит будильник, я сразу встаю.",
           a: ["Wenn der Wecker klingelt, stehe ich sofort auf."],
           why: "wenn-часть на месте № 1, главная начинается с stehe, приставка auf — в конце." },
 
         { type: "translate",
+          articleHint: "время: ∅",
           ru: "Позвони мне, если у тебя будет время.",
           a: ["Ruf mich an, wenn du Zeit hast.", "Rufe mich an, wenn du Zeit hast."],
           why: "Условие в будущем по-немецки передаётся настоящим временем: wenn du Zeit hast." }
@@ -543,16 +552,19 @@ window.L20 = {
           why: "Perfekt: gestohlen hat, hat — последним." },
 
         { type: "translate",
+          articleHint: "",
           ru: "Я знаю, что он прав.",
           a: ["Ich weiß, dass er recht hat.", "Ich weiß, dass er Recht hat."],
           why: "Recht haben — «быть правым», hat в конце придаточного с dass." },
 
         { type: "translate",
+          articleHint: "",
           ru: "Мы не знаем, почему он не пришёл.",
           a: ["Wir wissen nicht, warum er nicht gekommen ist.", "Wir wissen nicht, warum er nicht kam."],
           why: "warum открывает придаточное, Perfekt gekommen ist — в конце." },
 
         { type: "translate",
+          articleHint: "",
           ru: "Я надеюсь, что ты скоро придёшь.",
           a: ["Ich hoffe, dass du bald kommst."],
           why: "После hoffen — dass, будущее передаётся настоящим: du kommst." }
@@ -647,11 +659,13 @@ window.L20 = {
           pairs: [["warten", "auf"], ["denken", "an"], ["träumen", "von"], ["sich interessieren", "für"], ["bitten", "um"], ["sich streiten", "mit"]] },
 
         { type: "translate",
+          articleHint: "автобус: d",
           ru: "Я жду автобус.",
           a: ["Ich warte auf den Bus."],
           why: "warten auf + Akkusativ: auf den Bus." },
 
         { type: "translate",
+          articleHint: "футбол: ∅",
           ru: "Он интересуется футболом.",
           a: ["Er interessiert sich für Fußball.", "Er interessiert sich für den Fußball."],
           why: "sich interessieren für — возвратный глагол, sich обязателен." }
@@ -742,16 +756,19 @@ window.L20 = {
           why: "Вещь, von начинается с согласной: wovon." },
 
         { type: "translate",
+          articleHint: "",
           ru: "О чём ты думаешь?",
           a: ["Woran denkst du?"],
           why: "denken an, про вещь: wo + r + an." },
 
         { type: "translate",
+          articleHint: "выходные: d",
           ru: "Я с нетерпением жду выходных.",
           a: ["Ich freue mich auf das Wochenende.", "Ich freue mich aufs Wochenende."],
           why: "Выходные впереди — sich freuen auf + Akkusativ." },
 
         { type: "translate",
+          articleHint: "учитель: d",
           ru: "Она извиняется перед учителем.",
           a: ["Sie entschuldigt sich bei dem Lehrer.", "Sie entschuldigt sich beim Lehrer.", "Sie entschuldigt sich bei ihrem Lehrer."],
           why: "sich entschuldigen bei + Dativ: beim Lehrer." }

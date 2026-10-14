@@ -228,12 +228,13 @@
     d.appendChild(el("h2", null, "Дни"));
     L.days.forEach(function (day, i) {
       var row = el("div", "day" + (isDayDone(n, i) ? " done" : ""));
-      var open = isDayDone(n, i) ? null : dayLoad(n, i);
+      var open = dayLoad(n, i);
+      var available = day.ex.filter(function (ex, index) { return !(S.deletedExercises || {})[dayKey(n, i) + "-" + index]; }).length;
       row.innerHTML =
-        '<div class="tag">' + (isDayDone(n, i) ? "готово" : open ? "продолжить" : "день " + (i + 1)) + "</div>" +
+        '<div class="tag">' + (open ? "продолжить" : isDayDone(n, i) ? "готово" : "день " + (i + 1)) + "</div>" +
         "<div><div style=\"font-weight:600\">" + esc(day.title) + "</div>" +
         '<div class="s muted">' + esc(day.sub || "") + " · " +
-        (open ? "остановился на " + open.i + " из " + day.ex.length : day.ex.length + " заданий") +
+        (open ? "есть незавершённая сессия · " + available + " заданий" : available + " заданий") +
         "</div></div>";
       row.onclick = function () { go("/l" + n + "/d" + i); };
       d.appendChild(row);
@@ -313,6 +314,8 @@
     working = true;
     var list = day.ex.slice(), run = window.Practice.load(n, di, list) || window.Practice.create(n, di, list);
     var i = run.i, api = null, answered = false, finished = false;
+    function exerciseId(index) { return dayKey(n, di) + "-" + index; }
+    function deleted(index) { return !!(S.deletedExercises || {})[exerciseId(index)]; }
     var view = routeId;
     window.Practice.save(run);
     app.innerHTML = "";
@@ -342,22 +345,65 @@
     var card = el("div", "card"), pl = el("div", "progline");
     pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>'; card.appendChild(pl);
     var host = el("div", null); card.appendChild(host);
-    var row = el("div", "btnrow sticky"), check = el("button", "btn", "Проверить"), next = el("button", "btn sec", "Дальше →");
-    row.appendChild(check); row.appendChild(next); card.appendChild(row); app.appendChild(card);
-    function syncBar() { row.className = "btnrow sticky" + (check.style.display === "none" && next.style.display === "none" ? " empty" : ""); }
+    var removePanel = el("div", "exercise-remove"); removePanel.hidden = true;
+    removePanel.appendChild(el("div", "muted", "Удалить из курса и повторений без возможности возврата. Почему это задание не подходит?"));
+    var reason = document.createElement("select"); reason.className = "big";
+    reason.setAttribute("aria-label", "Причина удаления задания");
+    ["Выбери причину", "Механическая работа", "Неоднозначное условие", "Слишком очевидно", "Не тренирует нужный навык", "Ошибка в задании", "Другая причина"].forEach(function (text, index) {
+      var option = document.createElement("option"); option.value = index ? text : ""; option.textContent = text; reason.appendChild(option);
+    });
+    removePanel.appendChild(reason);
+    var removalNote = document.createElement("textarea"); removalNote.className = "backup-text";
+    removalNote.placeholder = "Что именно не так? Необязательно"; removalNote.maxLength = 600;
+    removalNote.setAttribute("aria-label", "Замечание к заданию"); removePanel.appendChild(removalNote);
+    var removeButtons = el("div", "btnrow"), confirmRemove = el("button", "btn", "Удалить навсегда"), cancelRemove = el("button", "btn sec", "Отмена");
+    confirmRemove.disabled = true;
+    reason.onchange = function () { confirmRemove.disabled = !reason.value; };
+    cancelRemove.onclick = function () { removePanel.hidden = true; };
+    removeButtons.appendChild(confirmRemove); removeButtons.appendChild(cancelRemove); removePanel.appendChild(removeButtons); card.appendChild(removePanel);
+    var row = el("div", "btnrow sticky exercise-actions"), check = el("button", "btn primary-action", "Проверить"), next = el("button", "btn primary-action", "Дальше →");
+    var skip = el("button", "btn sec", "Пропустить"), remove = el("button", "btn sec", "Удалить");
+    row.appendChild(check); row.appendChild(next); row.appendChild(skip); row.appendChild(remove); card.appendChild(row); app.appendChild(card);
+    function syncBar() { skip.style.display = answered ? "none" : ""; }
+    function advance(omitted) {
+      if (finished || view !== routeId || i >= list.length) return;
+      var record = run.records[i] || (run.records[i] = {});
+      if (!record.result) record.omitted = omitted;
+      run.i = ++i; window.Practice.save(run); step();
+    }
+    skip.onclick = function () { if (!answered) advance("skipped"); };
+    remove.onclick = function () {
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      removePanel.hidden = false; reason.value = ""; removalNote.value = ""; confirmRemove.disabled = true;
+      removePanel.scrollIntoView({ block: "nearest" });
+    };
+    confirmRemove.onclick = function () {
+      if (!reason.value || finished || view !== routeId || i >= list.length) return;
+      S = Store.mutate("exerciseDelete", { id: exerciseId(i), ex: list[i], reason: reason.value + (removalNote.value.trim() ? ": " + removalNote.value.trim() : "") });
+      if (deleted(i)) advance("deleted");
+    };
     function count(record, index) {
       var token = run.id + ":" + index;
       if (!S.answered[token]) S = Store.mutate("answer", { ok: record.result.ok, verdict: record.result.verdict, attemptId: token });
     }
     function step() {
+      removePanel.hidden = true;
+      while (i < list.length && (deleted(i) || (run.records[i] && run.records[i].omitted))) {
+        var omitted = run.records[i] || (run.records[i] = {});
+        if (!omitted.result && deleted(i)) omitted.omitted = "deleted";
+        run.i = ++i;
+      }
+      window.Practice.save(run);
       if (i >= list.length) return done();
       var record = run.records[i] || (run.records[i] = {});
       if (head.querySelector("details[open]")) record.usedHint = true;
       answered = !!record.result;
-      pl.querySelector(".cnt").textContent = (i + 1) + " / " + list.length;
-      pl.querySelector("i").style.width = Math.round(i / list.length * 100) + "%";
+      var visible = list.map(function (ex, index) { return index; }).filter(function (index) { return !deleted(index); });
+      var position = visible.indexOf(i);
+      pl.querySelector(".cnt").textContent = (position + 1) + " / " + visible.length;
+      pl.querySelector("i").style.width = Math.round(position / visible.length * 100) + "%";
       api = E.render(list[i], host, function (ok, result) {
-        if (finished || view !== routeId) return;
+        if (finished || view !== routeId || record !== run.records[i] || record.omitted || deleted(i)) return;
         if (!record.result) {
           record.result = result; window.Practice.save(run); count(record, i);
           if (!ok && result.verdict !== "needs-review") srsAdd("L" + n + "D" + di + "-" + i, list[i], n);
@@ -365,7 +411,7 @@
         answered = true; check.style.display = "none"; next.style.display = ""; syncBar();
       }, {
         draft: record.draft, isHinted: function () { return record.usedHint; },
-        onDraft: function (draft) { record.draft = draft; window.Practice.save(run); }
+        onDraft: function (draft) { if (record.omitted || record !== run.records[i]) return; record.draft = draft; window.Practice.save(run); }
       });
       if (api.result && !record.result) { record.result = api.result; window.Practice.save(run); }
       answered = !!record.result;
@@ -380,7 +426,7 @@
        ответам, задания без ответа не идут в «не совпали» */
     function done(manual) {
       if (finished) return; finished = true; working = false; document.onkeydown = null;
-      var stats = window.Practice.stats(run), of = list.length;
+      var stats = window.Practice.stats(run), of = stats.answered;
       if (manual) {
         of = 0;
         run.records.forEach(function (record) { if (record && record.result) of++; });
@@ -390,8 +436,8 @@
       if (manual) op.manual = true;
       /* ответов не было — в истории нечего показывать, остаётся только отметка дня */
       if (manual && !of) { delete op.attemptId; delete op.records; }
-      S = Store.mutate("dayDone", op);
-      touchStreak(); window.Practice.remove(n, di);
+      if (manual || of) S = Store.mutate(!manual && stats.skipped ? "practiceDone" : "dayDone", op);
+      if (of) touchStreak(); window.Practice.remove(n, di);
       app.innerHTML = "";
       showResultLayout();
       var c = el("div", "card hero result-card");
@@ -401,9 +447,11 @@
             ? "Сохранилось ответов: " + of + ", из них совпали с ответами: " + stats.correct + ". Задания без ответа в результат не входят." +
               (stats.correct < of ? " Ошибки из этих ответов назначены на повторение." : "")
             : "Сохранённых ответов не было, поэтому результат не записан. День отмечен как пройденный.") + "</div>"
-        : '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " выполнен</div><h1>" + stats.correct + " из " + list.length + " совпали с ответами</h1>" +
+        : '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " · сессия завершена</div><h1>" + (of ? stats.correct + " из " + of + " совпали с ответами" : "Нет проверенных ответов") + "</h1>" +
         '<div class="muted">Это выполненная практика, не подтверждение уровня B1. Ошибки назначены на повторение спустя время.</div>';
       c.innerHTML +=
+        (stats.skipped ? '<div class="note">Пропущено: ' + stats.skipped + '. Они не считаются ошибками и снова появятся в следующем прохождении. День с пропусками не получает новую отметку о завершении.</div>' : "") +
+        (stats.deleted ? '<div class="note">Удалено из курса: ' + stats.deleted + ".</div>" : "") +
         (stats.uncertain ? '<div class="note">Переводов без подтвержденной оценки: ' + stats.uncertain + ". Другой вариант может быть верным.</div>" : "") +
         (stats.hints ? '<div class="note">Попыток с открытой теорией: ' + stats.hints + ". Проверьте навык позже без подсказки.</div>" : "");
       var buttons = el("div", "btnrow"), nx = findNext();
@@ -428,7 +476,7 @@
     if (Store.blocked()) return viewMore();
     working = true;
     var saved = window.Sessions.load("review");
-    var run = saved || window.ReviewPlan.create(E.shuffle(srsDue()));
+    var run = saved || window.ReviewPlan.create(E.shuffle(srsDue()), S);
     var i = run.i, view = routeId;
     app.innerHTML = "";
     if (!run.items.length) {
@@ -456,7 +504,7 @@
       if (view !== routeId) return;
       while (i < run.items.length) {
         var rec = run.records[i], checked = rec && (rec.result || (rec.draft && rec.draft.result));
-        if (checked || window.ReviewPlan.pending(run.items[i], S)) break;
+        if (!window.ReviewPlan.deleted(run.items[i], S) && (checked || window.ReviewPlan.pending(run.items[i], S))) break;
         i++;
       }
       if (i >= run.items.length) { window.Sessions.clear("review"); return go("/"); }
@@ -562,12 +610,28 @@
     var rawButton = el("button", "btn sec", "Скачать исходное хранилище"); rawButton.onclick = function () { var text = Store.exportRaw(); showBackup(text); download(text, "deutsch-storage-original.json"); };
     var retryButton = el("button", "btn sec", "Повторить сохранение"); retryButton.onclick = function () { Store.flush(); window.Practice.flush(); window.Sessions.flush(); };
     copies.appendChild(showButton); copies.appendChild(exportButton); copies.appendChild(rawButton); copies.appendChild(retryButton); c.appendChild(copies);
+    var rejected = Object.keys(S.deletedExercises || {});
+    if (rejected.length) {
+      var reportButton = el("button", "btn sec", "Скачать замечания к заданиям (" + rejected.length + ")");
+      reportButton.onclick = function () {
+        var report = { kind: "deutsch-exercise-feedback", exercises: rejected.map(function (id) {
+          var entry = S.deletedExercises[id];
+          return { id: id, type: entry.ex.type, reason: entry.reason, exercise: entry.ex };
+        }) };
+        var text = JSON.stringify(report, null, 2);
+        showBackup(text); outputLabel.textContent = "Замечания к заданиям";
+        copyMessage.textContent = "Передай этот файл в чат для чистки исходных уроков и обновления правил новых заданий. Это не резервная копия прогресса.";
+        download(text, "deutsch-exercise-feedback.json");
+      };
+      copies.appendChild(reportButton);
+    }
     var output = el("div"); output.hidden = true;
     var outputLabel = el("label", null, "Текст резервной копии"); outputLabel.htmlFor = "backup-export"; output.appendChild(outputLabel);
     var exportText = document.createElement("textarea"); exportText.id = "backup-export"; exportText.className = "backup-text"; exportText.readOnly = true; exportText.spellcheck = false; output.appendChild(exportText);
     var copyButton = el("button", "btn", "Копировать весь текст"); output.appendChild(copyButton);
     var copyMessage = el("div", "note"); copyMessage.setAttribute("role", "status"); output.appendChild(copyMessage); c.appendChild(output);
     function showBackup(text) {
+      outputLabel.textContent = "Текст резервной копии";
       exportText.value = text; output.hidden = false;
       copyMessage.textContent = "Если скачивание недоступно, скопируйте весь текст и сохраните в заметках. Для переноса вставьте его в поле импорта на другом устройстве.";
     }
@@ -604,10 +668,10 @@
       c.appendChild(el("h2", null, "История попыток"));
       attempts.forEach(function (attempt) {
         var details = document.createElement("details");
-        details.appendChild(el("summary", null, "Урок " + attempt.n + ", день " + (attempt.di + 1) + ": " + attempt.score + "/" + attempt.of + (attempt.manual ? ", засчитан вручную" : "")));
+        details.appendChild(el("summary", null, "Урок " + attempt.n + ", день " + (attempt.di + 1) + ": " + attempt.score + "/" + attempt.of + (attempt.manual ? ", засчитан вручную" : attempt.partial ? ", с пропусками" : "")));
         details.appendChild(el("div", "muted", new Date(attempt.at).toLocaleString("ru") + ". С теорией: " + (attempt.hints || 0) + ". Без подтвержденной оценки: " + (attempt.uncertain || 0) + "."));
         (attempt.records || []).forEach(function (record, index) {
-          if (!record || !record.result) return;
+          if (!record || !record.result || (S.deletedExercises || {})[dayKey(attempt.n, attempt.di) + "-" + index]) return;
           var draft = record.draft || {}, values = draft.values || draft.words;
           var input = values ? values.map(function (value) { return value || "∅"; }).join(" / ") : draft.choice != null ? "вариант " + (draft.choice + 1) : draft.solved ? "соединено пар: " + draft.solved.length : "ответ не записан в старом формате";
           var result = record.result.ok ? "верно" : record.result.verdict === "needs-review" ? "нужна проверка смысла" : "ошибка";

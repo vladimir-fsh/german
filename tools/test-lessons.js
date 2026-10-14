@@ -53,6 +53,7 @@ win.COURSE.lessons.forEach(function (meta) {
         ok(id + ": есть объяснение why", !!ex.why);
       }
       if (ex.type === "translate") {
+        ok(id + ": выбор артиклей проверен", typeof ex.articleHint === "string");
         ok(id + ": есть русский текст", !!ex.ru);
         ok(id + ": есть хотя бы один ответ", Array.isArray(ex.a) && ex.a.length > 0);
         ok(id + ": есть объяснение why", !!ex.why);

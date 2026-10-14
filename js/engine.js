@@ -58,7 +58,7 @@
       var why = ex.why ? '<span class="why">' + esc(ex.why) + "</span>" : "";
       verdict = verdict || (ok ? "correct" : "incorrect");
       var label = ok ? "<b>Richtig!</b> " : verdict === "needs-review" ? "<b>Нужна проверка смысла.</b> Такой вариант может быть верным; совпадение с образцом не решает это. " : verdict === "capitalization" ? "<b>Проверьте заглавные буквы.</b> " : verdict === "orthography" ? "<b>Проверьте умлауты и ß.</b> " : "<b>Пока неверно.</b> ";
-      fb.innerHTML = label + why + (extra ? '<details class="sample"><summary>Сравнить с образцом</summary>' + extra + "</details>" : "");
+      fb.innerHTML = label + (extra ? '<div class="sample">' + extra + "</div>" : "") + why;
       var result = { ok: ok, verdict: verdict, usedHint: !!(options.usedHint || (options.isHinted && options.isHinted())) };
       api.result = result;
       if (!restoring) { saveDraft(); onDone(ok, result); }
@@ -66,6 +66,8 @@
 
     var api = { check: null, result: null, getDraft: function () { return {}; }, draft: options.draft || {}, changed: saveDraft };
     function saveDraft() { if (!restoring && options.onDraft) { var draft = api.getDraft(); if (api.result) draft.result = api.result; options.onDraft(draft); } }
+    var typeNames = { fill: "Подстановка", choice: "Выбор ответа", translate: "Перевод", pairs: "Пары", order: "Сборка предложения" };
+    host.appendChild(el("div", "prompt", "Тип: " + (typeNames[ex.type] || ex.type)));
     (BUILD[ex.type] || BUILD.fill)(ex, host, finish, api);
     host.appendChild(fb);
     if (restoring) { if (api.check) api.check(); else if (api.restore) api.restore(); restoring = false; }
@@ -253,9 +255,30 @@
   };
 
   /* ---- translate: русский → немецкий, свободный ввод ---- */
+  function articleHint(ex) {
+    if (typeof ex.articleHint === "string") return ex.articleHint;
+    /* Старые сессии ошибок содержат копию задания до добавления подсказок. */
+    var hint = "";
+    ((global.COURSE || {}).lessons || []).some(function (meta) {
+      var lesson = global["L" + meta.n];
+      return lesson && lesson.days.some(function (day) {
+        return day.ex.some(function (item) {
+          if (item.type !== "translate" || item.ru !== ex.ru || item.a[0] !== ex.a[0]) return false;
+          hint = item.articleHint || "";
+          return true;
+        });
+      });
+    });
+    return hint;
+  }
   BUILD.translate = function (ex, host, finish, api) {
     host.appendChild(el("div", "prompt", esc(ex.prompt || "Переведи на немецкий:")));
     host.appendChild(el("div", "q", esc(ex.ru)));
+    var articles = articleHint(ex);
+    if (articles) {
+      host.appendChild(el("div", "article-hint", '<b>Артикли:</b> ' + esc(articles) +
+        '<small>d - определённый; e - неопределённый; ∅ - без артикля. Род и падеж выбери сам.</small>'));
+    }
     var inp = document.createElement("input");
     inp.className = "big"; inp.type = "text"; inp.spellcheck = false;
     inp.autocapitalize = "off"; inp.autocomplete = "off";
@@ -272,7 +295,7 @@
       var verdict = compare(inp.value, ex.a, true), ok = verdict === "correct";
       inp.className = "big " + (ok ? "ok" : "bad");
       inp.disabled = true;
-      finish(ok, ok ? "" : "Richtig ist: <b>" + esc(ex.a[0]) + "</b>", verdict);
+      finish(ok, ok ? "" : "Образец: <b>" + esc(ex.a[0]) + "</b>", verdict);
     };
     api.getDraft = function () { return { values: [inp.value] }; };
     inp.addEventListener("keydown", function (e) {

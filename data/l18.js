@@ -389,11 +389,13 @@ window.L18 = {
           why: "die Haare — множественное число, перед ним нет ein-слова, но окончание нужно: lange Haare. Множественное подробно разберём позже." },
 
         { type: "translate",
+          articleHint: "компьютер: e",
           ru: "Это новый компьютер.",
           a: ["Das ist ein neuer Computer.", "Das ist ein neuer Computer"],
           why: "der Computer → ein neuer Computer." },
 
         { type: "translate",
+          articleHint: "девушка: e",
           ru: "Она красивая девушка.",
           a: ["Sie ist ein schönes Mädchen.", "Sie ist ein schönes Mädchen", "Sie ist ein hübsches Mädchen.", "Sie ist ein hübsches Mädchen"],
           why: "das Mädchen — средний род, несмотря на смысл: ein schönes Mädchen." },
@@ -481,16 +483,19 @@ window.L18 = {
           why: "kein склоняется точно как ein. Nominativ после sein → -er оба раза." },
 
         { type: "translate",
+          articleHint: "куртка: e",
           ru: "Я покупаю новую куртку.",
           a: ["Ich kaufe eine neue Jacke.", "Ich kaufe eine neue Jacke"],
           why: "kaufen → Akkusativ, женский род в Akkusativ не меняется: eine neue Jacke." },
 
         { type: "translate",
+          articleHint: "нос: e",
           ru: "У него длинный нос.",
           a: ["Er hat eine lange Nase.", "Er hat eine lange Nase"],
           why: "die Nase — женский род, несмотря на русский мужской. Akkusativ: eine lange Nase." },
 
         { type: "translate",
+          articleHint: "ребёнок: e",
           ru: "У них маленький ребёнок.",
           a: ["Sie haben ein kleines Kind.", "Sie haben ein kleines Kind"],
           why: "das Kind — средний род, в Akkusativ форма та же, что в Nominativ: ein kleines Kind." },
@@ -572,11 +577,13 @@ window.L18 = {
           why: "beide во множественном после die ведёт себя как прилагательное: die beiden Diebe." },
 
         { type: "translate",
+          articleHint: "женщина: d",
           ru: "Я знаю эту старую женщину.",
           a: ["Ich kenne die alte Frau.", "Ich kenne die alte Frau"],
           why: "Женский род в Akkusativ не меняется: die alte Frau." },
 
         { type: "translate",
+          articleHint: "учитель: d; ученик: d",
           ru: "Учитель спрашивает наглого ученика.",
           a: ["Der Lehrer fragt den frechen Schüler.", "Der Lehrer fragt den frechen Schüler"],
           why: "den frechen Schüler — мужской род в Akkusativ, обе формы на -n." },
@@ -664,16 +671,19 @@ window.L18 = {
           why: "dieser = Dativ ж. р. → -en. die zwei bösen — множественное после артикля → -en. eine gute Idee — Akkusativ ж. р. → -e." },
 
         { type: "translate",
+          articleHint: "учитель: d",
           ru: "Я говорю с новым учителем.",
           a: ["Ich spreche mit dem neuen Lehrer.", "Ich spreche mit dem neuen Lehrer", "Ich rede mit dem neuen Lehrer.", "Ich rede mit dem neuen Lehrer"],
           why: "mit dem neuen Lehrer — Dativ, окончание -en." },
 
         { type: "translate",
+          articleHint: "город: e",
           ru: "Он живёт в маленьком городе.",
           a: ["Er wohnt in einer kleinen Stadt.", "Er wohnt in einer kleinen Stadt"],
           why: "in + wo? → Dativ: in einer kleinen Stadt." },
 
         { type: "translate",
+          articleHint: "кофе: ∅; молоко: ∅",
           ru: "Я пью кофе с холодным молоком.",
           a: ["Ich trinke Kaffee mit kalter Milch.", "Ich trinke Kaffee mit kalter Milch"],
           why: "Артикля нет — прилагательное берёт хвост der (Dativ женского рода): kalter Milch." }
@@ -763,11 +773,13 @@ window.L18 = {
           why: "В этом стандартном варианте rosa остается без окончания: eine rosa Jacke. Для orange допускаются формы с окончанием; это другое слово." },
 
         { type: "translate",
+          articleHint: "куртка: e",
           ru: "Что за куртку он носит?",
           a: ["Was für eine Jacke trägt er?", "Was für eine Jacke trägt er"],
           why: "tragen → Akkusativ, женский род: eine Jacke. Форма ein здесь не меняется относительно Nominativ." },
 
         { type: "translate",
+          articleHint: "сумка: e",
           ru: "Это дорогая сумка.",
           a: ["Das ist eine teure Tasche.", "Das ist eine teure Tasche"],
           why: "teuer → teur- + -e: eine teure Tasche. Форма teuere неправильная." },
@@ -850,16 +862,19 @@ window.L18 = {
           pairs: [["die Bedingung", "условие"], ["die Umgebung", "окрестности"], ["teilnehmen an", "участвовать в"], ["verzichten auf", "отказываться от"], ["bescheiden", "скромный"], ["zuverlässig", "надёжный"]] },
 
         { type: "translate",
+          articleHint: "друг: e",
           ru: "Он надёжный друг.",
           a: ["Er ist ein zuverlässiger Freund.", "Er ist ein zuverlässiger Freund"],
           why: "der Freund, Nominativ после sein: ein zuverlässiger Freund." },
 
         { type: "translate",
+          articleHint: "условие: e",
           ru: "Я помогу тебе при одном условии.",
           a: ["Ich helfe dir unter einer Bedingung.", "Ich helfe dir unter einer Bedingung"],
           why: "unter + Dativ: unter einer Bedingung. helfen требует Dativ — поэтому dir, а не dich." },
 
         { type: "translate",
+          articleHint: "проект: e",
           ru: "Мы участвуем в интересном проекте.",
           a: ["Wir nehmen an einem interessanten Projekt teil.", "Wir nehmen an einem interessanten Projekt teil"],
           why: "teilnehmen отделяемый: teil улетает в конец. an + Dativ → an einem interessanten Projekt." }
@@ -947,16 +962,19 @@ window.L18 = {
           pairs: [["lockig", "кудрявый"], ["schlank", "стройный"], ["kräftig", "крепкий"], ["blass", "бледный"], ["gepflegt", "ухоженный"], ["bärtig", "бородатый"]] },
 
         { type: "translate",
+          articleHint: "волосы: ∅",
           ru: "У него короткие светлые волосы.",
           a: ["Er hat kurze blonde Haare.", "Er hat kurze blonde Haare", "Er hat kurze, blonde Haare."],
           why: "Haare без артикля во множественном, оба прилагательных сигналят сами: kurze blonde." },
 
         { type: "translate",
+          articleHint: "платье: e",
           ru: "Она носит длинное красное платье.",
           a: ["Sie trägt ein langes rotes Kleid.", "Sie trägt ein langes rotes Kleid", "Sie trägt ein langes, rotes Kleid."],
           why: "das Kleid после ein → хвост от das: langes rotes." },
 
         { type: "translate",
+          articleHint: "полицейский: d; вор: d",
           ru: "Полицейский смотрит на молодого вора.",
           a: ["Der Polizist schaut den jungen Dieb an.", "Der Polizist sieht den jungen Dieb an.", "Der Polizist schaut den jungen Dieb an", "Der Polizist sieht den jungen Dieb an", "Der Polizist betrachtet den jungen Dieb."],
           why: "ansehen / anschauen + Akkusativ: den jungen Dieb. Мужской род в Akkusativ — главная ловушка урока." }

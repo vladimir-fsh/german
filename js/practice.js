@@ -4,7 +4,7 @@ window.Practice = (function () {
   var KEY = "de-b1-days-v2", LEGACY = "de-b1-day-v1", memory = {}, dirty = false, blockedDrafts = false;
   function stamp() { return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10); }
   function fingerprint(exercises) {
-    return JSON.stringify(exercises.map(function (ex) { var copy = JSON.parse(JSON.stringify(ex)); delete copy.skill; return copy; }));
+    return JSON.stringify(exercises.map(function (ex) { var copy = JSON.parse(JSON.stringify(ex)); delete copy.skill; delete copy.articleHint; return copy; }));
   }
   function read() {
     if (dirty) return memory;
@@ -18,6 +18,7 @@ window.Practice = (function () {
     return draft.records.every(function (record) {
       if (!record) return true;
       if (typeof record !== "object" || Array.isArray(record) || (record.result && typeof record.result.ok !== "boolean")) return false;
+      if (record.omitted != null && ["skipped", "deleted"].indexOf(record.omitted) < 0) return false;
       var d = record.draft;
       if (!d) return true;
       if (typeof d !== "object" || Array.isArray(d) || (d.result && typeof d.result.ok !== "boolean")) return false;
@@ -50,9 +51,10 @@ window.Practice = (function () {
   function save(draft) { var all = read(); all["L" + draft.n + "D" + draft.di] = draft; draft.at = Date.now(); dirty = true; flush(); }
   function remove(n, di) { var all = read(); delete all["L" + n + "D" + di]; dirty = true; flush(); try { var old = JSON.parse(localStorage.getItem(LEGACY)); if (old && old.n === n && old.di === di) localStorage.removeItem(LEGACY); } catch (e) {} }
   function stats(draft) {
-    var correct = draft.legacyCorrect || 0, uncertain = 0, hints = 0;
+    var correct = draft.legacyCorrect || 0, uncertain = 0, hints = 0, answered = draft.legacyCorrect || 0, skipped = 0, deleted = 0;
+    draft.records.forEach(function (record) { if (!record) return; if (record.omitted === "skipped") skipped++; if (record.omitted === "deleted") deleted++; if (record.result) answered++; });
     draft.records.forEach(function (record) { if (record && record.result) { if (record.result.ok) correct++; if (record.result.verdict === "needs-review") uncertain++; if (record.result.usedHint) hints++; } });
-    return { correct: correct, uncertain: uncertain, hints: hints };
+    return { correct: correct, uncertain: uncertain, hints: hints, answered: answered, skipped: skipped, deleted: deleted };
   }
   function validateImport(text) {
     var all = typeof text === "string" ? JSON.parse(text) : text;

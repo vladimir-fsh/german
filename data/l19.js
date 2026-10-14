@@ -218,16 +218,19 @@ window.L19 = {
           pairs: [["die Erziehung", "воспитание"], ["versprechen", "обещать"], ["verbieten", "запрещать"], ["bestrafen", "наказывать"], ["loben", "хвалить"], ["sich schämen", "стыдиться"]] },
 
         { type: "translate",
+          articleHint: "",
           ru: "Я не могу прийти, потому что должен работать.",
           a: ["Ich kann nicht kommen, weil ich arbeiten muss.", "Ich kann nicht kommen, weil ich arbeiten muss"],
           why: "Два глагола в конце: сначала Infinitiv arbeiten, потом спрягаемый muss." },
 
         { type: "translate",
+          articleHint: "",
           ru: "Мы остаёмся дома, потому что идёт дождь.",
           a: ["Wir bleiben zu Hause, weil es regnet.", "Wir bleiben zu Hause, weil es regnet"],
           why: "«Идёт дождь» — es regnet. В придаточном regnet встаёт в конец." },
 
         { type: "translate",
+          articleHint: "деньги: kein- (отрицание)",
           ru: "Так как у него нет денег, он не может пойти с нами.",
           a: ["Weil er kein Geld hat, kann er nicht mitkommen.", "Weil er kein Geld hat, kann er nicht mitkommen"],
           why: "Придаточное впереди занимает место № 1, поэтому сразу после запятой идёт глагол главного: kann er, а не er kann." }

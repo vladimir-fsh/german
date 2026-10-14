@@ -59,7 +59,7 @@ window.Store = (function () {
 
   function blank() {
     return {
-      v: SCHEMA, done: {}, srs: {}, vocab: {}, wordHints: {},
+      v: SCHEMA, done: {}, srs: {}, vocab: {}, wordHints: {}, deletedExercises: {},
       vocabLevel: 1, calibrated: false, streak: 0, lastDay: null,
       totalCorrect: 0, totalTried: 0, totalUncertain: 0, attempts: [], answered: {}, resetAt: 0
     };
@@ -156,14 +156,16 @@ window.Store = (function () {
         if (op.verdict !== "needs-review" && r && r.box === op.expectedBox && r.due === op.expectedDue) apply(s, { type: "srsHit", id: op.id, ok: op.ok, t: op.t, policy: 2 });
         return s;
 
+      case "practiceDone":
       case "dayDone":
         if (op.attemptId && s.attempts.some(function (a) { return a.id === op.attemptId; })) return s;
-        s.done["L" + op.n + "D" + op.di] = { at: op.t, score: op.score, of: op.of };
+        if (op.type === "dayDone") s.done["L" + op.n + "D" + op.di] = { at: op.t, score: op.score, of: op.of };
         /* засчитан руками: of — сколько ответов сохранилось, а не длина дня */
-        if (op.manual) s.done["L" + op.n + "D" + op.di].manual = true;
+        if (op.manual && op.type === "dayDone") s.done["L" + op.n + "D" + op.di].manual = true;
         if (op.attemptId) {
           s.attempts.push({ id: op.attemptId, n: op.n, di: op.di, at: op.t, score: op.score, of: op.of, uncertain: op.uncertain || 0, hints: op.hints || 0, records: op.records || [] });
           if (op.manual) s.attempts[s.attempts.length - 1].manual = true;
+          if (op.type === "practiceDone") s.attempts[s.attempts.length - 1].partial = true;
           s.attempts = s.attempts.slice(-100);
         }
         return s;
@@ -183,7 +185,13 @@ window.Store = (function () {
         }
         return s;
 
+      case "exerciseDelete":
+        s.deletedExercises[op.id] = { ex: clone(op.ex), reason: op.reason };
+        delete s.srs[op.id];
+        return s;
+
       case "srsAdd":
+        if (s.deletedExercises[op.id]) return s;
         s.srs[op.id] = { box: 0, due: op.t, ex: op.ex, n: op.n };
         return s;
 
@@ -553,7 +561,7 @@ window.Store = (function () {
     if (snapshot.cloudId) throw new Error("Это устройство уже связано с другим облачным прогрессом. Сначала экспортируйте данные.");
     var local = reduce(snapshot.state, cloudOperations());
     var empty = !local.totalTried && !Object.keys(local.done).length && !Object.keys(local.vocab).length &&
-      !Object.keys(local.srs).length && !Object.keys(local.wordHints || {}).length && !local.calibrated;
+      !Object.keys(local.srs).length && !Object.keys(local.wordHints || {}).length && !Object.keys(local.deletedExercises || {}).length && !local.calibrated;
     var covered = cloudOperations().filter(function (op) { return op.seq <= (seed.cursor[op.device] || 0); });
     var original = reduce(snapshot.state, covered);
     if (!empty && stableJSON(original) !== stableJSON(upgrade(seed.state))) {

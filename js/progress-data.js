@@ -31,6 +31,7 @@ window.ProgressData = (function () {
   function record(value) {
     if (!value) return;
     object(value);
+    if (value.omitted != null && ["skipped", "deleted"].indexOf(value.omitted) < 0) fail();
     if (value.result) { object(value.result); if (typeof value.result.ok !== "boolean") fail(); }
     if (value.draft) {
       var d = object(value.draft);
@@ -45,6 +46,13 @@ window.ProgressData = (function () {
   function state(value) {
     safe(value, 0); object(value);
     if ([2, 3, 4, 5, 6, 7].indexOf(value.v) < 0) fail();
+    if (value.deletedExercises != null) {
+      object(value.deletedExercises);
+      Object.keys(value.deletedExercises).forEach(function (key) {
+        identifier(key); var entry = object(value.deletedExercises[key]);
+        exercise(entry.ex); text(entry.reason, 1000);
+      });
+    }
     if (value.wordHints != null) {
       object(value.wordHints);
       Object.keys(value.wordHints).forEach(function (key) { identifier(key); text(value.wordHints[key], 24000); });
@@ -84,9 +92,10 @@ window.ProgressData = (function () {
   function operation(op) {
     safe(op, 0); object(op); text(op.type, 40); identifier(op.device); number(op.seq); number(op.lc); number(op.t);
     if (Math.floor(op.seq) !== op.seq || Math.floor(op.lc) !== op.lc) fail();
-    if (["answer", "reviewAnswer", "dayDone", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabWordReview", "vocabKnown", "wordHint", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
+    if (["answer", "reviewAnswer", "dayDone", "practiceDone", "exerciseDelete", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabWordReview", "vocabKnown", "wordHint", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
     if (op.type === "answer" || op.type === "reviewAnswer" || op.type === "vocabGrade" || op.type === "vocabReview" || op.type === "vocabWordReview" || op.type === "srsHit") { if (typeof op.ok !== "boolean") fail(); }
-    if (op.type === "dayDone") { number(op.n, 999); number(op.di, 999); number(op.score); number(op.of); if (op.score > op.of) fail(); }
+    if (op.type === "dayDone" || op.type === "practiceDone") { number(op.n, 999); number(op.di, 999); number(op.score); number(op.of); if (op.score > op.of) fail(); }
+    if (op.type === "exerciseDelete") { identifier(op.id); if (!/^L\d+D\d+-\d+$/.test(op.id)) fail(); exercise(op.ex); text(op.reason, 1000); if (!op.reason.trim()) fail(); }
     if (op.records != null) { if (!Array.isArray(op.records)) fail(); op.records.forEach(record); }
     if (op.type === "touchDay" && !validDay(op.day)) fail();
     if (/^(vocabGrade|vocabReview|vocabWordReview|vocabKnown)$/.test(op.type)) { identifier(op.key); if (op.type !== "vocabKnown" && !/\|(de|ru)$/.test(op.key)) fail(); }
