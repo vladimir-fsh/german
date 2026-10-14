@@ -12,6 +12,8 @@
    версий и из резервных копий; новые операции поверх него сворачиваются. */
 window.Store = (function () {
   "use strict";
+  /* Удалённое подключение: очищаем старый ключ, не читая и не перенося его. */
+  try { localStorage.removeItem("de-openai-settings-v1"); } catch (e) { /* Повторим при следующем запуске. */ }
 
   var SCHEMA = 7;
   var DATA = window.ProgressData;
@@ -290,6 +292,7 @@ window.Store = (function () {
         return s;
 
       case "wordHint":
+        /* Совместимость исторических журналов после удаления чата. */
         if (!s.wordHints) s.wordHints = {};
         if (op.text) s.wordHints[op.key] = op.text;
         else delete s.wordHints[op.key];

@@ -2,9 +2,9 @@ window.mountCloud = function (host, back) {
   "use strict";
   var cloud = window.Cloud, disposed = false;
   function node(tag, text, cls) { var n = document.createElement(tag); n.textContent = text || ""; n.className = cls || ""; return n; }
-  var card = node("section", "", "card ai-panel cloud-panel");
+  var card = node("section", "", "card cloud-panel");
   card.appendChild(node("h2", "Облако и вход"));
-  card.appendChild(node("p", "Войдите в один Google-аккаунт на всех устройствах. Ответы, слова и прикреплённые подсказки будут общими.", "muted"));
+  card.appendChild(node("p", "Войдите в один Google-аккаунт на всех устройствах. Прогресс уроков, слова и удалённые задания будут общими.", "muted"));
   card.appendChild(node("p", "Первый вход выполните на телефоне с основным прогрессом. Если на устройствах уже разные исходные данные, приложение попросит сохранить копии и остановит автоматический перенос.", "note"));
   var account = node("p", "", "cloud-account"); card.appendChild(account);
   var status = node("p", "", "note"); status.setAttribute("role", "status"); card.appendChild(status);
@@ -14,13 +14,13 @@ window.mountCloud = function (host, back) {
   var retry = node("button", "Синхронизировать", "btn"); retry.type = "button";
   var logout = node("button", "Выйти из аккаунта", "btn sec"); logout.type = "button";
   [login, connect, retry, logout].forEach(function (b) { actions.appendChild(b); }); card.appendChild(actions);
-  card.appendChild(node("p", "Без сети можно продолжать занятия. Ключ OpenAI хранится отдельно на каждом устройстве и в облако не отправляется.", "note"));
+  card.appendChild(node("p", "Без сети можно продолжать занятия. Прогресс отправится в облако после восстановления связи.", "note"));
   var backups = node("section", "", "cloud-backups");
   var load = node("button", "Занятия с других устройств", "btn sec"); load.type = "button"; backups.appendChild(load);
   var list = node("div"); backups.appendChild(list); card.appendChild(backups);
   var advanced = node("details", "", "cloud-config"); advanced.appendChild(node("summary", "Подключение Firebase"));
   var form = node("form"), label = node("label", "Параметры веб-приложения (JSON)"); label.htmlFor = "firebase-config"; form.appendChild(label);
-  var config = node("textarea", "", "ai-input"); config.id = "firebase-config"; config.rows = 5; config.spellcheck = false;
+  var config = node("textarea", "", "cloud-input"); config.id = "firebase-config"; config.rows = 5; config.spellcheck = false;
   config.setAttribute("autocapitalize", "none"); config.placeholder = '{"apiKey":"AIza…","projectId":"…","authDomain":"….firebaseapp.com","appId":"1:…:web:…"}';
   try { var value = cloud.config(); if (value) config.value = JSON.stringify(value, null, 2); else advanced.open = true; } catch (e) { status.textContent = e.message; advanced.open = true; }
   form.appendChild(config); var save = node("button", "Сохранить подключение", "btn sec"); save.type = "submit"; form.appendChild(save); advanced.appendChild(form); card.appendChild(advanced);

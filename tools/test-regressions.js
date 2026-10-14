@@ -519,3 +519,19 @@ test("удалённый пример не используется вариан
   assert.equal(w.ReviewPlan.variant(item, w.Store.state()), ex);
   assert.equal(w.ReviewPlan.deleted({ id: "L18D0-0", ex: alternative }, w.Store.state()), true);
 });
+
+test("удалённое подключение очищает старый ключ, сохраняя прогресс и совместимость журнала", () => {
+  const old = stored(); old.wordHints = { 'G:alt': 'Старая подсказка' };
+  const w = env.load(SYNC, { storage: {
+    'de-openai-settings-v1': JSON.stringify({ key: 'sk-test-obsolete', model: 'old' }),
+    'de-b1-progress-v1': JSON.stringify(old)
+  } });
+  assert.equal(w.localStorage.getItem('de-openai-settings-v1'), null);
+  assert.equal(w.Store.state().totalTried, old.totalTried);
+  assert.equal(w.Store.state().wordHints['G:alt'], 'Старая подсказка');
+  w.Store.mutate('wordHint', { key: 'G:alt', text: 'Историческая операция' });
+  const restored = env.load(SYNC); restored.Store.importBackup(w.Store.exportBackup());
+  assert.equal(restored.Store.state().totalTried, old.totalTried);
+  assert.equal(restored.Store.state().wordHints['G:alt'], 'Историческая операция');
+  assert.ok(!w.Store.exportBackup().includes('sk-test-obsolete'));
+});

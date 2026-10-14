@@ -116,7 +116,7 @@ window.Cloud = (function () {
     var generation = epoch; writing = true; emit("Синхронизирую…");
     return Promise.resolve().then(function () { return upload(generation); }).then(function () {
       if (generation !== epoch) return;
-      writing = false; emit("Прогресс и подсказки синхронизированы.");
+      writing = false; emit("Прогресс синхронизирован.");
       /* Ответ во время запроса не должен остаться без отправки. */
       if (window.Store.cloudOperations().some(function (op) { return !known[op.device + ":" + op.seq]; }) || payload(aux()) !== lastAux) schedule();
     }, function (e) {

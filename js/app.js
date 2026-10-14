@@ -9,7 +9,7 @@
      чтение состояния и вызов мутаций — прямых присваиваний в S больше нет. */
   var Store = window.Store;
   var S = Store.state();
-  var working = false, routeId = 0, disposeAssistant = null, disposeUpdates = null;
+  var working = false, routeId = 0, disposeCloud = null, disposeUpdates = null;
 
   Store.onChange(function (next) {
     S = next;
@@ -21,7 +21,7 @@
      или карточки пересобирать нельзя, иначе ответ пропадёт на полуслове.
      Списки и главная перерисовываются всегда — именно на них видно прогресс. */
   /* Текущий маршрут. Всё, что не похоже на наш маршрут, считается главной. */
-  var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|review|more(\/(openai|cloud))?|l\d+(\/(g|d)\d+)?)?$/;
+  var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|review|more(\/cloud)?|l\d+(\/(g|d)\d+)?)?$/;
   function curPath() {
     var h = location.hash.replace(/^#/, "");
     return ROUTE_RE.test(h) ? h : "/";
@@ -64,7 +64,7 @@
 
   function route() {
     if (disposeUpdates) { disposeUpdates(); disposeUpdates = null; }
-    if (disposeAssistant) { disposeAssistant(); disposeAssistant = null; }
+    if (disposeCloud) { disposeCloud(); disposeCloud = null; }
     routeId++; working = false; document.onkeydown = null;
     var h = curPath();
     var m;
@@ -79,13 +79,9 @@
     if (h === "/vocab/repeat") return viewVocab("repeat");
     if (h === "/vocab/calibrate") return viewVocab("calib");
     if (h === "/more") return viewMore();
-    if (h === "/more/openai") {
-      working = true; app.innerHTML = "";
-      disposeAssistant = window.mountGermanAI(app, function () { go("/more"); }); return;
-    }
     if (h === "/more/cloud") {
       working = true; app.innerHTML = "";
-      disposeAssistant = window.mountCloud(app, function () { go("/more"); }); return;
+      disposeCloud = window.mountCloud(app, function () { go("/more"); }); return;
     }
     if ((m = h.match(/^\/l(\d+)$/))) return viewLesson(+m[1]);
     if ((m = h.match(/^\/l(\d+)\/g(\d+)$/))) return viewGrammar(+m[1], +m[2]);
@@ -575,9 +571,6 @@
     };
     rows.appendChild(themeRow);
 
-    var aiRow = el("button", "row", 'Подключение OpenAI<span class="val">Ключ и модель →</span>');
-    aiRow.onclick = function () { go("/more/openai"); };
-    rows.appendChild(aiRow);
     var cloudRow = el("button", "row", 'Облако и вход<span class="val">Firebase →</span>');
     cloudRow.onclick = function () { go("/more/cloud"); };
     rows.appendChild(cloudRow);
@@ -1021,20 +1014,6 @@
     card.appendChild(intervalProgress);
     var host = el("div", "vhost");
     card.appendChild(host);
-    var chatButton = el("button", "btn sec word-chat-open", "Спросить о слове");
-    chatButton.type = "button";
-    card.appendChild(chatButton);
-    var chatOpen = false, chats = Object.create(null);
-    chatButton.onclick = function () {
-      if (busy || chatOpen || i >= list.length) return;
-      var it = list[i], key = it.key.slice(0, -3);
-      peeked = true; stash();
-      chatOpen = true;
-      if (!chats[key]) chats[key] = { messages: [], draft: "" };
-      disposeAssistant = window.mountWordChat(it.w, chats[key], function () {
-        chatOpen = false; disposeAssistant = null; chatButton.focus();
-      }, key);
-    };
     app.appendChild(card);
     app.classList.add("tight");
 
@@ -1271,7 +1250,7 @@
     }
 
     document.onkeydown = function (e) {
-      if (chatOpen || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target && e.target.tagName)) return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target && e.target.tagName)) return;
       if (e.key === " " || e.key === "Enter") { e.preventDefault(); flipCard(); }
       else if (e.key === "1") { e.preventDefault(); answer(true); }
       else if (e.key === "2") { e.preventDefault(); answer(false); }
