@@ -535,3 +535,42 @@ test("удалённое подключение очищает старый кл
   assert.equal(restored.Store.state().wordHints['G:alt'], 'Историческая операция');
   assert.ok(!w.Store.exportBackup().includes('sk-test-obsolete'));
 });
+
+test('отмена ответа восстанавливает обе стороны слова и переживает загрузку журнала', () => {
+  for (const type of ['vocabWordReview', 'vocabKnown']) {
+    const win = env.load(SYNC);
+    const before = { 'V:Test|ru': null, 'V:Test|de': null };
+    if (type === 'vocabKnown') win.Store.mutate(type, { key: 'V:Test' });
+    else win.Store.mutate(type, { key: 'V:Test|ru', ok: false, expectedDue: 0, day: '2026-10-15' });
+    const after = JSON.parse(JSON.stringify({ 'V:Test|ru': win.Store.state().vocab['V:Test|ru'] || null, 'V:Test|de': win.Store.state().vocab['V:Test|de'] || null }));
+    const args = { key: 'V:Test', before, after, beforeLevel: 1, afterLevel: 1, beforeCalibrated: false, afterCalibrated: false };
+    win.Store.mutate('vocabUndo', args);
+    assert.equal(Object.keys(win.Store.state().vocab).length, 0);
+    const reload = env.load(SYNC, { storage: win.localStorage._dump() });
+    assert.equal(Object.keys(reload.Store.state().vocab).length, 0);
+    reload.Store.mutate('vocabKnown', { key: 'V:Test' });
+    reload.Store.mutate('vocabKnown', { key: 'V:Test' });
+    const changed = JSON.stringify(reload.Store.state().vocab);
+    reload.Store.mutate('vocabUndo', args);
+    assert.equal(JSON.stringify(reload.Store.state().vocab), changed);
+  }
+});
+
+test('отмена не затирает новый ответ другого устройства и не затрагивает другие слова', () => {
+  const win = env.load(SYNC);
+  const base = reviewWord(30);
+  const first = wordOp(1, 'ru', true);
+  const half = win.Store._reduce(base, [first]);
+  const before = { 'V:Test|ru': base.vocab['V:Test|ru'], 'V:Test|de': null };
+  const after = { 'V:Test|ru': half.vocab['V:Test|ru'], 'V:Test|de': null };
+  const undo = { type: 'vocabUndo', key: 'V:Test', before, after, beforeLevel: 1, afterLevel: 1,
+    beforeCalibrated: true, afterCalibrated: true, device: 'one', seq: 3, lc: 3, t: T + 100 };
+  win.ProgressData.operation(undo);
+  undo.after['V:Test|ru'] = Object.fromEntries(Object.entries(undo.after['V:Test|ru']).reverse());
+  assert.deepEqual(JSON.parse(JSON.stringify(win.Store._reduce(base, [first, undo]).vocab)), base.vocab);
+  const second = { ...wordOp(2, 'de', true), device: 'two' };
+  const expected = win.Store._reduce(base, [first, second]);
+  const actual = win.Store._reduce(base, [undo, second, first, undo]);
+  assert.deepEqual(JSON.parse(JSON.stringify(actual.vocab)), JSON.parse(JSON.stringify(expected.vocab)));
+  assert.throws(() => win.ProgressData.operation({ ...undo, key: 'V:Other' }));
+});

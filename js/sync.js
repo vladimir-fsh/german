@@ -291,6 +291,27 @@ window.Store = (function () {
         apply(s, { type: "vocabReview", key: base + "|ru", ok: op.ok, t: op.t, seq: op.seq, day: op.day });
         return s;
 
+      /* Отмена затрагивает только это слово, если после ответа его не меняли. */
+      case "vocabUndo":
+        var same = Object.keys(op.after).every(function (key) {
+          var current = s.vocab[key] || null, expected = op.after[key];
+          if (!current || !expected) return current === expected;
+          var fields = Object.keys(current);
+          return fields.length === Object.keys(expected).length && fields.every(function (field) {
+            return JSON.stringify(current[field]) === JSON.stringify(expected[field]);
+          });
+        });
+        if (!same) return s;
+        Object.keys(op.before).forEach(function (key) {
+          if (op.before[key] === null) delete s.vocab[key];
+          else s.vocab[key] = clone(op.before[key]);
+        });
+        if (s.vocabLevel === op.afterLevel && !!s.calibrated === op.afterCalibrated) {
+          s.vocabLevel = op.beforeLevel;
+          s.calibrated = op.beforeCalibrated;
+        }
+        return s;
+
       case "wordHint":
         /* Совместимость исторических журналов после удаления чата. */
         if (!s.wordHints) s.wordHints = {};

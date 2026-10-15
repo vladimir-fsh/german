@@ -64,7 +64,9 @@
   --btn-text: #062e6f;
 }
 
-* { box-sizing: border-box; }
+/* Прокрутка пальцем остаётся доступной, полосы не занимают место. */
+* { box-sizing: border-box; scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
 html, body { margin: 0; padding: 0; background: var(--bg); }
 body {
   min-height: 100vh; min-height: 100dvh;
@@ -427,15 +429,19 @@ details.theory .gram { padding: 0 14px 14px; }
 .vdrag.held .vface { box-shadow: 0 18px 40px rgba(0,0,0,.22), 0 2px 6px rgba(0,0,0,.12); }
 
 .vword { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25; }
-.vword.vsmall { font-size: 24px; color: var(--accent); }
+.vword { overflow-wrap: anywhere; }
+.vback .vinner { max-height: 100%; overflow-y: auto; justify-content: flex-start; }
+.vundo { align-self: center; min-height: 44px; margin-top: 6px; flex-shrink: 0; }
 .vex { font-size: 16px; line-height: 1.55; }
 .vex i { display: block; font-style: normal; font-size: 14.5px; color: var(--text-dim); margin-top: 3px; }
 .vmeta { display: block; margin-top: 10px; font-size: 12px; color: var(--text-dim); }
 /* пометка регистра: слово не из бытовой речи */
 .vreg {
   align-self: center; font-size: 12px; line-height: 1.4; color: var(--accent);
-  background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; max-width: 100%;
+  background: var(--accent-soft); border-radius: 12px; padding: 8px 12px; max-width: 100%;
 }
+
+.vreg .vex { margin-top: 8px; color: var(--text); }
 
 /* Ранги повторения: металлическая оправа, скошенные углы и эмблема.
    Все детали принадлежат лицу карточки и переворачиваются вместе с ним. */
@@ -480,7 +486,7 @@ details.theory .gram { padding: 0 14px 14px; }
 .rank-legend .vframe { filter: drop-shadow(0 0 5px #ff9d3977) drop-shadow(0 2px 2px #8a392855); }
 .rank-legend .vflame { filter: drop-shadow(0 0 3px #ff622c); }
 .vscreen .vhost { flex: 1; min-height: 0; width: 100%; justify-content: center; margin: 8px 0 12px; }
-.vscreen .vstage { flex: 0 1 360px; min-height: 170px; max-height: 360px; }
+.vscreen .vstage { flex: 1; min-height: 170px; max-height: 620px; }
 .vscreen .vdeck { height: 100%; }
 .vframe { transition: opacity .18s ease-out; --frame-fire: #ff8b32; }
 .held .vframe { transition: none; }
@@ -511,7 +517,6 @@ details.theory .gram { padding: 0 14px 14px; }
 }
 @media (max-width: 560px) {
   .vword { font-size: 30px; }
-  .vword.vsmall { font-size: 23px; }
 }
 @media (max-height: 700px) {
   .vdeck { height: 280px; }

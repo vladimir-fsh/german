@@ -24,7 +24,8 @@ function setup(options = {}) {
   };
   vm.createContext(context);
   vm.runInContext(bind + '\nthis.bind = bindCard;', context);
-  context.bind(drag, {});
+  const body = options.scrollBody;
+  context.bind(drag, body ? { classList: { contains: () => true }, querySelector: () => body } : {});
   function event(type, x, y, pointerId = 1) {
     handlers[type]({ type, clientX: x, clientY: y, pointerId, button: 0, isPrimary: true });
   }
@@ -136,7 +137,7 @@ test('ошибка, повторная ошибка и успех после о�
   const it={key:'G:test|ru',dir:'ru',isNew:false}, effects=[];
   const context={window:win,Store:win.Store,S:win.Store.state(),busy:false,view:1,routeId:1,calib:false,peeked:false,
     list:[it],byKey:{},i:0,firstAnswered:{},newSeen:0,newKnown:0,doneCnt:0,total:1,expectedDue:0,
-    syncTabs(){},stash(){},advance(source,ok,schedule){effects.push({ok,rank:win.VocabFrames.rank(schedule).id,schedule:JSON.stringify(schedule)})}};
+    rememberAnswer(){},syncTabs(){},stash(){},advance(source,ok,schedule){effects.push({ok,rank:win.VocabFrames.rank(schedule).id,schedule:JSON.stringify(schedule)})}};
   context.vocabSchedule=item=>win.Store.vocabSchedule(win.Store.state().vocab,item.key.slice(0,-3));
   context.vocabGrade=(item,ok,first,expectedDue)=>{if(first)context.S=win.Store.mutate('vocabWordReview',{key:item.key,ok,expectedDue,day:'2026-10-13'})};
   vm.createContext(context);
@@ -151,4 +152,20 @@ test('ошибка, повторная ошибка и успех после о�
   assert.equal(effects[2].schedule,effects[0].schedule);
   assert.equal(effects[1].rank,effects[0].rank);
   assert.equal(effects[2].rank,effects[0].rank);
+});
+
+
+test('длинный оборот прокручивается вертикально без ответа, горизонтальный свайп остаётся', () => {
+  const body = { scrollHeight: 600, clientHeight: 300, scrollTop: 0 };
+  const h = setup({ scrollBody: body });
+  h.event('pointerdown', 180, 400);
+  h.event('pointermove', 180, 250);
+  h.event('pointerup', 180, 250);
+  assert.equal(body.scrollTop, 150);
+  assert.deepEqual(h.answers, []);
+  assert.equal(h.flips(), 0);
+  h.event('pointerdown', 180, 400);
+  h.event('pointermove', 280, 400);
+  h.event('pointerup', 280, 400);
+  assert.deepEqual(h.answers, [true]);
 });

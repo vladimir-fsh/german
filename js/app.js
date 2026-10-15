@@ -1030,17 +1030,68 @@
 
     var i = startI, revealed = false, busy = false, view = routeId, expectedDue = 0;
 
-    var peeked = false;
+    var peeked = false, lastAnswer = null;
+    var undoButton = el('button', 'btn sec vundo', 'Вернуть предыдущее');
+    undoButton.disabled = true;
+    card.appendChild(undoButton);
+    function wordEntries(key) {
+      var entries = {};
+      ['|ru', '|de'].forEach(function (dir) { entries[key + dir] = S.vocab[key + dir] || null; });
+      return JSON.parse(JSON.stringify(entries));
+    }
+    function rememberAnswer() {
+      var key = list[i].key.slice(0, -3);
+      lastAnswer = {
+        list: list.slice(), i: i, done: doneCnt, total: total,
+        first: JSON.parse(JSON.stringify(firstAnswered)), newSeen: newSeen, newKnown: newKnown,
+        calibStat: JSON.parse(JSON.stringify(calibStat)), peeked: peeked,
+        op: { key: key, before: wordEntries(key), beforeLevel: S.vocabLevel || 1, beforeCalibrated: !!S.calibrated }
+      };
+    }
+    function rememberResult() {
+      if (!lastAnswer) return;
+      lastAnswer.op.after = wordEntries(lastAnswer.op.key);
+      lastAnswer.op.afterLevel = S.vocabLevel || 1;
+      lastAnswer.op.afterCalibrated = !!S.calibrated;
+    }
+    undoButton.onclick = function () {
+      if (busy || !lastAnswer) return;
+      var previous = lastAnswer;
+      S = Store.mutate('vocabUndo', previous.op);
+      if (JSON.stringify(wordEntries(previous.op.key)) !== JSON.stringify(previous.op.before)) {
+        undoButton.textContent = 'Слово уже изменено на другом устройстве';
+        undoButton.disabled = true;
+        lastAnswer = null;
+        return;
+      }
+      list = previous.list; i = previous.i; doneCnt = previous.done; total = previous.total;
+      firstAnswered = previous.first; newSeen = previous.newSeen; newKnown = previous.newKnown;
+      calibStat = previous.calibStat;
+      lastAnswer = null;
+      app.innerHTML = '';
+      app.classList.remove('result-screen'); app.classList.add('tight');
+      app.appendChild(card); card.appendChild(undoButton);
+      window.onresize = fitScreen;
+      step();
+      peeked = previous.peeked;
+      if (peeked) { revealed = true; host.querySelector('.vflip').classList.add('flipped'); }
+      undoButton.disabled = true;
+      undoButton.textContent = 'Вернуть предыдущее';
+      stash(); syncTabs();
+    };
 
     var finishGesture = null;
     /* Ответ и позиция сохраняются до эффекта, следующий свайп блокируется. */
     function advance(source, ok, schedule) {
       busy = true;
+      rememberResult();
+      undoButton.disabled = true;
       if (finishGesture) finishGesture(source === "known-swipe" || (calib && ok) ? "known" : ok ? "good" : "bad", schedule);
       var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       setTimeout(function () {
         if (view !== routeId) return;
         busy = false;
+        undoButton.disabled = false;
         step();
       }, reduced ? 120 : 460);
     }
@@ -1058,10 +1109,12 @@
       var de2ru = it.dir === "de";
       var b = el("div", "vface vback");
       var inner = el("div", "vinner");
-      inner.innerHTML = '<div class="vword vsmall">' + esc(de2ru ? it.w.ru : it.w.de) + "</div>" +
+      inner.innerHTML = '<div class="vword">' + esc(de2ru ? it.w.ru : it.w.de) + "</div>" +
         (it.w.ex ? '<div class="vex">' + esc(it.w.ex) +
           (it.w.exru ? "<i>" + esc(it.w.exru) + "</i>" : "") + "</div>" : "") +
-        (it.w.reg ? '<div class="vreg">' + esc(it.w.reg) + "</div>" : "");
+        (it.w.reg ? '<div class="vreg">' + esc(it.w.reg) +
+          (it.w.regEx ? '<div class="vex">' + esc(it.w.regEx) +
+            (it.w.regExRu ? '<i>' + esc(it.w.regExRu) + '</i>' : '') + '</div>' : '') + '</div>' : '');
       b.appendChild(inner);
       window.VocabFrames.decorate(b, vocabSchedule(it));
       return b;
@@ -1095,6 +1148,7 @@
 
       stage.appendChild(deck);
       host.appendChild(stage);
+      fitScreen();
 
       bindCard(drag, flip);
 
@@ -1105,7 +1159,7 @@
     /* Отпускание сохраняет ответ; рамка получает фактическое расписание. */
     function bindCard(drag, flip) {
       var x0 = 0, y0 = 0, dx = 0, dy = 0, pointer = null, axis = "", locked = false, moved = false;
-      var lastX = 0, lastT = 0, vx = 0;
+      var lastX = 0, lastT = 0, vx = 0, scrollBody = null, scrollStart = 0;
       var W = Math.max(46, Math.min(90, window.innerWidth * 0.18));
       var UP = Math.max(70, Math.min(120, window.innerHeight * 0.12));
       var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1131,6 +1185,9 @@
 
       drag.addEventListener("pointerdown", function (e) {
         if (busy || pointer !== null || e.isPrimary === false || (e.button !== undefined && e.button !== 0)) return;
+        scrollBody = flip.classList && flip.classList.contains('flipped') ? flip.querySelector('.vback .vinner') : null;
+        if (scrollBody && scrollBody.scrollHeight <= scrollBody.clientHeight + 1) scrollBody = null;
+        scrollStart = scrollBody ? scrollBody.scrollTop : 0;
         pointer = e.pointerId;
         axis = ""; locked = false; moved = false; dx = 0; dy = 0; vx = 0;
         x0 = lastX = e.clientX; y0 = e.clientY; lastT = Date.now();
@@ -1147,6 +1204,10 @@
           if (Math.max(Math.abs(dx), Math.abs(dy)) >= 40) locked = true;
         }
         moved = true;
+        if (axis === 'y' && scrollBody) {
+          scrollBody.scrollTop = scrollStart - dy;
+          return;
+        }
         var now = Date.now(), dt = now - lastT;
         if (dt > 0) vx = (e.clientX - lastX) / dt;
         lastX = e.clientX; lastT = now;
@@ -1161,6 +1222,7 @@
         if (busy || view !== routeId) return;
         drag.classList.remove("held");
         var cancelled = e.type !== "pointerup";
+        if (moved && axis === 'y' && scrollBody) { reset(); return; }
         if (!cancelled && moved) {
           if (axis === "y" && !calib && dy <= -UP) { answerKnown("known-swipe"); return; }
           var flick = Date.now() - lastT < 100 && Math.abs(vx) > .5 && Math.abs(dx) > 24 && (vx > 0) === (dx > 0);
@@ -1187,6 +1249,7 @@
     function answerKnown(source) {
       if (busy || view !== routeId) return;
       if (peeked) { answer(true, "swipe"); return; }
+      rememberAnswer();
       var it = list[i];
       var base = it.key.slice(0, -3);
       if (!firstAnswered[it.key] && it.isNew) { newSeen++; newKnown++; }
@@ -1210,6 +1273,7 @@
     function answer(ok, source) {
       if (busy || view !== routeId) return;
       if (calib && peeked) ok = false;
+      rememberAnswer();
       var it = list[i];
       if (calib) {
         /* калибровка ничего не планирует: знакомое закрываем, незнакомое не трогаем */
@@ -1263,6 +1327,7 @@
       if (calib) return finishCalib();
 
       var moved = vocabTuneLevel(newSeen, newKnown);
+      rememberResult();
       var sp = vocabSplit();
       app.innerHTML = "";
       var ws = vocabWordStats();
@@ -1291,6 +1356,7 @@
       var b = el("button", "btn sec", "На главную");
       b.onclick = function () { go("/"); };
       r.appendChild(b);
+      if (lastAnswer) r.appendChild(undoButton);
       c.appendChild(r);
       app.appendChild(c);
     }
@@ -1310,6 +1376,7 @@
       }
       lvl = known ? Math.min(V_LEVELS, lvl + (known === shown ? 2 : 1)) : 1;
       S = Store.mutate("calibrate", { level: lvl });
+      rememberResult();
       syncTabs();
 
       app.innerHTML = "";
@@ -1331,6 +1398,7 @@
       var b2 = el("button", "btn sec", "На главную");
       b2.onclick = function () { go("/"); };
       r.appendChild(b); r.appendChild(b2);
+      if (lastAnswer) r.appendChild(undoButton);
       c.appendChild(r);
       app.appendChild(c);
     }
