@@ -537,7 +537,7 @@ test("удалённое подключение очищает старый кл
 });
 
 test('отмена ответа восстанавливает обе стороны слова и переживает загрузку журнала', () => {
-  for (const type of ['vocabWordReview', 'vocabKnown']) {
+  for (const type of ['vocabWordReview', 'vocabWordReviewDeferred', 'vocabKnown']) {
     const win = env.load(SYNC);
     const before = { 'V:Test|ru': null, 'V:Test|de': null };
     if (type === 'vocabKnown') win.Store.mutate(type, { key: 'V:Test' });
@@ -573,4 +573,48 @@ test('отмена не затирает новый ответ другого у
   const actual = win.Store._reduce(base, [undo, second, first, undo]);
   assert.deepEqual(JSON.parse(JSON.stringify(actual.vocab)), JSON.parse(JSON.stringify(expected.vocab)));
   assert.throws(() => win.ProgressData.operation({ ...undo, key: 'V:Other' }));
+});
+
+test('новые ошибки ждут 12 часов на обеих сторонах; исторический журнал сохраняет минуту', () => {
+  const win = env.load(SYNC), store = win.Store;
+  for (const dir of ['ru', 'de']) {
+    const first = dir === 'de' ? [wordOp(1, 'ru', true)] : [];
+    const failed = { ...wordOp(2, dir, false), type: 'vocabWordReviewDeferred' };
+    win.ProgressData.operation(failed);
+    const current = store._reduce(reviewWord(30), first.concat(failed));
+    assert.equal(current.vocab['V:Test|ru'].due, T + 12 * 3600000);
+    assert.equal(current.vocab['V:Test|ru'].pairRu, false);
+    const early = { ...wordOp(3, 'ru', true, T + 60000, T + 12 * 3600000), type: 'vocabWordReviewDeferred' };
+    assert.deepEqual(store._reduce(current, [early]).vocab, current.vocab);
+    assert.equal(store._reduce(reviewWord(30), first.concat({ ...failed, type: 'vocabWordReview' })).vocab['V:Test|ru'].due, T + 60000);
+    const reload = env.load(SYNC, { storage: { 'de-b1-progress-v1': JSON.stringify(current) } });
+    const imported = env.load(SYNC);
+    imported.Store.importBackup(reload.Store.exportBackup());
+    assert.equal(imported.Store.state().vocab['V:Test|ru'].due, T + 12 * 3600000);
+  }
+});
+
+test('повторить не выбирает ошибку до 12 часов; черновик не возвращает отвеченные слова', () => {
+  const win = env.load(SYNC), vm = require('node:vm');
+  win.COURSE = []; win.VOCAB = [{ de: 'Test', ru: 'тест', f: 1 }];
+  const failed = { ...wordOp(1, 'ru', false, T, 0), type: 'vocabWordReviewDeferred' };
+  const state = win.Store._reduce(null, [failed]);
+  let now = T + 12 * 3600000 - 1;
+  const context = vm.createContext({window:win,Store:win.Store,S:state,CFG:win.SRS_CONFIG,V_LEVELS:5,
+    Date: { now: () => now }, E:{shuffle:items=>items}});
+  const source = require('node:fs').readFileSync(env.ROOT+'/js/app.js','utf8');
+  vm.runInContext(source.slice(source.indexOf('  function vocabPool()'),source.indexOf('  /* Незакрытая сессия')),context);
+  vm.runInContext(source.slice(source.indexOf('  function vocabResume('),source.indexOf('  /* ---------- экран карточек')),context);
+  assert.equal(context.vocabRepeatPlan().length,0);
+  const cards={}; context.vocabCards().forEach(card=>{cards[card.key]=card;});
+  const saved={policy:2,mode:'repeat',keys:['V:Test|ru'],i:0,done:0,first:{'V:Test|ru':true},peeked:true};
+  const resumed=context.vocabResume(saved,cards);
+  assert.equal(resumed.i,1); assert.equal(resumed.done,1); assert.equal(resumed.peeked,false);
+  assert.equal(saved.i,0);
+  const elsewhere=context.vocabResume({...saved,first:{}},cards);
+  assert.equal(elsewhere.i,1);
+  now++;
+  assert.equal(context.vocabRepeatPlan().length,1);
+  const ready=context.vocabResume({...saved,first:{}},cards);
+  assert.equal(ready.i,0);
 });

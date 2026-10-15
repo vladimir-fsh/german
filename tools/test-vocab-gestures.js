@@ -129,7 +129,7 @@ test('эффект ответа использует переданное рас
   assert.equal(h.frames.at(-1),schedule);
 });
 
-test('ошибка, повторная ошибка и успех после ошибки показывают фактический ранг без новых повышений или понижений', () => {
+test('ошибка показывает фактический ранг и завершает карточку без возврата в круг', () => {
   const win=require('./env.js').load(['js/progress-data.js','js/srs-config.js','js/sync.js','js/vocab-frames.js']);
   const state=JSON.parse(JSON.stringify(win.Store.state()));
   state.vocab['G:test|ru']={iv:7,stage:'review',due:0,ease:2.5,reps:3,wordSchedule:1};
@@ -139,19 +139,18 @@ test('ошибка, повторная ошибка и успех после о�
     list:[it],byKey:{},i:0,firstAnswered:{},newSeen:0,newKnown:0,doneCnt:0,total:1,expectedDue:0,
     rememberAnswer(){},syncTabs(){},stash(){},advance(source,ok,schedule){effects.push({ok,rank:win.VocabFrames.rank(schedule).id,schedule:JSON.stringify(schedule)})}};
   context.vocabSchedule=item=>win.Store.vocabSchedule(win.Store.state().vocab,item.key.slice(0,-3));
-  context.vocabGrade=(item,ok,first,expectedDue)=>{if(first)context.S=win.Store.mutate('vocabWordReview',{key:item.key,ok,expectedDue,day:'2026-10-13'})};
+  context.vocabGrade=(item,ok,first,expectedDue)=>{if(first)context.S=win.Store.mutate('vocabWordReviewDeferred',{key:item.key,ok,expectedDue,day:'2026-10-13'})};
   vm.createContext(context);
   const answer=source.slice(source.indexOf('    function answer(ok, source)'),source.indexOf('    document.onkeydown = function (e)',source.indexOf('    function answer(ok, source)')));
   vm.runInContext(answer+'\nthis.submit=answer;',context);
   assert.equal(win.VocabFrames.rank(context.vocabSchedule(it)).id,'gold');
   context.submit(false,'swipe');
   assert.equal(effects[0].rank,win.VocabFrames.rank(context.vocabSchedule(it)).id);
-  context.submit(false,'swipe');
-  context.submit(true,'swipe');
-  assert.equal(effects[1].schedule,effects[0].schedule);
-  assert.equal(effects[2].schedule,effects[0].schedule);
-  assert.equal(effects[1].rank,effects[0].rank);
-  assert.equal(effects[2].rank,effects[0].rank);
+  assert.equal(context.i, 1);
+  assert.equal(context.doneCnt, 1);
+  assert.equal(context.list.length, 1);
+  assert.equal(context.vocabSchedule(it).due - context.vocabSchedule(it).t, 12 * 3600000);
+
 });
 
 

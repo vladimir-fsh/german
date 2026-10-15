@@ -269,6 +269,7 @@ window.Store = (function () {
 
       /* Общее расписание слова: на длинном интервале два ответа = один шаг.
          expectedDue и направление защищают от повторного ответа другой вкладки. */
+      case "vocabWordReviewDeferred":
       case "vocabWordReview":
         var base = op.key.slice(0, -3), dir = op.key.slice(-2);
         v = vocabSchedule(s.vocab, base);
@@ -289,6 +290,9 @@ window.Store = (function () {
         s.vocab[base + "|ru"] = v;
         /* Исторический алгоритм коротких шагов остаётся неизменным. */
         apply(s, { type: "vocabReview", key: base + "|ru", ok: op.ok, t: op.t, seq: op.seq, day: op.day });
+        if (op.type === "vocabWordReviewDeferred" && !op.ok) {
+          s.vocab[base + "|ru"].due = op.t + cfg("wordRetryHours", 12) * 3600000;
+        }
         return s;
 
       /* Отмена затрагивает только это слово, если после ответа его не меняли. */

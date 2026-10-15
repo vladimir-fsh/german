@@ -682,9 +682,9 @@
   }
 
   /* ---------- карточки слов ----------
-     Первый ответ меняет расписание через vocabWordReview. Повторы внутри
-     сессии помогают извлечению, но не увеличивают интервал. Параметры
-     короткого обучения и дневного лимита заданы в srs-config.js. */
+     Ответ меняет расписание через vocabWordReviewDeferred и убирает карточку
+     из текущей сессии. Ошибка ждёт 12 часов. Параметры обучения и дневного
+     лимита заданы в srs-config.js. */
   var CFG = window.SRS_CONFIG || {};
   var V_SESSION = CFG.sessionNew || 10;   /* потолок обычной сессии */
   var V_NEW = CFG.sessionNew || 10;       /* столько новых даёт добор по кнопке */
@@ -868,7 +868,7 @@
 
   /* firstTry === false — ответ-повтор внутри сессии, расписание не трогаем */
   function vocabGrade(it, ok, firstTry, expectedDue) {
-    if (firstTry) S = Store.mutate("vocabWordReview", { key: it.key, ok: ok, expectedDue: expectedDue, day: window.ProgressData.day(new Date()) });
+    if (firstTry) S = Store.mutate("vocabWordReviewDeferred", { key: it.key, ok: ok, expectedDue: expectedDue, day: window.ProgressData.day(new Date()) });
   }
 
   /* Закрытые ранее слова включают самооценку, поэтому это не доказанное знание. */
@@ -901,6 +901,7 @@
     if (v.pairRu) return "½ интервала · осталось немецкий → русский";
     var distance = v.due - Date.now();
     if (distance > 0 && distance < 3600e3) return "через " + Math.ceil(distance / 60000) + " мин.";
+    if (distance >= 3600e3 && distance < 864e5) return "через " + Math.ceil(distance / 3600e3) + " ч.";
     var d = Math.ceil(distance / 864e5);
     if (d <= 0) return "снова сегодня";
     if (d === 1) return "через день";
@@ -912,21 +913,30 @@
   /* В старой сессии могли остаться независимые немецкие карточки.
      Выполненная часть сохраняется; оставшаяся получает актуальное направление. */
   function vocabResume(saved, byKey) {
-    if (!saved || saved.policy === 2) return saved;
+    if (!saved) return saved;
     saved = JSON.parse(JSON.stringify(saved));
-    var keys = saved.keys.slice(0, saved.i), taken = {}, newKeys = [];
+    var completed = saved.keys.slice(0, saved.i), remaining = [], taken = {}, newKeys = [];
+    var currentKey = saved.keys[saved.i], now = Date.now();
     saved.keys.slice(saved.i).forEach(function (key) {
       var base = key.slice(0, -3), v = Store.vocabSchedule(S.vocab, base);
-      if (taken[base] || (v && v.learned)) return;
+      if (taken[base]) return;
+      if (saved.mode !== 'calib' && ((v && (v.learned || v.due > now)) || (saved.first && saved.first[key]))) {
+        completed.push(key);
+        saved.done = (saved.done || 0) + 1;
+        taken[base] = true;
+        return;
+      }
       taken[base] = true;
       var dir = Store.vocabPaired(v) && v.pairRu ? "de" : "ru";
       var next = base + "|" + dir;
       if (!byKey[next]) return;
-      keys.push(next);
+      remaining.push(next);
       if (!v) newKeys.push(next);
       if (key !== next && saved.first) delete saved.first[next];
     });
-    saved.keys = keys; saved.newKeys = newKeys; saved.policy = 2;
+    saved.keys = completed.concat(remaining); saved.i = completed.length;
+    saved.newKeys = newKeys; saved.policy = 2;
+    if (saved.keys[saved.i] !== currentKey) saved.peeked = false;
     return saved;
   }
 
@@ -1299,15 +1309,9 @@
         }
       }
       syncTabs();
-      if (ok) {
-        doneCnt++;
-        i++;
-      } else {
-        /* не вспомнил — слово уходит в конец очереди, то есть вернётся
-           только после того, как пройден весь круг из десяти */
-        list.splice(i, 1);
-        list.push(it);
-      }
+      /* Любой ответ завершает карточку; ошибка ждёт своего срока вне сессии. */
+      doneCnt++;
+      i++;
       peeked = false;
       stash();
       advance(source, ok, schedule);
