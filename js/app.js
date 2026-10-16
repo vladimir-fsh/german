@@ -1041,9 +1041,6 @@
     var i = startI, revealed = false, busy = false, view = routeId, expectedDue = 0;
 
     var peeked = false, lastAnswer = null;
-    var undoButton = el('button', 'btn sec vundo', 'Вернуть предыдущее');
-    undoButton.disabled = true;
-    card.appendChild(undoButton);
     function wordEntries(key) {
       var entries = {};
       ['|ru', '|de'].forEach(function (dir) { entries[key + dir] = S.vocab[key + dir] || null; });
@@ -1064,13 +1061,12 @@
       lastAnswer.op.afterLevel = S.vocabLevel || 1;
       lastAnswer.op.afterCalibrated = !!S.calibrated;
     }
-    undoButton.onclick = function () {
-      if (busy || !lastAnswer) return;
+    function undoPrevious() {
+      if (busy || !lastAnswer || view !== routeId) return;
       var previous = lastAnswer;
       S = Store.mutate('vocabUndo', previous.op);
       if (JSON.stringify(wordEntries(previous.op.key)) !== JSON.stringify(previous.op.before)) {
-        undoButton.textContent = 'Слово уже изменено на другом устройстве';
-        undoButton.disabled = true;
+        app.appendChild(el('div', 'note', 'Слово уже изменено на другом устройстве. Отмена недоступна.'));
         lastAnswer = null;
         return;
       }
@@ -1080,28 +1076,48 @@
       lastAnswer = null;
       app.innerHTML = '';
       app.classList.remove('result-screen'); app.classList.add('tight');
-      app.appendChild(card); card.appendChild(undoButton);
+      app.appendChild(card);
       window.onresize = fitScreen;
       step();
       peeked = previous.peeked;
       if (peeked) { revealed = true; host.querySelector('.vflip').classList.add('flipped'); }
-      undoButton.disabled = true;
-      undoButton.textContent = 'Вернуть предыдущее';
       stash(); syncTabs();
     };
+
+    /* На итоге тот же жест вниз; обычная прокрутка и кнопки его не запускают. */
+    function bindResultUndo(result) {
+      var start = null, distance = 0;
+      result.addEventListener('touchstart', function (event) {
+        start = null; distance = 0;
+        if (event.touches.length !== 1 || event.target.closest('button, a, input, textarea, select, [contenteditable]')) return;
+        if ((document.scrollingElement || document.documentElement).scrollTop > 1) return;
+        start = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      }, { passive: true });
+      result.addEventListener('touchmove', function (event) {
+        if (!start) return;
+        if (event.touches.length !== 1) { start = null; return; }
+        var dx = event.touches[0].clientX - start.x, dy = event.touches[0].clientY - start.y;
+        distance = dy > 0 && dy > Math.abs(dx) * 1.4 ? dy : 0;
+        if (distance > 14 && event.cancelable) event.preventDefault();
+      }, { passive: false });
+      result.addEventListener('touchend', function () {
+        var undo = start && distance >= 100;
+        start = null; distance = 0;
+        if (undo) undoPrevious();
+      });
+      result.addEventListener('touchcancel', function () { start = null; distance = 0; });
+    }
 
     var finishGesture = null;
     /* Ответ и позиция сохраняются до эффекта, следующий свайп блокируется. */
     function advance(source, ok, schedule) {
       busy = true;
       rememberResult();
-      undoButton.disabled = true;
       if (finishGesture) finishGesture(source === "known-swipe" || (calib && ok) ? "known" : ok ? "good" : "bad", schedule);
       var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       setTimeout(function () {
         if (view !== routeId) return;
         busy = false;
-        undoButton.disabled = false;
         step();
       }, reduced ? 120 : 460);
     }
@@ -1214,7 +1230,7 @@
           if (Math.max(Math.abs(dx), Math.abs(dy)) >= 40) locked = true;
         }
         moved = true;
-        if (axis === 'y' && scrollBody) {
+        if (axis === 'y' && scrollBody && !(dy > 0 && scrollStart <= 1)) {
           scrollBody.scrollTop = scrollStart - dy;
           return;
         }
@@ -1232,8 +1248,9 @@
         if (busy || view !== routeId) return;
         drag.classList.remove("held");
         var cancelled = e.type !== "pointerup";
-        if (moved && axis === 'y' && scrollBody) { reset(); return; }
+        if (moved && axis === 'y' && scrollBody && !(dy > 0 && scrollStart <= 1)) { reset(); return; }
         if (!cancelled && moved) {
+          if (axis === "y" && dy >= UP) { reset(); undoPrevious(); return; }
           if (axis === "y" && !calib && dy <= -UP) { answerKnown("known-swipe"); return; }
           var flick = Date.now() - lastT < 100 && Math.abs(vx) > .5 && Math.abs(dx) > 24 && (vx > 0) === (dx > 0);
           if (axis === "x" && (Math.abs(dx) >= W || flick)) { answer(dx > 0, "swipe"); return; }
@@ -1360,7 +1377,7 @@
       var b = el("button", "btn sec", "На главную");
       b.onclick = function () { go("/"); };
       r.appendChild(b);
-      if (lastAnswer) r.appendChild(undoButton);
+      bindResultUndo(c);
       c.appendChild(r);
       app.appendChild(c);
     }
@@ -1402,7 +1419,7 @@
       var b2 = el("button", "btn sec", "На главную");
       b2.onclick = function () { go("/"); };
       r.appendChild(b); r.appendChild(b2);
-      if (lastAnswer) r.appendChild(undoButton);
+      bindResultUndo(c);
       c.appendChild(r);
       app.appendChild(c);
     }

@@ -20,6 +20,7 @@ function setup(options = {}) {
     Date, setTimeout: (fn) => timers.push(fn),
     answer: ok => { answers.push(ok); context.busy = true; },
     answerKnown: () => { answers.push('known'); context.busy = true; },
+    undoPrevious: () => { if (options.canUndo) answers.push('undo'); },
     flipCard: () => flips++
   };
   vm.createContext(context);
@@ -167,4 +168,24 @@ test('длинный оборот прокручивается вертикал�
   h.event('pointermove', 280, 400);
   h.event('pointerup', 280, 400);
   assert.deepEqual(h.answers, [true]);
+});
+
+
+test('свайп вниз возвращает слово, короткий и отменённый жест ничего не меняют', () => {
+  const h = setup({canUndo:true});
+  h.event('pointerdown',180,300); h.event('pointermove',180,340); h.event('pointerup',180,340);
+  assert.deepEqual(h.answers,[]);
+  h.event('pointerdown',180,300); h.event('pointermove',180,440); h.event('pointercancel',180,440);
+  assert.deepEqual(h.answers,[]);
+  h.event('pointerdown',180,300); h.event('pointermove',180,440); h.event('pointerup',180,440);
+  assert.deepEqual(h.answers,['undo']);
+});
+
+test('длинный оборот: отмена только при начале жеста у верхнего края', () => {
+  for (const top of [0,100]) {
+    const body={scrollHeight:600,clientHeight:300,scrollTop:top};
+    const h=setup({canUndo:true,scrollBody:body});
+    h.event('pointerdown',180,300); h.event('pointermove',180,440); h.event('pointerup',180,440);
+    assert.deepEqual(h.answers,top===0?['undo']:[]);
+  }
 });
