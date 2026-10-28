@@ -817,6 +817,8 @@
     for (var lvl = 1; lvl <= V_LEVELS; lvl++) {
       var bucket = [];
       (window.VOCAB || []).forEach(function (w) {
+        /* Названия и сокращения остаются в обучении, но не измеряют словарный запас. */
+        if (w.calibrate === false) return;
         if ((w.f || 1) !== lvl) return;
         var base = "V:" + (w.id || w.de), key = base + "|ru";
         if (window.Store.vocabSchedule(S.vocab, base)) return;

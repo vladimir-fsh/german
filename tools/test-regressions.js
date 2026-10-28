@@ -154,6 +154,45 @@ test("повседневные варианты сохраняют старые 
   }
 });
 
+test("названия остаются в обучении, но не определяют ступень калибровки", () => {
+  const win = env.load(["data/vocab.js"].concat(SYNC));
+  win.COURSE = { lessons: [] };
+  const names = new Set(["Afrika", "Amerika", "Berlin", "China"]);
+  const source = require("node:fs").readFileSync(env.ROOT + "/js/app.js", "utf8");
+  const context = require("node:vm").createContext({
+    window: win, S: win.Store.state(), V_LEVELS: 5, CFG: win.SRS_CONFIG,
+    E: { shuffle: (items) => items.slice().sort((a, b) => Number(names.has(b.w.de)) - Number(names.has(a.w.de))) }
+  });
+  require("node:vm").runInContext(source.slice(source.indexOf("  function vocabPool()"),
+    source.indexOf("  /* Незакрытая сессия")), context);
+  const calibration = context.vocabCalibPlan();
+  assert.equal(calibration.length, 20);
+  assert.ok(!calibration.some((card) => names.has(card.w.de)));
+  assert.deepEqual(Array.from(calibration.filter((card) => card.f === 5), (card) => card.w.de).sort(),
+    ["anspruchsvoll", "die Nachhaltigkeit", "hinterfragen", "umstritten"].sort());
+  for (const word of win.VOCAB.filter((word) => word.calibrate === false)) {
+    assert.ok(!calibration.some((card) => card.w.de === word.de));
+    assert.ok(context.vocabSplit().fresh.some((card) => card.w.de === word.de));
+  }
+  for (const name of names) assert.ok(context.vocabSplit().fresh.some((card) => card.w.de === name));
+});
+
+test("формальные синонимы учатся на обороте без отдельного расписания", () => {
+  const win = env.load(["data/vocab.js"]);
+  const pairs = { erhalten: "bekommen", bereits: "schon", lediglich: "nur", stets: "immer",
+    erneut: "wieder", bislang: "bisher", dennoch: "trotzdem", zudem: "außerdem" };
+  const manifest = require("../docs/vocab-photo-source.json");
+  for (const [formal, common] of Object.entries(pairs)) {
+    assert.ok(!win.VOCAB.some((word) => word.de === formal), formal + ": нет отдельной карточки");
+    const word = win.VOCAB.find((word) => word.de === common);
+    assert.ok(word.reg.includes(formal));
+    assert.ok(word.regEx && word.regExRu);
+    const entry = manifest.entries.find((entry) => entry.word === formal);
+    assert.equal(entry.key, "V:" + (word.id || word.de));
+    assert.equal(entry.variant, formal);
+  }
+});
+
 test("офлайн-ответ сохраняет состояние, поднятое только из материализованного кеша", () => {
   const win = env.load(SYNC, { storage: { "de-b1-progress-v1": JSON.stringify(stored()) } });
   win.Store.mutate("answer", { ok: true });

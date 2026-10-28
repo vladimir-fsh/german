@@ -17,6 +17,45 @@ var lessonFiles = require("fs").readdirSync(__dirname + "/../data")
 var win = env.load(["data/lessons.js", "data/vocab.js"].concat(lessonFiles));
 var TYPES = { fill: 1, choice: 1, order: 1, translate: 1, pairs: 1 };
 
+/* Общий словарь и покрытие списка с фотографий. Регистр значим: sie / Sie,
+   weg / Weg и laut / Laut проверяют разные слова. */
+var wordKeys = Object.create(null);
+var wordNames = Object.create(null);
+win.VOCAB.forEach(function (w) {
+  var key = "V:" + (w.id || w.de);
+  ok(key + ": уникальный ключ прогресса", !wordKeys[key]);
+  ok(key + ": нет второй карточки того же слова", !wordNames[w.de]);
+  wordKeys[key] = w;
+  wordNames[w.de] = true;
+  ["de", "ru", "ex", "exru"].forEach(function (field) {
+    ok(key + ": заполнено " + field, typeof w[field] === "string" && !!w[field].trim());
+  });
+  ok(key + ": учебная группа 1-5", Number.isInteger(w.f) && w.f >= 1 && w.f <= 5);
+  ok(key + ": корректный флаг калибровки", w.calibrate === undefined || typeof w.calibrate === "boolean");
+  if (w.reg) ok(key + ": пример дополнительного варианта", !!w.regEx && !!w.regExRu);
+});
+lessonFiles.forEach(function (file) {
+  var n = file.match(/l(\d+)\.js$/)[1];
+  (win["L" + n].words || []).forEach(function (w) { wordKeys["L" + n + ":" + w.de] = w; });
+});
+var photoSource = require("../docs/vocab-photo-source.json");
+var photoRows = Object.create(null);
+photoSource.entries.forEach(function (entry) {
+  var row = entry.page + ":" + entry.word;
+  ok(row + ": строка фотографии учтена однократно", !photoRows[row]);
+  photoRows[row] = true;
+  ok(row + ": карточка доступна в курсе", !!wordKeys[entry.key]);
+  if (entry.variant) {
+    var word = wordKeys[entry.key];
+    ok(row + ": вариант есть на обороте с примером и переводом", !!word &&
+      !!word.reg && word.reg.indexOf(entry.variant) !== -1 && !!word.regEx && !!word.regExRu);
+  }
+});
+[ [65, 320], [66, 340], [67, 338] ].forEach(function (page) {
+  ok("фотография страницы " + page[0] + ": все строки перенесены",
+    photoSource.entries.filter(function (entry) { return entry.page === page[0]; }).length === page[1]);
+});
+
 win.COURSE.lessons.forEach(function (meta) {
   var L = win["L" + meta.n];
   if (meta.status !== "ready") { ok("урок " + meta.n + " ещё не готов — файла и не ждём", !L || !!L.days); return; }

@@ -1,0 +1,5008 @@
+{
+  "title": "Die 1000 häufigsten Wörter",
+  "pages": [
+    65,
+    66,
+    67
+  ],
+  "entries": [
+    {
+      "page": 65,
+      "word": "ab",
+      "key": "V:ab"
+    },
+    {
+      "page": 65,
+      "word": "Abend",
+      "key": "V:der Abend"
+    },
+    {
+      "page": 65,
+      "word": "aber",
+      "key": "V:aber"
+    },
+    {
+      "page": 65,
+      "word": "abhängig",
+      "key": "V:abhängig"
+    },
+    {
+      "page": 65,
+      "word": "acht",
+      "key": "V:acht"
+    },
+    {
+      "page": 65,
+      "word": "Afrika",
+      "key": "V:Afrika"
+    },
+    {
+      "page": 65,
+      "word": "AG",
+      "key": "V:die AG"
+    },
+    {
+      "page": 65,
+      "word": "ähnlich",
+      "key": "V:ähnlich"
+    },
+    {
+      "page": 65,
+      "word": "Aktie",
+      "key": "V:die Aktie"
+    },
+    {
+      "page": 65,
+      "word": "aktiv",
+      "key": "V:aktiv"
+    },
+    {
+      "page": 65,
+      "word": "aktuell",
+      "key": "V:aktuell"
+    },
+    {
+      "page": 65,
+      "word": "All",
+      "key": "V:das All"
+    },
+    {
+      "page": 65,
+      "word": "alle",
+      "key": "V:alle"
+    },
+    {
+      "page": 65,
+      "word": "allein",
+      "key": "V:allein"
+    },
+    {
+      "page": 65,
+      "word": "allerdings",
+      "key": "V:allerdings"
+    },
+    {
+      "page": 65,
+      "word": "alles",
+      "key": "V:alles"
+    },
+    {
+      "page": 65,
+      "word": "allgemein",
+      "key": "V:allgemein"
+    },
+    {
+      "page": 65,
+      "word": "als",
+      "key": "V:als"
+    },
+    {
+      "page": 65,
+      "word": "also",
+      "key": "V:also"
+    },
+    {
+      "page": 65,
+      "word": "alt",
+      "key": "V:alt"
+    },
+    {
+      "page": 65,
+      "word": "Alter",
+      "key": "V:das Alter"
+    },
+    {
+      "page": 65,
+      "word": "Amerika",
+      "key": "V:Amerika"
+    },
+    {
+      "page": 65,
+      "word": "Amt",
+      "key": "V:das Amt"
+    },
+    {
+      "page": 65,
+      "word": "an",
+      "key": "V:an"
+    },
+    {
+      "page": 65,
+      "word": "anbieten",
+      "key": "V:anbieten"
+    },
+    {
+      "page": 65,
+      "word": "andere",
+      "key": "V:andere"
+    },
+    {
+      "page": 65,
+      "word": "anders",
+      "key": "V:anders"
+    },
+    {
+      "page": 65,
+      "word": "Anfang",
+      "key": "V:der Anfang"
+    },
+    {
+      "page": 65,
+      "word": "Angabe",
+      "key": "V:die Angabe"
+    },
+    {
+      "page": 65,
+      "word": "Angebot",
+      "key": "V:das Angebot"
+    },
+    {
+      "page": 65,
+      "word": "Angst",
+      "key": "V:die Angst"
+    },
+    {
+      "page": 65,
+      "word": "Anteil",
+      "key": "V:der Anteil"
+    },
+    {
+      "page": 65,
+      "word": "Antwort",
+      "key": "V:die Antwort"
+    },
+    {
+      "page": 65,
+      "word": "Apfel",
+      "key": "V:der Apfel"
+    },
+    {
+      "page": 65,
+      "word": "April",
+      "key": "V:der April"
+    },
+    {
+      "page": 65,
+      "word": "Arbeit",
+      "key": "V:die Arbeit"
+    },
+    {
+      "page": 65,
+      "word": "arbeiten",
+      "key": "V:arbeiten"
+    },
+    {
+      "page": 65,
+      "word": "Arm",
+      "key": "V:der Arm"
+    },
+    {
+      "page": 65,
+      "word": "Armee",
+      "key": "V:die Armee"
+    },
+    {
+      "page": 65,
+      "word": "Art",
+      "key": "V:die Art"
+    },
+    {
+      "page": 65,
+      "word": "Artikel",
+      "key": "V:der Artikel"
+    },
+    {
+      "page": 65,
+      "word": "Arzt",
+      "key": "V:der Arzt"
+    },
+    {
+      "page": 65,
+      "word": "Asien",
+      "key": "V:Asien"
+    },
+    {
+      "page": 65,
+      "word": "auch",
+      "key": "V:auch"
+    },
+    {
+      "page": 65,
+      "word": "auf",
+      "key": "V:auf"
+    },
+    {
+      "page": 65,
+      "word": "Aufgabe",
+      "key": "V:die Aufgabe"
+    },
+    {
+      "page": 65,
+      "word": "aufgrund",
+      "key": "V:aufgrund"
+    },
+    {
+      "page": 65,
+      "word": "aufnehmen",
+      "key": "V:aufnehmen"
+    },
+    {
+      "page": 65,
+      "word": "Auge",
+      "key": "V:das Auge"
+    },
+    {
+      "page": 65,
+      "word": "August",
+      "key": "V:der August"
+    },
+    {
+      "page": 65,
+      "word": "aus",
+      "key": "V:aus"
+    },
+    {
+      "page": 65,
+      "word": "Ausbildung",
+      "key": "V:die Ausbildung"
+    },
+    {
+      "page": 65,
+      "word": "auseinander",
+      "key": "V:auseinander"
+    },
+    {
+      "page": 65,
+      "word": "außen",
+      "key": "V:außen"
+    },
+    {
+      "page": 65,
+      "word": "außer",
+      "key": "V:außer"
+    },
+    {
+      "page": 65,
+      "word": "außerdem",
+      "key": "V:außerdem"
+    },
+    {
+      "page": 65,
+      "word": "Auto",
+      "key": "V:das Auto"
+    },
+    {
+      "page": 65,
+      "word": "Baby",
+      "key": "V:das Baby"
+    },
+    {
+      "page": 65,
+      "word": "Bad",
+      "key": "V:das Bad"
+    },
+    {
+      "page": 65,
+      "word": "Bahn",
+      "key": "V:die Bahn"
+    },
+    {
+      "page": 65,
+      "word": "bald",
+      "key": "V:bald"
+    },
+    {
+      "page": 65,
+      "word": "Ball",
+      "key": "V:der Ball"
+    },
+    {
+      "page": 65,
+      "word": "Band",
+      "key": "V:das Band"
+    },
+    {
+      "page": 65,
+      "word": "Bank",
+      "key": "V:die Bank"
+    },
+    {
+      "page": 65,
+      "word": "Basis",
+      "key": "V:die Basis"
+    },
+    {
+      "page": 65,
+      "word": "Bau",
+      "key": "V:der Bau"
+    },
+    {
+      "page": 65,
+      "word": "Bauch",
+      "key": "V:der Bauch"
+    },
+    {
+      "page": 65,
+      "word": "Baum",
+      "key": "V:der Baum"
+    },
+    {
+      "page": 65,
+      "word": "Bayern",
+      "key": "V:Bayern"
+    },
+    {
+      "page": 65,
+      "word": "bedeuten",
+      "key": "V:bedeuten"
+    },
+    {
+      "page": 65,
+      "word": "beenden",
+      "key": "V:beenden"
+    },
+    {
+      "page": 65,
+      "word": "befinden",
+      "key": "V:sich befinden"
+    },
+    {
+      "page": 65,
+      "word": "Beginn",
+      "key": "V:der Beginn"
+    },
+    {
+      "page": 65,
+      "word": "bei",
+      "key": "V:bei"
+    },
+    {
+      "page": 65,
+      "word": "beide",
+      "key": "V:beide"
+    },
+    {
+      "page": 65,
+      "word": "Bein",
+      "key": "V:das Bein"
+    },
+    {
+      "page": 65,
+      "word": "Beispiel",
+      "key": "V:das Beispiel"
+    },
+    {
+      "page": 65,
+      "word": "beispielsweise",
+      "key": "V:beispielsweise"
+    },
+    {
+      "page": 65,
+      "word": "bekannt",
+      "key": "V:bekannt"
+    },
+    {
+      "page": 65,
+      "word": "bekommen",
+      "key": "V:bekommen"
+    },
+    {
+      "page": 65,
+      "word": "beobachten",
+      "key": "V:beobachten"
+    },
+    {
+      "page": 65,
+      "word": "Bereich",
+      "key": "V:der Bereich"
+    },
+    {
+      "page": 65,
+      "word": "bereit",
+      "key": "V:die Bereitschaft"
+    },
+    {
+      "page": 65,
+      "word": "bereits",
+      "key": "V:schon",
+      "variant": "bereits"
+    },
+    {
+      "page": 65,
+      "word": "berichten",
+      "key": "V:berichten"
+    },
+    {
+      "page": 65,
+      "word": "Berlin",
+      "key": "V:Berlin"
+    },
+    {
+      "page": 65,
+      "word": "Berliner",
+      "key": "V:der Berliner"
+    },
+    {
+      "page": 65,
+      "word": "Beruf",
+      "key": "V:der Beruf"
+    },
+    {
+      "page": 65,
+      "word": "besonders",
+      "key": "V:besonders"
+    },
+    {
+      "page": 65,
+      "word": "besser",
+      "key": "V:besser"
+    },
+    {
+      "page": 65,
+      "word": "bestehen",
+      "key": "V:bestehen"
+    },
+    {
+      "page": 65,
+      "word": "besten",
+      "key": "V:am besten"
+    },
+    {
+      "page": 65,
+      "word": "bestimmen",
+      "key": "V:bestimmen"
+    },
+    {
+      "page": 65,
+      "word": "bestimmt",
+      "key": "V:bestimmt"
+    },
+    {
+      "page": 65,
+      "word": "Besuch",
+      "key": "V:der Besuch"
+    },
+    {
+      "page": 65,
+      "word": "Besucher",
+      "key": "V:der Besucher"
+    },
+    {
+      "page": 65,
+      "word": "betreffen",
+      "key": "V:betreffen"
+    },
+    {
+      "page": 65,
+      "word": "Betrieb",
+      "key": "V:der Betrieb"
+    },
+    {
+      "page": 65,
+      "word": "Bett",
+      "key": "V:das Bett"
+    },
+    {
+      "page": 65,
+      "word": "Bevölkerung",
+      "key": "V:die Bevölkerung"
+    },
+    {
+      "page": 65,
+      "word": "bevor",
+      "key": "V:bevor"
+    },
+    {
+      "page": 65,
+      "word": "bewegen",
+      "key": "V:bewegen"
+    },
+    {
+      "page": 65,
+      "word": "Beweis",
+      "key": "V:der Beweis"
+    },
+    {
+      "page": 65,
+      "word": "bezahlen",
+      "key": "V:bezahlen"
+    },
+    {
+      "page": 65,
+      "word": "bezeichnen",
+      "key": "V:bezeichnen"
+    },
+    {
+      "page": 65,
+      "word": "Beziehung",
+      "key": "V:die Beziehung"
+    },
+    {
+      "page": 65,
+      "word": "bieten",
+      "key": "V:bieten"
+    },
+    {
+      "page": 65,
+      "word": "Bild",
+      "key": "V:das Bild"
+    },
+    {
+      "page": 65,
+      "word": "bilden",
+      "key": "V:bilden"
+    },
+    {
+      "page": 65,
+      "word": "bis",
+      "key": "V:bis"
+    },
+    {
+      "page": 65,
+      "word": "bisher",
+      "key": "V:bisher"
+    },
+    {
+      "page": 65,
+      "word": "bislang",
+      "key": "V:bisher",
+      "variant": "bislang"
+    },
+    {
+      "page": 65,
+      "word": "bisschen",
+      "key": "V:ein bisschen"
+    },
+    {
+      "page": 65,
+      "word": "bitte",
+      "key": "V:bitte"
+    },
+    {
+      "page": 65,
+      "word": "Bitte",
+      "key": "V:die Bitte"
+    },
+    {
+      "page": 65,
+      "word": "Blatt",
+      "key": "V:das Blatt"
+    },
+    {
+      "page": 65,
+      "word": "blau",
+      "key": "V:blau"
+    },
+    {
+      "page": 65,
+      "word": "bleiben",
+      "key": "V:bleiben"
+    },
+    {
+      "page": 65,
+      "word": "Blick",
+      "key": "V:der Blick"
+    },
+    {
+      "page": 65,
+      "word": "Blitz",
+      "key": "V:der Blitz"
+    },
+    {
+      "page": 65,
+      "word": "Blume",
+      "key": "V:die Blume"
+    },
+    {
+      "page": 65,
+      "word": "Blut",
+      "key": "V:das Blut"
+    },
+    {
+      "page": 65,
+      "word": "Boden",
+      "key": "V:der Boden"
+    },
+    {
+      "page": 65,
+      "word": "Boot",
+      "key": "V:das Boot"
+    },
+    {
+      "page": 65,
+      "word": "böse",
+      "key": "V:böse"
+    },
+    {
+      "page": 65,
+      "word": "brauchen",
+      "key": "V:die Voraussetzung"
+    },
+    {
+      "page": 65,
+      "word": "braun",
+      "key": "V:braun"
+    },
+    {
+      "page": 65,
+      "word": "brechen",
+      "key": "V:brechen"
+    },
+    {
+      "page": 65,
+      "word": "breit",
+      "key": "V:breit"
+    },
+    {
+      "page": 65,
+      "word": "brennen",
+      "key": "V:brennen"
+    },
+    {
+      "page": 65,
+      "word": "Brief",
+      "key": "V:der Brief"
+    },
+    {
+      "page": 65,
+      "word": "Brille",
+      "key": "V:die Brille"
+    },
+    {
+      "page": 65,
+      "word": "bringen",
+      "key": "V:bringen"
+    },
+    {
+      "page": 65,
+      "word": "Brot",
+      "key": "V:das Brot"
+    },
+    {
+      "page": 65,
+      "word": "Brücke",
+      "key": "V:die Brücke"
+    },
+    {
+      "page": 65,
+      "word": "Bruder",
+      "key": "V:der Bruder"
+    },
+    {
+      "page": 65,
+      "word": "Buch",
+      "key": "V:das Buch"
+    },
+    {
+      "page": 65,
+      "word": "Bundesregierung",
+      "key": "V:die Bundesregierung"
+    },
+    {
+      "page": 65,
+      "word": "bunt",
+      "key": "V:bunt"
+    },
+    {
+      "page": 65,
+      "word": "Bürger",
+      "key": "V:der Bürger"
+    },
+    {
+      "page": 65,
+      "word": "Bürgermeister",
+      "key": "V:der Bürgermeister"
+    },
+    {
+      "page": 65,
+      "word": "bzw.",
+      "key": "V:bzw."
+    },
+    {
+      "page": 65,
+      "word": "ca.",
+      "key": "V:ca."
+    },
+    {
+      "page": 65,
+      "word": "CDU",
+      "key": "V:die CDU"
+    },
+    {
+      "page": 65,
+      "word": "Cent",
+      "key": "V:der Cent"
+    },
+    {
+      "page": 65,
+      "word": "Chance",
+      "key": "V:die Chance"
+    },
+    {
+      "page": 65,
+      "word": "Chef",
+      "key": "V:der Chef"
+    },
+    {
+      "page": 65,
+      "word": "China",
+      "key": "V:China"
+    },
+    {
+      "page": 65,
+      "word": "Computer",
+      "key": "V:der Computer"
+    },
+    {
+      "page": 65,
+      "word": "da",
+      "key": "V:da"
+    },
+    {
+      "page": 65,
+      "word": "dabei",
+      "key": "V:dabei"
+    },
+    {
+      "page": 65,
+      "word": "Dach",
+      "key": "V:das Dach"
+    },
+    {
+      "page": 65,
+      "word": "dadurch",
+      "key": "V:dadurch"
+    },
+    {
+      "page": 65,
+      "word": "dafür",
+      "key": "V:dafür"
+    },
+    {
+      "page": 65,
+      "word": "dagegen",
+      "key": "V:dagegen"
+    },
+    {
+      "page": 65,
+      "word": "daher",
+      "key": "V:daher"
+    },
+    {
+      "page": 65,
+      "word": "damals",
+      "key": "V:damals"
+    },
+    {
+      "page": 65,
+      "word": "damit",
+      "key": "V:damit"
+    },
+    {
+      "page": 65,
+      "word": "danach",
+      "key": "V:danach"
+    },
+    {
+      "page": 65,
+      "word": "dann",
+      "key": "V:dann"
+    },
+    {
+      "page": 65,
+      "word": "dar",
+      "key": "V:darstellen"
+    },
+    {
+      "page": 65,
+      "word": "daran",
+      "key": "V:daran"
+    },
+    {
+      "page": 65,
+      "word": "darauf",
+      "key": "V:darauf"
+    },
+    {
+      "page": 65,
+      "word": "darin",
+      "key": "V:darin"
+    },
+    {
+      "page": 65,
+      "word": "darüber",
+      "key": "V:darüber"
+    },
+    {
+      "page": 65,
+      "word": "darum",
+      "key": "V:darum"
+    },
+    {
+      "page": 65,
+      "word": "darunter",
+      "key": "V:darunter"
+    },
+    {
+      "page": 65,
+      "word": "das",
+      "key": "V:das"
+    },
+    {
+      "page": 65,
+      "word": "dass",
+      "key": "V:dass"
+    },
+    {
+      "page": 65,
+      "word": "Daten",
+      "key": "V:die Daten"
+    },
+    {
+      "page": 65,
+      "word": "dauern",
+      "key": "V:dauern"
+    },
+    {
+      "page": 65,
+      "word": "davon",
+      "key": "V:davon"
+    },
+    {
+      "page": 65,
+      "word": "dazu",
+      "key": "V:dazu"
+    },
+    {
+      "page": 65,
+      "word": "denken",
+      "key": "V:denken"
+    },
+    {
+      "page": 65,
+      "word": "denn",
+      "key": "V:denn"
+    },
+    {
+      "page": 65,
+      "word": "dennoch",
+      "key": "V:trotzdem",
+      "variant": "dennoch"
+    },
+    {
+      "page": 65,
+      "word": "der",
+      "key": "V:der"
+    },
+    {
+      "page": 65,
+      "word": "derzeit",
+      "key": "V:derzeit"
+    },
+    {
+      "page": 65,
+      "word": "deshalb",
+      "key": "V:deshalb"
+    },
+    {
+      "page": 65,
+      "word": "deutlich",
+      "key": "V:deutlich"
+    },
+    {
+      "page": 65,
+      "word": "deutsch",
+      "key": "V:deutsch"
+    },
+    {
+      "page": 65,
+      "word": "Deutschland",
+      "key": "V:Deutschland"
+    },
+    {
+      "page": 65,
+      "word": "Dezember",
+      "key": "V:der Dezember"
+    },
+    {
+      "page": 65,
+      "word": "dick",
+      "key": "V:dick"
+    },
+    {
+      "page": 65,
+      "word": "die",
+      "key": "V:die"
+    },
+    {
+      "page": 65,
+      "word": "dienen",
+      "key": "V:dienen"
+    },
+    {
+      "page": 65,
+      "word": "Dienstag",
+      "key": "V:der Dienstag"
+    },
+    {
+      "page": 65,
+      "word": "dies",
+      "key": "V:dies"
+    },
+    {
+      "page": 65,
+      "word": "dieser",
+      "key": "V:dieser"
+    },
+    {
+      "page": 65,
+      "word": "Ding",
+      "key": "V:das Ding"
+    },
+    {
+      "page": 65,
+      "word": "direkt",
+      "key": "V:direkt"
+    },
+    {
+      "page": 65,
+      "word": "DM",
+      "key": "V:die DM"
+    },
+    {
+      "page": 65,
+      "word": "doch",
+      "key": "V:doch"
+    },
+    {
+      "page": 65,
+      "word": "Dollar",
+      "key": "V:der Dollar"
+    },
+    {
+      "page": 65,
+      "word": "Donnerstag",
+      "key": "V:der Donnerstag"
+    },
+    {
+      "page": 65,
+      "word": "dort",
+      "key": "V:dort"
+    },
+    {
+      "page": 65,
+      "word": "dpa",
+      "key": "V:die dpa"
+    },
+    {
+      "page": 65,
+      "word": "draußen",
+      "key": "V:draußen"
+    },
+    {
+      "page": 65,
+      "word": "drehen",
+      "key": "V:drehen"
+    },
+    {
+      "page": 65,
+      "word": "drei",
+      "key": "V:drei"
+    },
+    {
+      "page": 65,
+      "word": "dritter",
+      "key": "V:dritter"
+    },
+    {
+      "page": 65,
+      "word": "Druck",
+      "key": "V:der Druck"
+    },
+    {
+      "page": 65,
+      "word": "du",
+      "key": "V:du"
+    },
+    {
+      "page": 65,
+      "word": "dumm",
+      "key": "V:dumm"
+    },
+    {
+      "page": 65,
+      "word": "dunkel",
+      "key": "V:dunkel"
+    },
+    {
+      "page": 65,
+      "word": "dünn",
+      "key": "V:dünn"
+    },
+    {
+      "page": 65,
+      "word": "durch",
+      "key": "V:durch"
+    },
+    {
+      "page": 65,
+      "word": "durchaus",
+      "key": "V:durchaus"
+    },
+    {
+      "page": 65,
+      "word": "durchführen",
+      "key": "V:durchführen"
+    },
+    {
+      "page": 65,
+      "word": "dürfen",
+      "key": "V:dürfen"
+    },
+    {
+      "page": 65,
+      "word": "drücken",
+      "key": "V:drücken"
+    },
+    {
+      "page": 65,
+      "word": "eben",
+      "key": "V:eben"
+    },
+    {
+      "page": 65,
+      "word": "ebenfalls",
+      "key": "V:ebenfalls"
+    },
+    {
+      "page": 65,
+      "word": "ebenso",
+      "key": "V:ebenso"
+    },
+    {
+      "page": 65,
+      "word": "echt",
+      "key": "V:echt"
+    },
+    {
+      "page": 65,
+      "word": "Ecke",
+      "key": "V:die Ecke"
+    },
+    {
+      "page": 65,
+      "word": "egal",
+      "key": "V:egal"
+    },
+    {
+      "page": 65,
+      "word": "ehemalig",
+      "key": "V:ehemalig"
+    },
+    {
+      "page": 65,
+      "word": "eher",
+      "key": "V:eher"
+    },
+    {
+      "page": 65,
+      "word": "Ei",
+      "key": "V:das Ei"
+    },
+    {
+      "page": 65,
+      "word": "eigener",
+      "key": "V:eigener"
+    },
+    {
+      "page": 65,
+      "word": "eigentlich",
+      "key": "V:eigentlich"
+    },
+    {
+      "page": 65,
+      "word": "ein",
+      "key": "V:ein"
+    },
+    {
+      "page": 65,
+      "word": "eine",
+      "key": "V:eine"
+    },
+    {
+      "page": 65,
+      "word": "einfach",
+      "key": "V:einfach"
+    },
+    {
+      "page": 65,
+      "word": "Eingang",
+      "key": "V:der Eingang"
+    },
+    {
+      "page": 65,
+      "word": "einige",
+      "key": "V:einige"
+    },
+    {
+      "page": 65,
+      "word": "einigen",
+      "key": "V:sich einigen"
+    },
+    {
+      "page": 65,
+      "word": "einmal",
+      "key": "V:einmal"
+    },
+    {
+      "page": 65,
+      "word": "eins",
+      "key": "V:eins"
+    },
+    {
+      "page": 65,
+      "word": "Einsatz",
+      "key": "V:der Einsatz"
+    },
+    {
+      "page": 65,
+      "word": "einsetzen",
+      "key": "V:einsetzen"
+    },
+    {
+      "page": 65,
+      "word": "einzelner",
+      "key": "V:einzelner"
+    },
+    {
+      "page": 65,
+      "word": "einziger",
+      "key": "V:einziger"
+    },
+    {
+      "page": 65,
+      "word": "Eis",
+      "key": "V:das Eis"
+    },
+    {
+      "page": 65,
+      "word": "Eltern",
+      "key": "V:die Eltern"
+    },
+    {
+      "page": 65,
+      "word": "Ende",
+      "key": "V:das Ende"
+    },
+    {
+      "page": 65,
+      "word": "endlich",
+      "key": "V:endlich"
+    },
+    {
+      "page": 65,
+      "word": "Energie",
+      "key": "V:die Energie"
+    },
+    {
+      "page": 65,
+      "word": "eng",
+      "key": "V:eng"
+    },
+    {
+      "page": 65,
+      "word": "entdecken",
+      "key": "V:entdecken"
+    },
+    {
+      "page": 65,
+      "word": "entfernen",
+      "key": "V:entfernen"
+    },
+    {
+      "page": 65,
+      "word": "enthalten",
+      "key": "V:enthalten"
+    },
+    {
+      "page": 65,
+      "word": "entscheiden",
+      "key": "V:entscheiden"
+    },
+    {
+      "page": 65,
+      "word": "Entscheidung",
+      "key": "V:die Entscheidung"
+    },
+    {
+      "page": 65,
+      "word": "entschieden",
+      "key": "V:entschieden"
+    },
+    {
+      "page": 65,
+      "word": "entstehen",
+      "key": "V:entstehen"
+    },
+    {
+      "page": 65,
+      "word": "entwickeln",
+      "key": "V:entwickeln"
+    },
+    {
+      "page": 65,
+      "word": "Entwicklung",
+      "key": "V:die Entwicklung"
+    },
+    {
+      "page": 65,
+      "word": "er",
+      "key": "V:er"
+    },
+    {
+      "page": 65,
+      "word": "Erde",
+      "key": "V:die Erde"
+    },
+    {
+      "page": 65,
+      "word": "erfahren",
+      "key": "V:erfahren"
+    },
+    {
+      "page": 65,
+      "word": "Erfahrung",
+      "key": "V:die Erfahrung"
+    },
+    {
+      "page": 65,
+      "word": "Erfolg",
+      "key": "V:der Erfolg"
+    },
+    {
+      "page": 65,
+      "word": "erfolgen",
+      "key": "V:erfolgen"
+    },
+    {
+      "page": 65,
+      "word": "erfolgreich",
+      "key": "V:erfolgreich"
+    },
+    {
+      "page": 65,
+      "word": "Ergebnis",
+      "key": "V:das Ergebnis"
+    },
+    {
+      "page": 65,
+      "word": "erhalten",
+      "key": "V:bekommen",
+      "variant": "erhalten"
+    },
+    {
+      "page": 65,
+      "word": "erinnern",
+      "key": "L20:sich erinnern an"
+    },
+    {
+      "page": 65,
+      "word": "erkennen",
+      "key": "V:erkennen"
+    },
+    {
+      "page": 65,
+      "word": "erklären",
+      "key": "V:erklären"
+    },
+    {
+      "page": 65,
+      "word": "erneut",
+      "key": "V:wieder",
+      "variant": "erneut"
+    },
+    {
+      "page": 65,
+      "word": "erreichen",
+      "key": "V:erreichen"
+    },
+    {
+      "page": 65,
+      "word": "erst",
+      "key": "V:erst"
+    },
+    {
+      "page": 65,
+      "word": "erster",
+      "key": "V:erster"
+    },
+    {
+      "page": 65,
+      "word": "erstmals",
+      "key": "V:erstmals"
+    },
+    {
+      "page": 65,
+      "word": "erwarten",
+      "key": "V:erwarten"
+    },
+    {
+      "page": 65,
+      "word": "erzählen",
+      "key": "V:erzählen"
+    },
+    {
+      "page": 65,
+      "word": "es",
+      "key": "V:es"
+    },
+    {
+      "page": 65,
+      "word": "essen",
+      "key": "V:essen"
+    },
+    {
+      "page": 65,
+      "word": "etc.",
+      "key": "V:etc."
+    },
+    {
+      "page": 65,
+      "word": "etwa",
+      "key": "V:etwa"
+    },
+    {
+      "page": 65,
+      "word": "etwas",
+      "key": "V:etwas"
+    },
+    {
+      "page": 65,
+      "word": "EU",
+      "key": "V:die EU"
+    },
+    {
+      "page": 65,
+      "word": "euch",
+      "key": "V:euch"
+    },
+    {
+      "page": 65,
+      "word": "Euro",
+      "key": "V:der Euro"
+    },
+    {
+      "page": 65,
+      "word": "Europa",
+      "key": "V:Europa"
+    },
+    {
+      "page": 65,
+      "word": "europäisch",
+      "key": "V:europäisch"
+    },
+    {
+      "page": 65,
+      "word": "existieren",
+      "key": "V:existieren"
+    },
+    {
+      "page": 65,
+      "word": "Experte",
+      "key": "V:der Experte"
+    },
+    {
+      "page": 65,
+      "word": "Fach",
+      "key": "V:das Fach"
+    },
+    {
+      "page": 65,
+      "word": "fahren",
+      "key": "V:fahren"
+    },
+    {
+      "page": 65,
+      "word": "Fall",
+      "key": "V:der Fall"
+    },
+    {
+      "page": 65,
+      "word": "fallen",
+      "key": "V:fallen"
+    },
+    {
+      "page": 65,
+      "word": "falsch",
+      "key": "V:falsch"
+    },
+    {
+      "page": 65,
+      "word": "Familie",
+      "key": "V:die Familie"
+    },
+    {
+      "page": 65,
+      "word": "Fan",
+      "key": "V:der Fan"
+    },
+    {
+      "page": 65,
+      "word": "fangen",
+      "key": "V:fangen"
+    },
+    {
+      "page": 65,
+      "word": "Farbe",
+      "key": "V:die Farbe"
+    },
+    {
+      "page": 65,
+      "word": "fast",
+      "key": "V:fast"
+    },
+    {
+      "page": 65,
+      "word": "FC",
+      "key": "V:der FC"
+    },
+    {
+      "page": 65,
+      "word": "Februar",
+      "key": "V:der Februar"
+    },
+    {
+      "page": 65,
+      "word": "Fehler",
+      "key": "V:der Fehler"
+    },
+    {
+      "page": 65,
+      "word": "fein",
+      "key": "V:fein"
+    },
+    {
+      "page": 65,
+      "word": "Feld",
+      "key": "V:das Feld"
+    },
+    {
+      "page": 65,
+      "word": "Fenster",
+      "key": "V:das Fenster"
+    },
+    {
+      "page": 65,
+      "word": "fertig",
+      "key": "V:fertig"
+    },
+    {
+      "page": 65,
+      "word": "fest",
+      "key": "V:fest"
+    },
+    {
+      "page": 65,
+      "word": "Feuer",
+      "key": "V:das Feuer"
+    },
+    {
+      "page": 65,
+      "word": "Figur",
+      "key": "V:die Figur"
+    },
+    {
+      "page": 65,
+      "word": "Film",
+      "key": "V:der Film"
+    },
+    {
+      "page": 65,
+      "word": "finden",
+      "key": "V:finden"
+    },
+    {
+      "page": 65,
+      "word": "Finger",
+      "key": "V:der Finger"
+    },
+    {
+      "page": 65,
+      "word": "Firma",
+      "key": "V:die Firma"
+    },
+    {
+      "page": 65,
+      "word": "Fleisch",
+      "key": "V:das Fleisch"
+    },
+    {
+      "page": 65,
+      "word": "fliegen",
+      "key": "V:fliegen"
+    },
+    {
+      "page": 65,
+      "word": "fließen",
+      "key": "V:fließen"
+    },
+    {
+      "page": 65,
+      "word": "Flügel",
+      "key": "V:der Flügel"
+    },
+    {
+      "page": 65,
+      "word": "Flugzeug",
+      "key": "V:das Flugzeug"
+    },
+    {
+      "page": 65,
+      "word": "Fluss",
+      "key": "V:der Fluss"
+    },
+    {
+      "page": 65,
+      "word": "flüssig",
+      "key": "V:flüssig"
+    },
+    {
+      "page": 65,
+      "word": "Folge",
+      "key": "V:die Auswirkung"
+    },
+    {
+      "page": 65,
+      "word": "folgender",
+      "key": "V:folgender"
+    },
+    {
+      "page": 65,
+      "word": "Form",
+      "key": "V:die Form"
+    },
+    {
+      "page": 65,
+      "word": "Foto",
+      "key": "V:das Foto"
+    },
+    {
+      "page": 65,
+      "word": "Frage",
+      "key": "V:die Frage"
+    },
+    {
+      "page": 65,
+      "word": "Frankfurt",
+      "key": "V:Frankfurt"
+    },
+    {
+      "page": 65,
+      "word": "Frankreich",
+      "key": "V:Frankreich"
+    },
+    {
+      "page": 65,
+      "word": "Frau",
+      "key": "V:die Frau"
+    },
+    {
+      "page": 65,
+      "word": "frei",
+      "key": "V:frei"
+    },
+    {
+      "page": 66,
+      "word": "Freiheit",
+      "key": "V:die Freiheit"
+    },
+    {
+      "page": 66,
+      "word": "Freitag",
+      "key": "V:der Freitag"
+    },
+    {
+      "page": 66,
+      "word": "fremd",
+      "key": "V:fremd"
+    },
+    {
+      "page": 66,
+      "word": "freuen",
+      "key": "V:sich freuen"
+    },
+    {
+      "page": 66,
+      "word": "Freund",
+      "key": "V:der Freund"
+    },
+    {
+      "page": 66,
+      "word": "Frieden",
+      "key": "V:der Frieden"
+    },
+    {
+      "page": 66,
+      "word": "frisch",
+      "key": "V:frisch"
+    },
+    {
+      "page": 66,
+      "word": "früher",
+      "key": "V:früher"
+    },
+    {
+      "page": 66,
+      "word": "fühlen",
+      "key": "V:fühlen"
+    },
+    {
+      "page": 66,
+      "word": "führen",
+      "key": "V:führen"
+    },
+    {
+      "page": 66,
+      "word": "Führung",
+      "key": "V:die Führung"
+    },
+    {
+      "page": 66,
+      "word": "füllen",
+      "key": "V:füllen"
+    },
+    {
+      "page": 66,
+      "word": "fünf",
+      "key": "V:fünf"
+    },
+    {
+      "page": 66,
+      "word": "funktionieren",
+      "key": "V:funktionieren"
+    },
+    {
+      "page": 66,
+      "word": "für",
+      "key": "V:für"
+    },
+    {
+      "page": 66,
+      "word": "Fuß",
+      "key": "V:der Fuß"
+    },
+    {
+      "page": 66,
+      "word": "ganz",
+      "key": "V:ganz"
+    },
+    {
+      "page": 66,
+      "word": "gar",
+      "key": "V:gar"
+    },
+    {
+      "page": 66,
+      "word": "Garten",
+      "key": "V:der Garten"
+    },
+    {
+      "page": 66,
+      "word": "Gas",
+      "key": "V:das Gas"
+    },
+    {
+      "page": 66,
+      "word": "Gast",
+      "key": "V:der Gast"
+    },
+    {
+      "page": 66,
+      "word": "Gebäude",
+      "key": "V:das Gebäude"
+    },
+    {
+      "page": 66,
+      "word": "geben",
+      "key": "V:geben"
+    },
+    {
+      "page": 66,
+      "word": "Geburt",
+      "key": "V:die Geburt"
+    },
+    {
+      "page": 66,
+      "word": "Gefahr",
+      "key": "V:die Gefahr"
+    },
+    {
+      "page": 66,
+      "word": "gegen",
+      "key": "V:gegen"
+    },
+    {
+      "page": 66,
+      "word": "Gegend",
+      "key": "V:die Gegend"
+    },
+    {
+      "page": 66,
+      "word": "gegenüber",
+      "key": "V:gegenüber"
+    },
+    {
+      "page": 66,
+      "word": "geheim",
+      "key": "V:geheim"
+    },
+    {
+      "page": 66,
+      "word": "gehen",
+      "key": "V:gehen"
+    },
+    {
+      "page": 66,
+      "word": "gehören",
+      "key": "V:gehören"
+    },
+    {
+      "page": 66,
+      "word": "gelb",
+      "key": "V:gelb"
+    },
+    {
+      "page": 66,
+      "word": "Geld",
+      "key": "V:das Geld"
+    },
+    {
+      "page": 66,
+      "word": "gelten",
+      "key": "V:gelten"
+    },
+    {
+      "page": 66,
+      "word": "Gemeinde",
+      "key": "V:die Gemeinde"
+    },
+    {
+      "page": 66,
+      "word": "gemeinsam",
+      "key": "V:gemeinsam"
+    },
+    {
+      "page": 66,
+      "word": "genau",
+      "key": "V:genau"
+    },
+    {
+      "page": 66,
+      "word": "genug",
+      "key": "V:ausreichend"
+    },
+    {
+      "page": 66,
+      "word": "geplant",
+      "key": "V:geplant"
+    },
+    {
+      "page": 66,
+      "word": "gerade",
+      "key": "V:gerade"
+    },
+    {
+      "page": 66,
+      "word": "Gericht",
+      "key": "V:das Gericht"
+    },
+    {
+      "page": 66,
+      "word": "gerne",
+      "key": "V:gerne"
+    },
+    {
+      "page": 66,
+      "word": "gesamt",
+      "key": "V:gesamt"
+    },
+    {
+      "page": 66,
+      "word": "geschehen",
+      "key": "V:geschehen"
+    },
+    {
+      "page": 66,
+      "word": "Geschichte",
+      "key": "V:die Geschichte"
+    },
+    {
+      "page": 66,
+      "word": "Gesellschaft",
+      "key": "V:die Gesellschaft"
+    },
+    {
+      "page": 66,
+      "word": "Gesetz",
+      "key": "V:das Gesetz"
+    },
+    {
+      "page": 66,
+      "word": "Gesicht",
+      "key": "V:das Gesicht"
+    },
+    {
+      "page": 66,
+      "word": "Gespräch",
+      "key": "V:das Gespräch"
+    },
+    {
+      "page": 66,
+      "word": "gestern",
+      "key": "V:gestern"
+    },
+    {
+      "page": 66,
+      "word": "gesund",
+      "key": "V:gesund"
+    },
+    {
+      "page": 66,
+      "word": "Gewicht",
+      "key": "V:das Gewicht"
+    },
+    {
+      "page": 66,
+      "word": "gewinnen",
+      "key": "L21:gewinnen"
+    },
+    {
+      "page": 66,
+      "word": "Glas",
+      "key": "V:das Glas"
+    },
+    {
+      "page": 66,
+      "word": "gleich",
+      "key": "V:gleich"
+    },
+    {
+      "page": 66,
+      "word": "gleichzeitig",
+      "key": "V:gleichzeitig"
+    },
+    {
+      "page": 66,
+      "word": "Glück",
+      "key": "V:das Glück"
+    },
+    {
+      "page": 66,
+      "word": "GmbH",
+      "key": "V:die GmbH"
+    },
+    {
+      "page": 66,
+      "word": "Gold",
+      "key": "V:das Gold"
+    },
+    {
+      "page": 66,
+      "word": "Gott",
+      "key": "V:der Gott"
+    },
+    {
+      "page": 66,
+      "word": "groß",
+      "key": "V:groß"
+    },
+    {
+      "page": 66,
+      "word": "Gras",
+      "key": "V:das Gras"
+    },
+    {
+      "page": 66,
+      "word": "Grenze",
+      "key": "V:die Grenze"
+    },
+    {
+      "page": 66,
+      "word": "grün",
+      "key": "V:grün"
+    },
+    {
+      "page": 66,
+      "word": "Grund",
+      "key": "V:der Grund"
+    },
+    {
+      "page": 66,
+      "word": "Grüne",
+      "key": "V:die Grünen"
+    },
+    {
+      "page": 66,
+      "word": "Gruppe",
+      "key": "V:die Gruppe"
+    },
+    {
+      "page": 66,
+      "word": "gut",
+      "key": "V:gut"
+    },
+    {
+      "page": 66,
+      "word": "Haar",
+      "key": "V:das Haar"
+    },
+    {
+      "page": 66,
+      "word": "haben",
+      "key": "V:haben"
+    },
+    {
+      "page": 66,
+      "word": "Hälfte",
+      "key": "V:die Hälfte"
+    },
+    {
+      "page": 66,
+      "word": "halten",
+      "key": "V:halten"
+    },
+    {
+      "page": 66,
+      "word": "Hamburg",
+      "key": "V:Hamburg"
+    },
+    {
+      "page": 66,
+      "word": "Hand",
+      "key": "V:die Hand"
+    },
+    {
+      "page": 66,
+      "word": "handeln",
+      "key": "V:handeln"
+    },
+    {
+      "page": 66,
+      "word": "hängen",
+      "key": "V:hängen"
+    },
+    {
+      "page": 66,
+      "word": "hart",
+      "key": "V:hart"
+    },
+    {
+      "page": 66,
+      "word": "häufig",
+      "key": "V:häufig"
+    },
+    {
+      "page": 66,
+      "word": "Haus",
+      "key": "V:das Haus"
+    },
+    {
+      "page": 66,
+      "word": "Haut",
+      "key": "V:die Haut"
+    },
+    {
+      "page": 66,
+      "word": "heiß",
+      "key": "V:heiß"
+    },
+    {
+      "page": 66,
+      "word": "heißen",
+      "key": "V:heißen"
+    },
+    {
+      "page": 66,
+      "word": "heizen",
+      "key": "V:heizen"
+    },
+    {
+      "page": 66,
+      "word": "helfen",
+      "key": "V:helfen"
+    },
+    {
+      "page": 66,
+      "word": "hell",
+      "key": "V:hell"
+    },
+    {
+      "page": 66,
+      "word": "her",
+      "key": "V:her"
+    },
+    {
+      "page": 66,
+      "word": "heraus",
+      "key": "V:heraus"
+    },
+    {
+      "page": 66,
+      "word": "Herr",
+      "key": "V:der Herr"
+    },
+    {
+      "page": 66,
+      "word": "herstellen",
+      "key": "V:herstellen"
+    },
+    {
+      "page": 66,
+      "word": "Herz",
+      "key": "V:das Herz"
+    },
+    {
+      "page": 66,
+      "word": "heute",
+      "key": "V:heute"
+    },
+    {
+      "page": 66,
+      "word": "heutig",
+      "key": "V:heutig"
+    },
+    {
+      "page": 66,
+      "word": "hier",
+      "key": "V:hier"
+    },
+    {
+      "page": 66,
+      "word": "Hilfe",
+      "key": "V:die Hilfe"
+    },
+    {
+      "page": 66,
+      "word": "Himmel",
+      "key": "V:der Himmel"
+    },
+    {
+      "page": 66,
+      "word": "hin",
+      "key": "V:hin"
+    },
+    {
+      "page": 66,
+      "word": "hinaus",
+      "key": "V:hinaus"
+    },
+    {
+      "page": 66,
+      "word": "hinein",
+      "key": "V:hinein"
+    },
+    {
+      "page": 66,
+      "word": "hinten",
+      "key": "V:hinten"
+    },
+    {
+      "page": 66,
+      "word": "hinter",
+      "key": "V:hinter"
+    },
+    {
+      "page": 66,
+      "word": "Hintergrund",
+      "key": "V:der Hintergrund"
+    },
+    {
+      "page": 66,
+      "word": "hoch",
+      "key": "V:hoch"
+    },
+    {
+      "page": 66,
+      "word": "höchstens",
+      "key": "L21:höchstens"
+    },
+    {
+      "page": 66,
+      "word": "hoffen",
+      "key": "V:hoffen"
+    },
+    {
+      "page": 66,
+      "word": "Höhe",
+      "key": "V:die Höhe"
+    },
+    {
+      "page": 66,
+      "word": "holen",
+      "key": "V:holen"
+    },
+    {
+      "page": 66,
+      "word": "Holz",
+      "key": "V:das Holz"
+    },
+    {
+      "page": 66,
+      "word": "Homepage",
+      "key": "V:die Homepage"
+    },
+    {
+      "page": 66,
+      "word": "hören",
+      "key": "V:hören"
+    },
+    {
+      "page": 66,
+      "word": "Hose",
+      "key": "V:die Hose"
+    },
+    {
+      "page": 66,
+      "word": "Hund",
+      "key": "V:der Hund"
+    },
+    {
+      "page": 66,
+      "word": "hundert",
+      "key": "V:hundert"
+    },
+    {
+      "page": 66,
+      "word": "ich",
+      "key": "V:ich"
+    },
+    {
+      "page": 66,
+      "word": "Idee",
+      "key": "V:die Idee"
+    },
+    {
+      "page": 66,
+      "word": "ihr",
+      "key": "V:ihr"
+    },
+    {
+      "page": 66,
+      "word": "immer",
+      "key": "V:immer"
+    },
+    {
+      "page": 66,
+      "word": "in",
+      "key": "V:in"
+    },
+    {
+      "page": 66,
+      "word": "indem",
+      "key": "V:indem"
+    },
+    {
+      "page": 66,
+      "word": "Information",
+      "key": "V:die Information"
+    },
+    {
+      "page": 66,
+      "word": "innen",
+      "key": "V:innen"
+    },
+    {
+      "page": 66,
+      "word": "innerhalb",
+      "key": "V:innerhalb"
+    },
+    {
+      "page": 66,
+      "word": "insbesondere",
+      "key": "V:insbesondere"
+    },
+    {
+      "page": 66,
+      "word": "Insel",
+      "key": "V:die Insel"
+    },
+    {
+      "page": 66,
+      "word": "insgesamt",
+      "key": "V:insgesamt"
+    },
+    {
+      "page": 66,
+      "word": "Interesse",
+      "key": "V:das Interesse"
+    },
+    {
+      "page": 66,
+      "word": "international",
+      "key": "V:international"
+    },
+    {
+      "page": 66,
+      "word": "Internet",
+      "key": "V:das Internet"
+    },
+    {
+      "page": 66,
+      "word": "inzwischen",
+      "key": "V:inzwischen"
+    },
+    {
+      "page": 66,
+      "word": "Ist",
+      "key": "V:ist"
+    },
+    {
+      "page": 66,
+      "word": "ja",
+      "key": "V:ja"
+    },
+    {
+      "page": 66,
+      "word": "Jahr",
+      "key": "V:das Jahr"
+    },
+    {
+      "page": 66,
+      "word": "Jahrhundert",
+      "key": "V:das Jahrhundert"
+    },
+    {
+      "page": 66,
+      "word": "Januar",
+      "key": "V:der Januar"
+    },
+    {
+      "page": 66,
+      "word": "je",
+      "key": "V:je"
+    },
+    {
+      "page": 66,
+      "word": "jeder",
+      "key": "V:jeder"
+    },
+    {
+      "page": 66,
+      "word": "jedoch",
+      "key": "V:jedoch"
+    },
+    {
+      "page": 66,
+      "word": "jemand",
+      "key": "V:jemand"
+    },
+    {
+      "page": 66,
+      "word": "jetzt",
+      "key": "V:jetzt"
+    },
+    {
+      "page": 66,
+      "word": "jeweiliger",
+      "key": "V:jeweiliger"
+    },
+    {
+      "page": 66,
+      "word": "jeweils",
+      "key": "V:jeweils"
+    },
+    {
+      "page": 66,
+      "word": "Juli",
+      "key": "V:der Juli"
+    },
+    {
+      "page": 66,
+      "word": "jung",
+      "key": "V:jung"
+    },
+    {
+      "page": 66,
+      "word": "Junge",
+      "key": "V:der Junge"
+    },
+    {
+      "page": 66,
+      "word": "Juni",
+      "key": "V:der Juni"
+    },
+    {
+      "page": 66,
+      "word": "kalt",
+      "key": "V:kalt"
+    },
+    {
+      "page": 66,
+      "word": "Kampf",
+      "key": "V:der Kampf"
+    },
+    {
+      "page": 66,
+      "word": "Karte",
+      "key": "V:die Karte"
+    },
+    {
+      "page": 66,
+      "word": "kaufen",
+      "key": "V:kaufen"
+    },
+    {
+      "page": 66,
+      "word": "kaum",
+      "key": "V:kaum"
+    },
+    {
+      "page": 66,
+      "word": "kein",
+      "key": "V:kein"
+    },
+    {
+      "page": 66,
+      "word": "kennen",
+      "key": "V:kennen"
+    },
+    {
+      "page": 66,
+      "word": "Kilometer",
+      "key": "V:der Kilometer"
+    },
+    {
+      "page": 66,
+      "word": "Kind",
+      "key": "V:das Kind"
+    },
+    {
+      "page": 66,
+      "word": "Kirche",
+      "key": "V:die Kirche"
+    },
+    {
+      "page": 66,
+      "word": "klar",
+      "key": "V:klar"
+    },
+    {
+      "page": 66,
+      "word": "Klasse",
+      "key": "V:die Klasse"
+    },
+    {
+      "page": 66,
+      "word": "Kleidung",
+      "key": "V:die Kleidung"
+    },
+    {
+      "page": 66,
+      "word": "klein",
+      "key": "V:klein"
+    },
+    {
+      "page": 66,
+      "word": "Klinik",
+      "key": "V:die Klinik"
+    },
+    {
+      "page": 66,
+      "word": "knapp",
+      "key": "V:knapp"
+    },
+    {
+      "page": 66,
+      "word": "Kollege",
+      "key": "V:der Kollege"
+    },
+    {
+      "page": 66,
+      "word": "Köln",
+      "key": "V:Köln"
+    },
+    {
+      "page": 66,
+      "word": "kommen",
+      "key": "V:kommen"
+    },
+    {
+      "page": 66,
+      "word": "kommender",
+      "key": "V:kommender"
+    },
+    {
+      "page": 66,
+      "word": "können",
+      "key": "V:können"
+    },
+    {
+      "page": 66,
+      "word": "Kontakt",
+      "key": "V:der Kontakt"
+    },
+    {
+      "page": 66,
+      "word": "Kontrolle",
+      "key": "V:die Kontrolle"
+    },
+    {
+      "page": 66,
+      "word": "Kopf",
+      "key": "V:der Kopf"
+    },
+    {
+      "page": 66,
+      "word": "Körper",
+      "key": "V:der Körper"
+    },
+    {
+      "page": 66,
+      "word": "Kosten",
+      "key": "V:die Kosten"
+    },
+    {
+      "page": 66,
+      "word": "Kraft",
+      "key": "V:die Kraft"
+    },
+    {
+      "page": 66,
+      "word": "krank",
+      "key": "V:krank"
+    },
+    {
+      "page": 66,
+      "word": "Kreis",
+      "key": "V:der Kreis"
+    },
+    {
+      "page": 66,
+      "word": "Krieg",
+      "key": "V:der Krieg"
+    },
+    {
+      "page": 66,
+      "word": "Kritik",
+      "key": "V:die Kritik"
+    },
+    {
+      "page": 66,
+      "word": "Kunde",
+      "key": "V:der Kunde"
+    },
+    {
+      "page": 66,
+      "word": "künftig",
+      "key": "V:künftig"
+    },
+    {
+      "page": 66,
+      "word": "Kunst",
+      "key": "V:die Kunst"
+    },
+    {
+      "page": 66,
+      "word": "Kurs",
+      "key": "V:der Kurs"
+    },
+    {
+      "page": 66,
+      "word": "kurz",
+      "key": "V:kurz"
+    },
+    {
+      "page": 66,
+      "word": "Lage",
+      "key": "V:die Lage"
+    },
+    {
+      "page": 66,
+      "word": "Land",
+      "key": "V:das Land"
+    },
+    {
+      "page": 66,
+      "word": "lang",
+      "key": "V:lang"
+    },
+    {
+      "page": 66,
+      "word": "lange",
+      "key": "V:lange"
+    },
+    {
+      "page": 66,
+      "word": "langsam",
+      "key": "V:langsam"
+    },
+    {
+      "page": 66,
+      "word": "Lärm",
+      "key": "V:der Lärm"
+    },
+    {
+      "page": 66,
+      "word": "lassen",
+      "key": "V:lassen"
+    },
+    {
+      "page": 66,
+      "word": "laufen",
+      "key": "V:laufen"
+    },
+    {
+      "page": 66,
+      "word": "laut",
+      "key": "V:laut"
+    },
+    {
+      "page": 66,
+      "word": "Laut",
+      "key": "V:der Laut"
+    },
+    {
+      "page": 66,
+      "word": "leben",
+      "key": "V:leben"
+    },
+    {
+      "page": 66,
+      "word": "Leben",
+      "key": "V:das Leben"
+    },
+    {
+      "page": 66,
+      "word": "lediglich",
+      "key": "V:nur",
+      "variant": "lediglich"
+    },
+    {
+      "page": 66,
+      "word": "leer",
+      "key": "V:leer"
+    },
+    {
+      "page": 66,
+      "word": "legen",
+      "key": "V:legen"
+    },
+    {
+      "page": 66,
+      "word": "Lehrer",
+      "key": "V:der Lehrer"
+    },
+    {
+      "page": 66,
+      "word": "leicht",
+      "key": "V:leicht"
+    },
+    {
+      "page": 66,
+      "word": "leider",
+      "key": "V:leider"
+    },
+    {
+      "page": 66,
+      "word": "leise",
+      "key": "V:leise"
+    },
+    {
+      "page": 66,
+      "word": "Leistung",
+      "key": "V:die Leistung"
+    },
+    {
+      "page": 66,
+      "word": "lernen",
+      "key": "V:lernen"
+    },
+    {
+      "page": 66,
+      "word": "lesen",
+      "key": "V:lesen"
+    },
+    {
+      "page": 66,
+      "word": "letzter",
+      "key": "V:letzter"
+    },
+    {
+      "page": 66,
+      "word": "Leute",
+      "key": "V:die Leute"
+    },
+    {
+      "page": 66,
+      "word": "Licht",
+      "key": "V:das Licht"
+    },
+    {
+      "page": 66,
+      "word": "Liebe",
+      "key": "V:die Liebe"
+    },
+    {
+      "page": 66,
+      "word": "liegen",
+      "key": "V:liegen"
+    },
+    {
+      "page": 66,
+      "word": "Linie",
+      "key": "V:die Linie"
+    },
+    {
+      "page": 66,
+      "word": "links",
+      "key": "V:links"
+    },
+    {
+      "page": 66,
+      "word": "Lösung",
+      "key": "V:die Lösung"
+    },
+    {
+      "page": 66,
+      "word": "Luft",
+      "key": "V:die Luft"
+    },
+    {
+      "page": 66,
+      "word": "machen",
+      "key": "V:machen"
+    },
+    {
+      "page": 66,
+      "word": "Mädchen",
+      "key": "V:das Mädchen"
+    },
+    {
+      "page": 66,
+      "word": "Mai",
+      "key": "V:der Mai"
+    },
+    {
+      "page": 66,
+      "word": "mal",
+      "key": "V:mal"
+    },
+    {
+      "page": 66,
+      "word": "Mal",
+      "key": "V:das Mal"
+    },
+    {
+      "page": 66,
+      "word": "malen",
+      "key": "V:malen"
+    },
+    {
+      "page": 66,
+      "word": "man",
+      "key": "V:man"
+    },
+    {
+      "page": 66,
+      "word": "manchmal",
+      "key": "V:gelegentlich"
+    },
+    {
+      "page": 66,
+      "word": "Mann",
+      "key": "V:der Mann"
+    },
+    {
+      "page": 66,
+      "word": "Mannschaft",
+      "key": "L21:die Mannschaft"
+    },
+    {
+      "page": 66,
+      "word": "Mark",
+      "key": "V:die DM"
+    },
+    {
+      "page": 66,
+      "word": "Markt",
+      "key": "V:der Markt"
+    },
+    {
+      "page": 66,
+      "word": "März",
+      "key": "V:der März"
+    },
+    {
+      "page": 66,
+      "word": "Maschine",
+      "key": "V:die Maschine"
+    },
+    {
+      "page": 66,
+      "word": "Maßnahme",
+      "key": "V:die Maßnahme"
+    },
+    {
+      "page": 66,
+      "word": "Maus",
+      "key": "V:die Maus"
+    },
+    {
+      "page": 66,
+      "word": "Medien",
+      "key": "V:die Medien"
+    },
+    {
+      "page": 66,
+      "word": "mehr",
+      "key": "V:mehr"
+    },
+    {
+      "page": 66,
+      "word": "mehrere",
+      "key": "V:mehrere"
+    },
+    {
+      "page": 66,
+      "word": "mein",
+      "key": "V:mein"
+    },
+    {
+      "page": 66,
+      "word": "Meinung",
+      "key": "V:die Meinung"
+    },
+    {
+      "page": 66,
+      "word": "meist",
+      "key": "V:meist"
+    },
+    {
+      "page": 66,
+      "word": "meisten",
+      "key": "V:die meisten"
+    },
+    {
+      "page": 66,
+      "word": "Menge",
+      "key": "V:die Menge"
+    },
+    {
+      "page": 66,
+      "word": "Mensch",
+      "key": "V:der Mensch"
+    },
+    {
+      "page": 66,
+      "word": "messen",
+      "key": "V:messen"
+    },
+    {
+      "page": 66,
+      "word": "Messer",
+      "key": "V:das Messer"
+    },
+    {
+      "page": 66,
+      "word": "Meter",
+      "key": "V:der Meter"
+    },
+    {
+      "page": 66,
+      "word": "Milch",
+      "key": "V:die Milch"
+    },
+    {
+      "page": 66,
+      "word": "Milliarde",
+      "key": "V:die Milliarde"
+    },
+    {
+      "page": 66,
+      "word": "Million",
+      "key": "V:die Million"
+    },
+    {
+      "page": 66,
+      "word": "mindestens",
+      "key": "V:mindestens"
+    },
+    {
+      "page": 66,
+      "word": "Minute",
+      "key": "V:die Minute"
+    },
+    {
+      "page": 66,
+      "word": "mit",
+      "key": "V:mit"
+    },
+    {
+      "page": 66,
+      "word": "Mitarbeiter",
+      "key": "V:der Mitarbeiter"
+    },
+    {
+      "page": 66,
+      "word": "Mitglied",
+      "key": "V:das Mitglied"
+    },
+    {
+      "page": 66,
+      "word": "Mitte",
+      "key": "V:die Mitte"
+    },
+    {
+      "page": 66,
+      "word": "Mittel",
+      "key": "V:das Mittel"
+    },
+    {
+      "page": 66,
+      "word": "mittlerweile",
+      "key": "V:mittlerweile"
+    },
+    {
+      "page": 66,
+      "word": "Mittwoch",
+      "key": "V:der Mittwoch"
+    },
+    {
+      "page": 66,
+      "word": "mixen",
+      "key": "V:mixen"
+    },
+    {
+      "page": 66,
+      "word": "mögen",
+      "key": "V:mögen"
+    },
+    {
+      "page": 66,
+      "word": "möglich",
+      "key": "V:möglich"
+    },
+    {
+      "page": 66,
+      "word": "Möglichkeit",
+      "key": "V:die Möglichkeit"
+    },
+    {
+      "page": 66,
+      "word": "Moment",
+      "key": "V:der Moment"
+    },
+    {
+      "page": 66,
+      "word": "Monat",
+      "key": "V:der Monat"
+    },
+    {
+      "page": 66,
+      "word": "Montag",
+      "key": "V:der Montag"
+    },
+    {
+      "page": 66,
+      "word": "morgen",
+      "key": "V:morgen"
+    },
+    {
+      "page": 66,
+      "word": "Müll",
+      "key": "V:der Müll"
+    },
+    {
+      "page": 66,
+      "word": "München",
+      "key": "V:München"
+    },
+    {
+      "page": 66,
+      "word": "Mund",
+      "key": "V:der Mund"
+    },
+    {
+      "page": 66,
+      "word": "Musik",
+      "key": "V:die Musik"
+    },
+    {
+      "page": 66,
+      "word": "müssen",
+      "key": "V:müssen"
+    },
+    {
+      "page": 66,
+      "word": "Mutter",
+      "key": "V:die Mutter"
+    },
+    {
+      "page": 66,
+      "word": "nach",
+      "key": "V:nach"
+    },
+    {
+      "page": 66,
+      "word": "nachdem",
+      "key": "V:nachdem"
+    },
+    {
+      "page": 66,
+      "word": "nächster",
+      "key": "V:nächster"
+    },
+    {
+      "page": 66,
+      "word": "Nacht",
+      "key": "V:die Nacht"
+    },
+    {
+      "page": 66,
+      "word": "Nähe",
+      "key": "V:die Nähe"
+    },
+    {
+      "page": 66,
+      "word": "Nahrung",
+      "key": "V:die Nahrung"
+    },
+    {
+      "page": 66,
+      "word": "Name",
+      "key": "V:der Name"
+    },
+    {
+      "page": 66,
+      "word": "nämlich",
+      "key": "V:nämlich"
+    },
+    {
+      "page": 66,
+      "word": "Nase",
+      "key": "V:die Nase"
+    },
+    {
+      "page": 66,
+      "word": "nass",
+      "key": "V:nass"
+    },
+    {
+      "page": 66,
+      "word": "Natur",
+      "key": "V:die Natur"
+    },
+    {
+      "page": 66,
+      "word": "natürlich",
+      "key": "V:natürlich"
+    },
+    {
+      "page": 66,
+      "word": "Nebel",
+      "key": "V:der Nebel"
+    },
+    {
+      "page": 66,
+      "word": "neben",
+      "key": "V:neben"
+    },
+    {
+      "page": 66,
+      "word": "nehmen",
+      "key": "V:nehmen"
+    },
+    {
+      "page": 66,
+      "word": "nennen",
+      "key": "V:nennen"
+    },
+    {
+      "page": 66,
+      "word": "neu",
+      "key": "V:neu"
+    },
+    {
+      "page": 66,
+      "word": "neun",
+      "key": "V:neun"
+    },
+    {
+      "page": 66,
+      "word": "New",
+      "key": "V:New York"
+    },
+    {
+      "page": 66,
+      "word": "nicht",
+      "key": "V:nicht"
+    },
+    {
+      "page": 66,
+      "word": "nichts",
+      "key": "V:nichts"
+    },
+    {
+      "page": 66,
+      "word": "nie",
+      "key": "V:nie"
+    },
+    {
+      "page": 66,
+      "word": "niemand",
+      "key": "V:niemand"
+    },
+    {
+      "page": 66,
+      "word": "noch",
+      "key": "V:noch"
+    },
+    {
+      "page": 66,
+      "word": "normal",
+      "key": "V:normal"
+    },
+    {
+      "page": 66,
+      "word": "notwendig",
+      "key": "V:notwendig"
+    },
+    {
+      "page": 66,
+      "word": "November",
+      "key": "V:der November"
+    },
+    {
+      "page": 66,
+      "word": "Nummer",
+      "key": "V:die Nummer"
+    },
+    {
+      "page": 66,
+      "word": "nun",
+      "key": "V:nun"
+    },
+    {
+      "page": 66,
+      "word": "nur",
+      "key": "V:nur"
+    },
+    {
+      "page": 66,
+      "word": "nutzen",
+      "key": "V:nutzen"
+    },
+    {
+      "page": 66,
+      "word": "nützlich",
+      "key": "V:nützlich"
+    },
+    {
+      "page": 66,
+      "word": "ob",
+      "key": "V:ob"
+    },
+    {
+      "page": 66,
+      "word": "oben",
+      "key": "V:oben"
+    },
+    {
+      "page": 66,
+      "word": "Obst",
+      "key": "V:das Obst"
+    },
+    {
+      "page": 66,
+      "word": "obwohl",
+      "key": "V:obwohl"
+    },
+    {
+      "page": 66,
+      "word": "oder",
+      "key": "V:oder"
+    },
+    {
+      "page": 66,
+      "word": "of",
+      "key": "V:of"
+    },
+    {
+      "page": 66,
+      "word": "offen",
+      "key": "V:offen"
+    },
+    {
+      "page": 66,
+      "word": "offenbar",
+      "key": "V:offenbar"
+    },
+    {
+      "page": 66,
+      "word": "öffentlich",
+      "key": "V:öffentlich"
+    },
+    {
+      "page": 66,
+      "word": "öffnen",
+      "key": "V:öffnen"
+    },
+    {
+      "page": 66,
+      "word": "oft",
+      "key": "V:oft"
+    },
+    {
+      "page": 66,
+      "word": "ohne",
+      "key": "V:ohne"
+    },
+    {
+      "page": 66,
+      "word": "Ohr",
+      "key": "V:das Ohr"
+    },
+    {
+      "page": 66,
+      "word": "Oktober",
+      "key": "V:der Oktober"
+    },
+    {
+      "page": 66,
+      "word": "Opfer",
+      "key": "L19:das Opfer"
+    },
+    {
+      "page": 66,
+      "word": "Ort",
+      "key": "V:der Ort"
+    },
+    {
+      "page": 66,
+      "word": "Österreich",
+      "key": "V:Österreich"
+    },
+    {
+      "page": 66,
+      "word": "paar",
+      "key": "V:ein paar"
+    },
+    {
+      "page": 66,
+      "word": "Papier",
+      "key": "V:das Papier"
+    },
+    {
+      "page": 66,
+      "word": "Partei",
+      "key": "V:die Partei"
+    },
+    {
+      "page": 66,
+      "word": "Partner",
+      "key": "V:der Partner"
+    },
+    {
+      "page": 66,
+      "word": "passieren",
+      "key": "V:passieren"
+    },
+    {
+      "page": 66,
+      "word": "Patient",
+      "key": "V:der Patient"
+    },
+    {
+      "page": 66,
+      "word": "per",
+      "key": "V:per"
+    },
+    {
+      "page": 66,
+      "word": "Person",
+      "key": "V:die Person"
+    },
+    {
+      "page": 66,
+      "word": "Pferd",
+      "key": "V:das Pferd"
+    },
+    {
+      "page": 66,
+      "word": "pflanzen",
+      "key": "V:pflanzen"
+    },
+    {
+      "page": 66,
+      "word": "Pilz",
+      "key": "V:der Pilz"
+    },
+    {
+      "page": 66,
+      "word": "Plan",
+      "key": "V:der Plan"
+    },
+    {
+      "page": 66,
+      "word": "Platz",
+      "key": "V:der Platz"
+    },
+    {
+      "page": 66,
+      "word": "plötzlich",
+      "key": "V:plötzlich"
+    },
+    {
+      "page": 66,
+      "word": "Politik",
+      "key": "V:die Politik"
+    },
+    {
+      "page": 66,
+      "word": "politisch",
+      "key": "V:politisch"
+    },
+    {
+      "page": 66,
+      "word": "Polizei",
+      "key": "V:die Polizei"
+    },
+    {
+      "page": 66,
+      "word": "Präsident",
+      "key": "V:der Präsident"
+    },
+    {
+      "page": 66,
+      "word": "Preis",
+      "key": "V:der Preis"
+    },
+    {
+      "page": 66,
+      "word": "pro",
+      "key": "V:pro"
+    },
+    {
+      "page": 66,
+      "word": "Problem",
+      "key": "V:das Problem"
+    },
+    {
+      "page": 66,
+      "word": "Produkt",
+      "key": "V:das Produkt"
+    },
+    {
+      "page": 66,
+      "word": "Programm",
+      "key": "V:das Programm"
+    },
+    {
+      "page": 66,
+      "word": "Projekt",
+      "key": "V:das Projekt"
+    },
+    {
+      "page": 66,
+      "word": "Prozent",
+      "key": "V:das Prozent"
+    },
+    {
+      "page": 66,
+      "word": "Publikum",
+      "key": "V:das Publikum"
+    },
+    {
+      "page": 67,
+      "word": "Punkt",
+      "key": "V:der Punkt"
+    },
+    {
+      "page": 67,
+      "word": "Puppe",
+      "key": "V:die Puppe"
+    },
+    {
+      "page": 67,
+      "word": "Quadrat",
+      "key": "V:das Quadrat"
+    },
+    {
+      "page": 67,
+      "word": "Qualität",
+      "key": "V:die Qualität"
+    },
+    {
+      "page": 67,
+      "word": "Quartal",
+      "key": "V:das Quartal"
+    },
+    {
+      "page": 67,
+      "word": "Quelle",
+      "key": "V:die Quelle"
+    },
+    {
+      "page": 67,
+      "word": "Radio",
+      "key": "V:das Radio"
+    },
+    {
+      "page": 67,
+      "word": "Rahmen",
+      "key": "V:der Rahmen"
+    },
+    {
+      "page": 67,
+      "word": "Rand",
+      "key": "V:der Rand"
+    },
+    {
+      "page": 67,
+      "word": "Raum",
+      "key": "V:der Raum"
+    },
+    {
+      "page": 67,
+      "word": "rechnen",
+      "key": "V:rechnen"
+    },
+    {
+      "page": 67,
+      "word": "recht",
+      "key": "V:recht"
+    },
+    {
+      "page": 67,
+      "word": "Recht",
+      "key": "V:das Recht"
+    },
+    {
+      "page": 67,
+      "word": "rechts",
+      "key": "V:rechts"
+    },
+    {
+      "page": 67,
+      "word": "Regel",
+      "key": "V:die Regel"
+    },
+    {
+      "page": 67,
+      "word": "Regen",
+      "key": "V:der Regen"
+    },
+    {
+      "page": 67,
+      "word": "Regierung",
+      "key": "V:die Regierung"
+    },
+    {
+      "page": 67,
+      "word": "Region",
+      "key": "V:die Region"
+    },
+    {
+      "page": 67,
+      "word": "reich",
+      "key": "V:reich"
+    },
+    {
+      "page": 67,
+      "word": "Reihe",
+      "key": "V:die Reihe"
+    },
+    {
+      "page": 67,
+      "word": "rein",
+      "key": "V:rein"
+    },
+    {
+      "page": 67,
+      "word": "reisen",
+      "key": "V:reisen"
+    },
+    {
+      "page": 67,
+      "word": "Rest",
+      "key": "V:der Rest"
+    },
+    {
+      "page": 67,
+      "word": "richtig",
+      "key": "V:richtig"
+    },
+    {
+      "page": 67,
+      "word": "Richtung",
+      "key": "V:die Richtung"
+    },
+    {
+      "page": 67,
+      "word": "riechen",
+      "key": "V:riechen"
+    },
+    {
+      "page": 67,
+      "word": "Ring",
+      "key": "V:der Ring"
+    },
+    {
+      "page": 67,
+      "word": "Rolle",
+      "key": "V:die Rolle"
+    },
+    {
+      "page": 67,
+      "word": "rot",
+      "key": "V:rot"
+    },
+    {
+      "page": 67,
+      "word": "Rücken",
+      "key": "V:der Rücken"
+    },
+    {
+      "page": 67,
+      "word": "rufen",
+      "key": "V:rufen"
+    },
+    {
+      "page": 67,
+      "word": "ruhig",
+      "key": "V:ruhig"
+    },
+    {
+      "page": 67,
+      "word": "rund",
+      "key": "V:rund"
+    },
+    {
+      "page": 67,
+      "word": "Sache",
+      "key": "V:die Sache"
+    },
+    {
+      "page": 67,
+      "word": "Saft",
+      "key": "V:der Saft"
+    },
+    {
+      "page": 67,
+      "word": "sagen",
+      "key": "V:sagen"
+    },
+    {
+      "page": 67,
+      "word": "Saison",
+      "key": "V:die Saison"
+    },
+    {
+      "page": 67,
+      "word": "Salz",
+      "key": "V:das Salz"
+    },
+    {
+      "page": 67,
+      "word": "Samstag",
+      "key": "V:der Samstag"
+    },
+    {
+      "page": 67,
+      "word": "Sand",
+      "key": "V:der Sand"
+    },
+    {
+      "page": 67,
+      "word": "Satz",
+      "key": "V:der Satz"
+    },
+    {
+      "page": 67,
+      "word": "schaffen",
+      "key": "V:bewältigen"
+    },
+    {
+      "page": 67,
+      "word": "Schall",
+      "key": "V:der Schall"
+    },
+    {
+      "page": 67,
+      "word": "Schalter",
+      "key": "V:der Schalter"
+    },
+    {
+      "page": 67,
+      "word": "scharf",
+      "key": "V:scharf"
+    },
+    {
+      "page": 67,
+      "word": "Schatten",
+      "key": "V:der Schatten"
+    },
+    {
+      "page": 67,
+      "word": "Schiff",
+      "key": "V:das Schiff"
+    },
+    {
+      "page": 67,
+      "word": "scheinen",
+      "key": "V:scheinen"
+    },
+    {
+      "page": 67,
+      "word": "schicken",
+      "key": "V:schicken"
+    },
+    {
+      "page": 67,
+      "word": "schieben",
+      "key": "V:schieben"
+    },
+    {
+      "page": 67,
+      "word": "schlafen",
+      "key": "V:schlafen"
+    },
+    {
+      "page": 67,
+      "word": "schlagen",
+      "key": "L19:schlagen"
+    },
+    {
+      "page": 67,
+      "word": "schlecht",
+      "key": "V:schlecht"
+    },
+    {
+      "page": 67,
+      "word": "schließen",
+      "key": "V:schließen"
+    },
+    {
+      "page": 67,
+      "word": "schließlich",
+      "key": "V:schließlich"
+    },
+    {
+      "page": 67,
+      "word": "schmecken",
+      "key": "V:schmecken"
+    },
+    {
+      "page": 67,
+      "word": "schmutzig",
+      "key": "V:schmutzig"
+    },
+    {
+      "page": 67,
+      "word": "Schnee",
+      "key": "V:der Schnee"
+    },
+    {
+      "page": 67,
+      "word": "schneiden",
+      "key": "V:schneiden"
+    },
+    {
+      "page": 67,
+      "word": "schnell",
+      "key": "V:schnell"
+    },
+    {
+      "page": 67,
+      "word": "schon",
+      "key": "V:schon"
+    },
+    {
+      "page": 67,
+      "word": "schön",
+      "key": "V:schön"
+    },
+    {
+      "page": 67,
+      "word": "schrecklich",
+      "key": "V:schrecklich"
+    },
+    {
+      "page": 67,
+      "word": "schreiben",
+      "key": "V:schreiben"
+    },
+    {
+      "page": 67,
+      "word": "Schritt",
+      "key": "V:der Schritt"
+    },
+    {
+      "page": 67,
+      "word": "Schuh",
+      "key": "V:der Schuh"
+    },
+    {
+      "page": 67,
+      "word": "Schule",
+      "key": "V:die Schule"
+    },
+    {
+      "page": 67,
+      "word": "Schüler",
+      "key": "V:der Schüler"
+    },
+    {
+      "page": 67,
+      "word": "schützen",
+      "key": "V:schützen"
+    },
+    {
+      "page": 67,
+      "word": "schwach",
+      "key": "V:schwach"
+    },
+    {
+      "page": 67,
+      "word": "schwarz",
+      "key": "V:schwarz"
+    },
+    {
+      "page": 67,
+      "word": "Schweiz",
+      "key": "V:die Schweiz"
+    },
+    {
+      "page": 67,
+      "word": "schwer",
+      "key": "V:schwer"
+    },
+    {
+      "page": 67,
+      "word": "Schwester",
+      "key": "V:die Schwester"
+    },
+    {
+      "page": 67,
+      "word": "schwierig",
+      "key": "V:schwierig"
+    },
+    {
+      "page": 67,
+      "word": "schwimmen",
+      "key": "V:schwimmen"
+    },
+    {
+      "page": 67,
+      "word": "sechs",
+      "key": "V:sechs"
+    },
+    {
+      "page": 67,
+      "word": "See",
+      "key": "V:der See"
+    },
+    {
+      "page": 67,
+      "word": "sehen",
+      "key": "V:sehen"
+    },
+    {
+      "page": 67,
+      "word": "sehr",
+      "key": "V:sehr"
+    },
+    {
+      "page": 67,
+      "word": "sein",
+      "key": "V:sein"
+    },
+    {
+      "page": 67,
+      "word": "Sein",
+      "key": "V:das Sein"
+    },
+    {
+      "page": 67,
+      "word": "seiner",
+      "key": "V:seiner"
+    },
+    {
+      "page": 67,
+      "word": "seit",
+      "key": "V:seit"
+    },
+    {
+      "page": 67,
+      "word": "Seite",
+      "key": "V:die Seite"
+    },
+    {
+      "page": 67,
+      "word": "Sekunde",
+      "key": "V:die Sekunde"
+    },
+    {
+      "page": 67,
+      "word": "selbst",
+      "key": "V:selbst"
+    },
+    {
+      "page": 67,
+      "word": "selten",
+      "key": "V:selten"
+    },
+    {
+      "page": 67,
+      "word": "September",
+      "key": "V:der September"
+    },
+    {
+      "page": 67,
+      "word": "Service",
+      "key": "V:der Service"
+    },
+    {
+      "page": 67,
+      "word": "setzen",
+      "key": "V:setzen"
+    },
+    {
+      "page": 67,
+      "word": "sich",
+      "key": "V:sich"
+    },
+    {
+      "page": 67,
+      "word": "sicher",
+      "key": "V:sicher"
+    },
+    {
+      "page": 67,
+      "word": "Sicherheit",
+      "key": "V:die Sicherheit"
+    },
+    {
+      "page": 67,
+      "word": "Sicht",
+      "key": "V:die Sicht"
+    },
+    {
+      "page": 67,
+      "word": "sie",
+      "key": "V:sie"
+    },
+    {
+      "page": 67,
+      "word": "Sie",
+      "key": "V:Sie"
+    },
+    {
+      "page": 67,
+      "word": "sieben",
+      "key": "V:sieben"
+    },
+    {
+      "page": 67,
+      "word": "Sieg",
+      "key": "V:der Sieg"
+    },
+    {
+      "page": 67,
+      "word": "singen",
+      "key": "V:singen"
+    },
+    {
+      "page": 67,
+      "word": "Situation",
+      "key": "V:die Situation"
+    },
+    {
+      "page": 67,
+      "word": "sitzen",
+      "key": "V:sitzen"
+    },
+    {
+      "page": 67,
+      "word": "so",
+      "key": "V:so"
+    },
+    {
+      "page": 67,
+      "word": "sofort",
+      "key": "V:sofort"
+    },
+    {
+      "page": 67,
+      "word": "Software",
+      "key": "V:die Software"
+    },
+    {
+      "page": 67,
+      "word": "sogar",
+      "key": "V:sogar"
+    },
+    {
+      "page": 67,
+      "word": "Sohn",
+      "key": "V:der Sohn"
+    },
+    {
+      "page": 67,
+      "word": "solcher",
+      "key": "V:solcher"
+    },
+    {
+      "page": 67,
+      "word": "sollen",
+      "key": "V:sollen"
+    },
+    {
+      "page": 67,
+      "word": "somit",
+      "key": "V:somit"
+    },
+    {
+      "page": 67,
+      "word": "Sommer",
+      "key": "V:der Sommer"
+    },
+    {
+      "page": 67,
+      "word": "sondern",
+      "key": "V:sondern"
+    },
+    {
+      "page": 67,
+      "word": "Sonne",
+      "key": "V:die Sonne"
+    },
+    {
+      "page": 67,
+      "word": "Sonntag",
+      "key": "V:der Sonntag"
+    },
+    {
+      "page": 67,
+      "word": "sonst",
+      "key": "V:sonst"
+    },
+    {
+      "page": 67,
+      "word": "sorgen",
+      "key": "V:sorgen für"
+    },
+    {
+      "page": 67,
+      "word": "sowie",
+      "key": "V:sowie"
+    },
+    {
+      "page": 67,
+      "word": "sowohl",
+      "key": "V:sowohl … als auch"
+    },
+    {
+      "page": 67,
+      "word": "Spaß",
+      "key": "V:der Spaß"
+    },
+    {
+      "page": 67,
+      "word": "später",
+      "key": "V:später"
+    },
+    {
+      "page": 67,
+      "word": "SPD",
+      "key": "V:die SPD"
+    },
+    {
+      "page": 67,
+      "word": "speziell",
+      "key": "V:speziell"
+    },
+    {
+      "page": 67,
+      "word": "Spiegel",
+      "key": "V:der Spiegel"
+    },
+    {
+      "page": 67,
+      "word": "Spiel",
+      "key": "V:das Spiel"
+    },
+    {
+      "page": 67,
+      "word": "spielen",
+      "key": "V:spielen"
+    },
+    {
+      "page": 67,
+      "word": "Spieler",
+      "key": "V:der Spieler"
+    },
+    {
+      "page": 67,
+      "word": "Spitze",
+      "key": "V:die Spitze"
+    },
+    {
+      "page": 67,
+      "word": "Sport",
+      "key": "V:der Sport"
+    },
+    {
+      "page": 67,
+      "word": "Sprache",
+      "key": "V:die Sprache"
+    },
+    {
+      "page": 67,
+      "word": "sprechen",
+      "key": "V:sprechen"
+    },
+    {
+      "page": 67,
+      "word": "Sprecher",
+      "key": "V:der Sprecher"
+    },
+    {
+      "page": 67,
+      "word": "St.",
+      "key": "V:St."
+    },
+    {
+      "page": 67,
+      "word": "Staat",
+      "key": "V:der Staat"
+    },
+    {
+      "page": 67,
+      "word": "Stadt",
+      "key": "V:die Stadt"
+    },
+    {
+      "page": 67,
+      "word": "Stamm",
+      "key": "V:der Stamm"
+    },
+    {
+      "page": 67,
+      "word": "Stand",
+      "key": "V:der Stand"
+    },
+    {
+      "page": 67,
+      "word": "Stange",
+      "key": "V:die Stange"
+    },
+    {
+      "page": 67,
+      "word": "stark",
+      "key": "V:stark"
+    },
+    {
+      "page": 67,
+      "word": "Start",
+      "key": "V:der Start"
+    },
+    {
+      "page": 67,
+      "word": "statt",
+      "key": "V:statt"
+    },
+    {
+      "page": 67,
+      "word": "stehen",
+      "key": "V:stehen"
+    },
+    {
+      "page": 67,
+      "word": "steigen",
+      "key": "V:steigen"
+    },
+    {
+      "page": 67,
+      "word": "Stein",
+      "key": "V:der Stein"
+    },
+    {
+      "page": 67,
+      "word": "Stelle",
+      "key": "V:die Stelle"
+    },
+    {
+      "page": 67,
+      "word": "stellen",
+      "key": "V:stellen"
+    },
+    {
+      "page": 67,
+      "word": "sterben",
+      "key": "V:sterben"
+    },
+    {
+      "page": 67,
+      "word": "Stern",
+      "key": "V:der Stern"
+    },
+    {
+      "page": 67,
+      "word": "stets",
+      "key": "V:immer",
+      "variant": "stets"
+    },
+    {
+      "page": 67,
+      "word": "steuern",
+      "key": "V:steuern"
+    },
+    {
+      "page": 67,
+      "word": "Stift",
+      "key": "V:der Stift"
+    },
+    {
+      "page": 67,
+      "word": "still",
+      "key": "V:still"
+    },
+    {
+      "page": 67,
+      "word": "Stimme",
+      "key": "V:die Stimme"
+    },
+    {
+      "page": 67,
+      "word": "Stoff",
+      "key": "V:der Stoff"
+    },
+    {
+      "page": 67,
+      "word": "Straße",
+      "key": "V:die Straße"
+    },
+    {
+      "page": 67,
+      "word": "streiten",
+      "key": "L20:sich streiten mit"
+    },
+    {
+      "page": 67,
+      "word": "Strom",
+      "key": "V:der Strom"
+    },
+    {
+      "page": 67,
+      "word": "Stück",
+      "key": "V:das Stück"
+    },
+    {
+      "page": 67,
+      "word": "Studie",
+      "key": "V:die Studie"
+    },
+    {
+      "page": 67,
+      "word": "Stunde",
+      "key": "V:die Stunde"
+    },
+    {
+      "page": 67,
+      "word": "Sturm",
+      "key": "V:der Sturm"
+    },
+    {
+      "page": 67,
+      "word": "Stuttgart",
+      "key": "V:Stuttgart"
+    },
+    {
+      "page": 67,
+      "word": "Suche",
+      "key": "V:die Suche"
+    },
+    {
+      "page": 67,
+      "word": "suchen",
+      "key": "V:suchen"
+    },
+    {
+      "page": 67,
+      "word": "süß",
+      "key": "V:süß"
+    },
+    {
+      "page": 67,
+      "word": "System",
+      "key": "V:das System"
+    },
+    {
+      "page": 67,
+      "word": "Tag",
+      "key": "V:der Tag"
+    },
+    {
+      "page": 67,
+      "word": "Tasche",
+      "key": "V:die Tasche"
+    },
+    {
+      "page": 67,
+      "word": "tatsächlich",
+      "key": "V:tatsächlich"
+    },
+    {
+      "page": 67,
+      "word": "tausend",
+      "key": "V:tausend"
+    },
+    {
+      "page": 67,
+      "word": "Team",
+      "key": "V:das Team"
+    },
+    {
+      "page": 67,
+      "word": "Technik",
+      "key": "V:die Technik"
+    },
+    {
+      "page": 67,
+      "word": "Teil",
+      "key": "V:der Teil"
+    },
+    {
+      "page": 67,
+      "word": "teilen",
+      "key": "V:teilen"
+    },
+    {
+      "page": 67,
+      "word": "Teilnehmer",
+      "key": "V:der Teilnehmer"
+    },
+    {
+      "page": 67,
+      "word": "teilweise",
+      "key": "V:teilweise"
+    },
+    {
+      "page": 67,
+      "word": "Telefon",
+      "key": "V:das Telefon"
+    },
+    {
+      "page": 67,
+      "word": "Temperatur",
+      "key": "V:die Temperatur"
+    },
+    {
+      "page": 67,
+      "word": "Tempo",
+      "key": "V:das Tempo"
+    },
+    {
+      "page": 67,
+      "word": "Test",
+      "key": "V:der Test"
+    },
+    {
+      "page": 67,
+      "word": "teuer",
+      "key": "V:teuer"
+    },
+    {
+      "page": 67,
+      "word": "Text",
+      "key": "V:der Text"
+    },
+    {
+      "page": 67,
+      "word": "Thema",
+      "key": "V:das Thema"
+    },
+    {
+      "page": 67,
+      "word": "tief",
+      "key": "V:tief"
+    },
+    {
+      "page": 67,
+      "word": "Tier",
+      "key": "V:das Tier"
+    },
+    {
+      "page": 67,
+      "word": "Titel",
+      "key": "V:der Titel"
+    },
+    {
+      "page": 67,
+      "word": "Tochter",
+      "key": "V:die Tochter"
+    },
+    {
+      "page": 67,
+      "word": "Tod",
+      "key": "V:der Tod"
+    },
+    {
+      "page": 67,
+      "word": "Tor",
+      "key": "V:das Tor"
+    },
+    {
+      "page": 67,
+      "word": "tragen",
+      "key": "V:tragen"
+    },
+    {
+      "page": 67,
+      "word": "Trainer",
+      "key": "V:der Trainer"
+    },
+    {
+      "page": 67,
+      "word": "träumen",
+      "key": "L20:träumen von"
+    },
+    {
+      "page": 67,
+      "word": "treffen",
+      "key": "V:treffen"
+    },
+    {
+      "page": 67,
+      "word": "trinken",
+      "key": "V:trinken"
+    },
+    {
+      "page": 67,
+      "word": "trocken",
+      "key": "V:trocken"
+    },
+    {
+      "page": 67,
+      "word": "trotz",
+      "key": "V:trotz"
+    },
+    {
+      "page": 67,
+      "word": "Trotz",
+      "key": "V:der Trotz"
+    },
+    {
+      "page": 67,
+      "word": "tun",
+      "key": "V:tun"
+    },
+    {
+      "page": 67,
+      "word": "Tür",
+      "key": "V:die Tür"
+    },
+    {
+      "page": 67,
+      "word": "Typ",
+      "key": "V:der Typ"
+    },
+    {
+      "page": 67,
+      "word": "üben",
+      "key": "V:üben"
+    },
+    {
+      "page": 67,
+      "word": "über",
+      "key": "V:über"
+    },
+    {
+      "page": 67,
+      "word": "überhaupt",
+      "key": "V:überhaupt"
+    },
+    {
+      "page": 67,
+      "word": "übernehmen",
+      "key": "V:übernehmen"
+    },
+    {
+      "page": 67,
+      "word": "Uhr",
+      "key": "V:die Uhr"
+    },
+    {
+      "page": 67,
+      "word": "um",
+      "key": "V:um"
+    },
+    {
+      "page": 67,
+      "word": "Umsatz",
+      "key": "V:der Umsatz"
+    },
+    {
+      "page": 67,
+      "word": "und",
+      "key": "V:und"
+    },
+    {
+      "page": 67,
+      "word": "Unfall",
+      "key": "V:der Unfall"
+    },
+    {
+      "page": 67,
+      "word": "ungefähr",
+      "key": "V:ungefähr"
+    },
+    {
+      "page": 67,
+      "word": "Union",
+      "key": "V:die Union"
+    },
+    {
+      "page": 67,
+      "word": "Universität",
+      "key": "V:die Universität"
+    },
+    {
+      "page": 67,
+      "word": "unser",
+      "key": "V:unser"
+    },
+    {
+      "page": 67,
+      "word": "unten",
+      "key": "V:unten"
+    },
+    {
+      "page": 67,
+      "word": "unter",
+      "key": "V:unter"
+    },
+    {
+      "page": 67,
+      "word": "Unternehmen",
+      "key": "V:das Unternehmen"
+    },
+    {
+      "page": 67,
+      "word": "unterstützen",
+      "key": "V:unterstützen"
+    },
+    {
+      "page": 67,
+      "word": "Unterstützung",
+      "key": "V:die Unterstützung"
+    },
+    {
+      "page": 67,
+      "word": "Urlaub",
+      "key": "V:der Urlaub"
+    },
+    {
+      "page": 67,
+      "word": "USA",
+      "key": "V:die USA"
+    },
+    {
+      "page": 67,
+      "word": "Vater",
+      "key": "V:der Vater"
+    },
+    {
+      "page": 67,
+      "word": "verändern",
+      "key": "V:verändern"
+    },
+    {
+      "page": 67,
+      "word": "Veranstaltung",
+      "key": "V:die Veranstaltung"
+    },
+    {
+      "page": 67,
+      "word": "Verbindung",
+      "key": "V:die Verbindung"
+    },
+    {
+      "page": 67,
+      "word": "verboten",
+      "key": "V:verboten"
+    },
+    {
+      "page": 67,
+      "word": "verbrauchen",
+      "key": "V:verbrauchen"
+    },
+    {
+      "page": 67,
+      "word": "Verein",
+      "key": "V:der Verein"
+    },
+    {
+      "page": 67,
+      "word": "Verfahren",
+      "key": "V:das Verfahren"
+    },
+    {
+      "page": 67,
+      "word": "Verfügung",
+      "key": "V:die Verfügung"
+    },
+    {
+      "page": 67,
+      "word": "vergangener",
+      "key": "V:vergangener"
+    },
+    {
+      "page": 67,
+      "word": "vergessen",
+      "key": "V:vergessen"
+    },
+    {
+      "page": 67,
+      "word": "Vergleich",
+      "key": "V:der Vergleich"
+    },
+    {
+      "page": 67,
+      "word": "verkaufen",
+      "key": "V:verkaufen"
+    },
+    {
+      "page": 67,
+      "word": "Verkehr",
+      "key": "V:der Verkehr"
+    },
+    {
+      "page": 67,
+      "word": "verlassen",
+      "key": "V:verlassen"
+    },
+    {
+      "page": 67,
+      "word": "verloren",
+      "key": "V:verloren"
+    },
+    {
+      "page": 67,
+      "word": "verschieden",
+      "key": "V:verschieden"
+    },
+    {
+      "page": 67,
+      "word": "verstehen",
+      "key": "V:verstehen"
+    },
+    {
+      "page": 67,
+      "word": "versuchen",
+      "key": "V:versuchen"
+    },
+    {
+      "page": 67,
+      "word": "Vertrag",
+      "key": "V:der Vertrag"
+    },
+    {
+      "page": 67,
+      "word": "verwenden",
+      "key": "V:verwenden"
+    },
+    {
+      "page": 67,
+      "word": "viel",
+      "key": "V:viel"
+    },
+    {
+      "page": 67,
+      "word": "vielleicht",
+      "key": "V:vielleicht"
+    },
+    {
+      "page": 67,
+      "word": "vier",
+      "key": "V:vier"
+    },
+    {
+      "page": 67,
+      "word": "Vogel",
+      "key": "V:der Vogel"
+    },
+    {
+      "page": 67,
+      "word": "voll",
+      "key": "V:voll"
+    },
+    {
+      "page": 67,
+      "word": "völlig",
+      "key": "V:völlig"
+    },
+    {
+      "page": 67,
+      "word": "von",
+      "key": "V:von"
+    },
+    {
+      "page": 67,
+      "word": "vor",
+      "key": "V:vor"
+    },
+    {
+      "page": 67,
+      "word": "vorbei",
+      "key": "V:vorbei"
+    },
+    {
+      "page": 67,
+      "word": "vorn",
+      "key": "V:vorn"
+    },
+    {
+      "page": 67,
+      "word": "Vorsicht",
+      "key": "V:die Vorsicht"
+    },
+    {
+      "page": 67,
+      "word": "vorstellen",
+      "key": "V:vorstellen"
+    },
+    {
+      "page": 67,
+      "word": "Waffe",
+      "key": "V:die Waffe"
+    },
+    {
+      "page": 67,
+      "word": "Wahl",
+      "key": "V:die Wahl"
+    },
+    {
+      "page": 67,
+      "word": "während",
+      "key": "V:während"
+    },
+    {
+      "page": 67,
+      "word": "Wald",
+      "key": "V:der Wald"
+    },
+    {
+      "page": 67,
+      "word": "Wand",
+      "key": "V:die Wand"
+    },
+    {
+      "page": 67,
+      "word": "warm",
+      "key": "V:warm"
+    },
+    {
+      "page": 67,
+      "word": "warten",
+      "key": "L20:warten auf"
+    },
+    {
+      "page": 67,
+      "word": "warum",
+      "key": "V:warum"
+    },
+    {
+      "page": 67,
+      "word": "was",
+      "key": "V:was"
+    },
+    {
+      "page": 67,
+      "word": "waschen",
+      "key": "V:waschen"
+    },
+    {
+      "page": 67,
+      "word": "Wasser",
+      "key": "V:das Wasser"
+    },
+    {
+      "page": 67,
+      "word": "wechseln",
+      "key": "V:wechseln"
+    },
+    {
+      "page": 67,
+      "word": "weg",
+      "key": "V:weg"
+    },
+    {
+      "page": 67,
+      "word": "Weg",
+      "key": "V:der Weg"
+    },
+    {
+      "page": 67,
+      "word": "wegen",
+      "key": "V:wegen"
+    },
+    {
+      "page": 67,
+      "word": "weil",
+      "key": "V:weil"
+    },
+    {
+      "page": 67,
+      "word": "Weise",
+      "key": "V:die Weise"
+    },
+    {
+      "page": 67,
+      "word": "weiß",
+      "key": "V:weiß"
+    },
+    {
+      "page": 67,
+      "word": "weit",
+      "key": "V:weit"
+    },
+    {
+      "page": 67,
+      "word": "weiter",
+      "key": "V:weiter"
+    },
+    {
+      "page": 67,
+      "word": "weitere",
+      "key": "V:weitere"
+    },
+    {
+      "page": 67,
+      "word": "weiterhin",
+      "key": "V:weiterhin"
+    },
+    {
+      "page": 67,
+      "word": "welcher",
+      "key": "V:welcher"
+    },
+    {
+      "page": 67,
+      "word": "Welt",
+      "key": "V:die Welt"
+    },
+    {
+      "page": 67,
+      "word": "weltweit",
+      "key": "V:weltweit"
+    },
+    {
+      "page": 67,
+      "word": "wenig",
+      "key": "V:wenig"
+    },
+    {
+      "page": 67,
+      "word": "weniger",
+      "key": "V:weniger"
+    },
+    {
+      "page": 67,
+      "word": "wenn",
+      "key": "V:wenn"
+    },
+    {
+      "page": 67,
+      "word": "wer",
+      "key": "V:wer"
+    },
+    {
+      "page": 67,
+      "word": "werden",
+      "key": "V:werden"
+    },
+    {
+      "page": 67,
+      "word": "werfen",
+      "key": "V:werfen"
+    },
+    {
+      "page": 67,
+      "word": "Wert",
+      "key": "V:der Wert"
+    },
+    {
+      "page": 67,
+      "word": "Wetter",
+      "key": "V:das Wetter"
+    },
+    {
+      "page": 67,
+      "word": "wichtig",
+      "key": "V:der Stellenwert"
+    },
+    {
+      "page": 67,
+      "word": "wie",
+      "key": "V:wie"
+    },
+    {
+      "page": 67,
+      "word": "wieder",
+      "key": "V:wieder"
+    },
+    {
+      "page": 67,
+      "word": "wiegen",
+      "key": "V:wiegen"
+    },
+    {
+      "page": 67,
+      "word": "wild",
+      "key": "V:wild"
+    },
+    {
+      "page": 67,
+      "word": "Wind",
+      "key": "V:der Wind"
+    },
+    {
+      "page": 67,
+      "word": "Winter",
+      "key": "V:der Winter"
+    },
+    {
+      "page": 67,
+      "word": "wir",
+      "key": "V:wir"
+    },
+    {
+      "page": 67,
+      "word": "wirklich",
+      "key": "V:wirklich"
+    },
+    {
+      "page": 67,
+      "word": "Wirtschaft",
+      "key": "V:die Wirtschaft"
+    },
+    {
+      "page": 67,
+      "word": "wissen",
+      "key": "V:wissen"
+    },
+    {
+      "page": 67,
+      "word": "wo",
+      "key": "V:wo"
+    },
+    {
+      "page": 67,
+      "word": "wobei",
+      "key": "V:wobei"
+    },
+    {
+      "page": 67,
+      "word": "Woche",
+      "key": "V:die Woche"
+    },
+    {
+      "page": 67,
+      "word": "Wochenende",
+      "key": "V:das Wochenende"
+    },
+    {
+      "page": 67,
+      "word": "wohl",
+      "key": "V:wohl"
+    },
+    {
+      "page": 67,
+      "word": "wohnen",
+      "key": "V:wohnen"
+    },
+    {
+      "page": 67,
+      "word": "wollen",
+      "key": "V:wollen"
+    },
+    {
+      "page": 67,
+      "word": "Wort",
+      "key": "V:das Wort"
+    },
+    {
+      "page": 67,
+      "word": "wünschen",
+      "key": "V:wünschen"
+    },
+    {
+      "page": 67,
+      "word": "Yahoo",
+      "key": "V:Yahoo"
+    },
+    {
+      "page": 67,
+      "word": "York",
+      "key": "V:York"
+    },
+    {
+      "page": 67,
+      "word": "z.B.",
+      "key": "V:z. B."
+    },
+    {
+      "page": 67,
+      "word": "Zahl",
+      "key": "V:die Zahl"
+    },
+    {
+      "page": 67,
+      "word": "zahlreich",
+      "key": "V:zahlreich"
+    },
+    {
+      "page": 67,
+      "word": "zehn",
+      "key": "V:zehn"
+    },
+    {
+      "page": 67,
+      "word": "Zeichen",
+      "key": "V:das Zeichen"
+    },
+    {
+      "page": 67,
+      "word": "zeichnen",
+      "key": "V:zeichnen"
+    },
+    {
+      "page": 67,
+      "word": "zeigen",
+      "key": "V:zeigen"
+    },
+    {
+      "page": 67,
+      "word": "Zeit",
+      "key": "V:die Zeit"
+    },
+    {
+      "page": 67,
+      "word": "Zeitpunkt",
+      "key": "V:der Zeitpunkt"
+    },
+    {
+      "page": 67,
+      "word": "ziehen",
+      "key": "V:ziehen"
+    },
+    {
+      "page": 67,
+      "word": "Ziel",
+      "key": "V:das Ziel"
+    },
+    {
+      "page": 67,
+      "word": "Zimmer",
+      "key": "V:das Zimmer"
+    },
+    {
+      "page": 67,
+      "word": "zu",
+      "key": "V:zu"
+    },
+    {
+      "page": 67,
+      "word": "zudem",
+      "key": "V:außerdem",
+      "variant": "zudem"
+    },
+    {
+      "page": 67,
+      "word": "zuerst",
+      "key": "V:zuerst"
+    },
+    {
+      "page": 67,
+      "word": "zufolge",
+      "key": "V:zufolge"
+    },
+    {
+      "page": 67,
+      "word": "Zug",
+      "key": "V:der Zug"
+    },
+    {
+      "page": 67,
+      "word": "Zukunft",
+      "key": "V:die Zukunft"
+    },
+    {
+      "page": 67,
+      "word": "zuletzt",
+      "key": "V:zuletzt"
+    },
+    {
+      "page": 67,
+      "word": "zumindest",
+      "key": "V:zumindest"
+    },
+    {
+      "page": 67,
+      "word": "zunächst",
+      "key": "V:zunächst"
+    },
+    {
+      "page": 67,
+      "word": "zurück",
+      "key": "V:zurück"
+    },
+    {
+      "page": 67,
+      "word": "zusammen",
+      "key": "V:zusammen"
+    },
+    {
+      "page": 67,
+      "word": "Zusammenarbeit",
+      "key": "V:die Zusammenarbeit"
+    },
+    {
+      "page": 67,
+      "word": "Zusammenhang",
+      "key": "V:der Zusammenhang"
+    },
+    {
+      "page": 67,
+      "word": "zuvor",
+      "key": "V:zuvor"
+    },
+    {
+      "page": 67,
+      "word": "zwar",
+      "key": "V:zwar"
+    },
+    {
+      "page": 67,
+      "word": "zwei",
+      "key": "V:zwei"
+    },
+    {
+      "page": 67,
+      "word": "zweiter",
+      "key": "V:zweiter"
+    },
+    {
+      "page": 67,
+      "word": "zwischen",
+      "key": "V:zwischen"
+    },
+    {
+      "page": 67,
+      "word": "zwölf",
+      "key": "V:zwölf"
+    }
+  ]
+}
