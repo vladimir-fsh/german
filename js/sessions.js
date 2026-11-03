@@ -14,6 +14,15 @@ window.Sessions = (function () {
       if (["", "new", "repeat", "calib"].indexOf(value.mode || "") < 0) throw new Error("Неизвестная сессия");
       list(value.keys).forEach(function (key) { text(key); if (!/\|(de|ru)$/.test(key)) throw new Error("Некорректная карточка"); });
       if (value.i > value.keys.length) throw new Error("Некорректная позиция");
+      if (value.retryKeys != null) {
+        var completed = value.keys.slice(0, value.i), seen = {};
+        list(value.retryKeys).forEach(function (key) {
+          text(key);
+          if (value.mode === "calib" || completed.indexOf(key) < 0 || seen[key]) throw new Error("Некорректный повтор карточки");
+          seen[key] = true;
+        });
+      }
+      if (value.levelMove != null && ["up", "down"].indexOf(value.levelMove) < 0) throw new Error("Некорректная смена ступени");
       if (value.newKeys != null) list(value.newKeys).forEach(function (key) { text(key); if (value.keys.indexOf(key) < 0) throw new Error("Карточка вне сессии"); });
       ["done", "newSeen", "newKnown"].forEach(function (field) { if (value[field] != null) integer(value[field], value.keys.length); });
       if (value.newKnown > value.newSeen) throw new Error("Некорректная оценка");

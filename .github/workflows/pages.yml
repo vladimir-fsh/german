@@ -3,13 +3,15 @@ name: Publish GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: github-pages
+  group: ${{ github.event_name == 'pull_request' && github.ref || 'github-pages' }}
   cancel-in-progress: false
 
 jobs:
@@ -23,6 +25,7 @@ jobs:
           node tools/test-sync.js
           node tools/test-lessons.js
       - name: Prepare website files
+        if: github.event_name != 'pull_request'
         run: |
           mkdir -p _site
           cp index.html icon-180.png _site/
@@ -30,10 +33,12 @@ jobs:
           touch _site/.nojekyll
           python3 tools/stamp-pages.py _site/index.html
       - uses: actions/upload-pages-artifact@v4
+        if: github.event_name != 'pull_request'
         with:
           path: _site
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     permissions:

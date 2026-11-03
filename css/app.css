@@ -391,8 +391,10 @@ details.theory .gram { padding: 0 14px 14px; }
 }
 
 /* ---------- карточки слов ---------- */
+html.vocab-training, html.vocab-training body { overflow: hidden; overscroll-behavior: none; }
+.vocab-training main.wrap.tight { padding-bottom: 0; }
 /* Экран карточек без обёрток: одна большая карточка по центру экрана. */
-.vscreen { display: flex; flex-direction: column; margin: 10px 0 0; overflow: hidden; }
+.vscreen { display: flex; flex-direction: column; margin: 10px 0 0; overflow: hidden; touch-action: none; }
 .vinterval { font-size: 12px; text-align: center; padding: 4px 0; }
 .vhost { position: relative; display: flex; flex-direction: column; margin: auto 0; }   /* карточка по центру */
 

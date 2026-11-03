@@ -68,6 +68,7 @@
     routeId++; working = false; document.onkeydown = null;
     var h = curPath();
     var m;
+    document.documentElement.classList.remove("vocab-training");
     window.scrollTo(0, 0);
     window.onresize = null;
     app.classList.remove("tight", "result-screen");
@@ -682,9 +683,7 @@
   }
 
   /* ---------- карточки слов ----------
-     Ответ меняет расписание через vocabWordReviewDeferred и убирает карточку
-     из текущей сессии. Ошибка ждёт 12 часов. Параметры обучения и дневного
-     лимита заданы в srs-config.js. */
+     Первый круг меняет расписание. Повтор промахов живёт в сессии. */
   var CFG = window.SRS_CONFIG || {};
   var V_SESSION = CFG.sessionNew || 10;   /* потолок обычной сессии */
   var V_NEW = CFG.sessionNew || 10;       /* столько новых даёт добор по кнопке */
@@ -849,8 +848,7 @@
   }
 
   function sessionLoad() {
-    var raw = window.Sessions.load("vocab");
-    return raw && raw.i < raw.keys.length ? raw : null;
+    return window.Sessions.load("vocab");
   }
   function sessionSave(st) { window.Sessions.save("vocab", st); }
   function sessionClear() { window.Sessions.clear("vocab"); }
@@ -918,27 +916,32 @@
     if (!saved) return saved;
     saved = JSON.parse(JSON.stringify(saved));
     var completed = saved.keys.slice(0, saved.i), remaining = [], taken = {}, newKeys = [];
-    var currentKey = saved.keys[saved.i], now = Date.now();
+    var currentKey = saved.keys[saved.i] || (saved.retryKeys || [])[0], now = Date.now();
     saved.keys.slice(saved.i).forEach(function (key) {
       var base = key.slice(0, -3), v = Store.vocabSchedule(S.vocab, base);
       if (taken[base]) return;
-      if (saved.mode !== 'calib' && ((v && (v.learned || v.due > now)) || (saved.first && saved.first[key]))) {
+      if (!byKey[key]) return;
+      var dir = Store.vocabPaired(v) && v.pairRu ? "de" : "ru";
+      var next = base + "|" + dir;
+      if ((v && v.learned) || (saved.mode !== "calib" && ((v && v.due > now) ||
+          (saved.first && (saved.first[key] || saved.first[next]))))) {
         completed.push(key);
         saved.done = (saved.done || 0) + 1;
         taken[base] = true;
         return;
       }
       taken[base] = true;
-      var dir = Store.vocabPaired(v) && v.pairRu ? "de" : "ru";
-      var next = base + "|" + dir;
       if (!byKey[next]) return;
       remaining.push(next);
       if (!v) newKeys.push(next);
-      if (key !== next && saved.first) delete saved.first[next];
     });
     saved.keys = completed.concat(remaining); saved.i = completed.length;
     saved.newKeys = newKeys; saved.policy = 2;
-    if (saved.keys[saved.i] !== currentKey) saved.peeked = false;
+    saved.retryKeys = (saved.retryKeys || []).filter(function (key) {
+      var it = byKey[key], v = it && vocabSchedule(it);
+      return it && !(v && v.learned);
+    });
+    if ((saved.keys[saved.i] || saved.retryKeys[0]) !== currentKey) saved.peeked = false;
     return saved;
   }
 
@@ -959,8 +962,7 @@
 
     if (saved) {
       /* продолжаем прерванную сессию */
-      list = [];
-      saved.keys.forEach(function (k) { if (byKey[k]) list.push(byKey[k]); });
+      list = saved.keys.map(function (k) { return byKey[k] || { key: k }; });
       var newKeys = saved.newKeys || [];
       list.forEach(function (it) { it.isNew = newKeys.indexOf(it.key) >= 0; });
       startI = Math.min(saved.i || 0, list.length);
@@ -1006,6 +1008,8 @@
 
     var total = list.length;
     var doneCnt = startDone;
+    var retryKeys = saved ? saved.retryKeys : [];
+    var levelMove = saved ? saved.levelMove : undefined;
     var firstAnswered = startFirst;   /* key → на этом слове уже был первый ответ */
     var newSeen = startNewSeen, newKnown = startNewKnown;   /* статистика по новым словам сессии */
 
@@ -1014,7 +1018,8 @@
         at: Date.now(), policy: 2, mode: mode || "", i: i, done: doneCnt,
         keys: list.map(function (it) { return it.key; }),
         newKeys: list.filter(function (it) { return it.isNew; }).map(function (it) { return it.key; }),
-        first: firstAnswered, newSeen: newSeen, newKnown: newKnown, peeked: peeked, calibStat: calibStat
+        first: firstAnswered, newSeen: newSeen, newKnown: newKnown, peeked: peeked, calibStat: calibStat,
+        retryKeys: retryKeys, levelMove: levelMove
       });
     }
 
@@ -1028,6 +1033,7 @@
     card.appendChild(host);
     app.appendChild(card);
     app.classList.add("tight");
+    document.documentElement.classList.add("vocab-training");
 
     /* высота ровно по окну: ни вертикальной полосы, ни прыжков адресной строки */
     function fitScreen() {
@@ -1035,7 +1041,7 @@
       var top = card.getBoundingClientRect().top;
       var bar = document.getElementById("tabbar");
       var barH = bar ? bar.offsetHeight : 0;
-      card.style.height = Math.max(280, window.innerHeight - top - barH - 12) + "px";
+      card.style.height = Math.max(0, window.innerHeight - top - barH - 12) + "px";
     }
     fitScreen();
     window.onresize = fitScreen;
@@ -1043,22 +1049,23 @@
     var i = startI, revealed = false, busy = false, view = routeId, expectedDue = 0;
 
     var peeked = false, lastAnswer = null;
+    function currentCard() { return list[i] || byKey[retryKeys[0]]; }
     function wordEntries(key) {
       var entries = {};
       ['|ru', '|de'].forEach(function (dir) { entries[key + dir] = S.vocab[key + dir] || null; });
       return JSON.parse(JSON.stringify(entries));
     }
     function rememberAnswer() {
-      var key = list[i].key.slice(0, -3);
+      var key = currentCard().key.slice(0, -3);
       lastAnswer = {
-        list: list.slice(), i: i, done: doneCnt, total: total,
+        list: list.slice(), i: i, done: doneCnt, total: total, retryKeys: retryKeys.slice(), levelMove: levelMove,
         first: JSON.parse(JSON.stringify(firstAnswered)), newSeen: newSeen, newKnown: newKnown,
         calibStat: JSON.parse(JSON.stringify(calibStat)), peeked: peeked,
-        op: { key: key, before: wordEntries(key), beforeLevel: S.vocabLevel || 1, beforeCalibrated: !!S.calibrated }
+        op: i < list.length ? { key: key, before: wordEntries(key), beforeLevel: S.vocabLevel || 1, beforeCalibrated: !!S.calibrated } : null
       };
     }
     function rememberResult() {
-      if (!lastAnswer) return;
+      if (!lastAnswer || !lastAnswer.op) return;
       lastAnswer.op.after = wordEntries(lastAnswer.op.key);
       lastAnswer.op.afterLevel = S.vocabLevel || 1;
       lastAnswer.op.afterCalibrated = !!S.calibrated;
@@ -1066,18 +1073,20 @@
     function undoPrevious() {
       if (busy || !lastAnswer || view !== routeId) return;
       var previous = lastAnswer;
-      S = Store.mutate('vocabUndo', previous.op);
-      if (JSON.stringify(wordEntries(previous.op.key)) !== JSON.stringify(previous.op.before)) {
+      if (previous.op) S = Store.mutate('vocabUndo', previous.op);
+      if (previous.op && JSON.stringify(wordEntries(previous.op.key)) !== JSON.stringify(previous.op.before)) {
         app.appendChild(el('div', 'note', 'Слово уже изменено на другом устройстве. Отмена недоступна.'));
         lastAnswer = null;
         return;
       }
       list = previous.list; i = previous.i; doneCnt = previous.done; total = previous.total;
+      retryKeys = previous.retryKeys; levelMove = previous.levelMove;
       firstAnswered = previous.first; newSeen = previous.newSeen; newKnown = previous.newKnown;
       calibStat = previous.calibStat;
       lastAnswer = null;
       app.innerHTML = '';
       app.classList.remove('result-screen'); app.classList.add('tight');
+      document.documentElement.classList.add("vocab-training");
       app.appendChild(card);
       window.onresize = fitScreen;
       step();
@@ -1149,12 +1158,19 @@
     }
 
     function step() {
-      if (i >= list.length) return finish();
-      var it = list[i];
+      var it = currentCard(), schedule;
+      while (it && (schedule = vocabSchedule(it)) && schedule.learned) {
+        if (i < list.length) { i++; doneCnt++; }
+        else retryKeys.shift();
+        saved = null;
+        it = currentCard();
+      }
+      if (!it) return finish();
+      tuneBeforeRetries();
       revealed = false;
-      var schedule = vocabSchedule(it), paired = Store.vocabPaired(schedule);
+      var paired = Store.vocabPaired(schedule);
       expectedDue = schedule ? schedule.due || 0 : 0;
-      intervalProgress.textContent = calib ? "Русский → немецкий" : paired
+      intervalProgress.textContent = i >= list.length ? "Повтор промахов · осталось " + retryKeys.length : calib ? "Русский → немецкий" : paired
         ? "Интервал: " + (schedule.pairRu ? "½" : "0") + " из 1 · " + (it.dir === "ru" ? "русский → немецкий" : "немецкий → русский")
         : it.dir === "ru" ? "Русский → немецкий" : "Немецкий → русский";
 
@@ -1182,6 +1198,7 @@
 
       peeked = !!(saved && saved.i === i && saved.peeked);
       saved = null;
+      stash();
     }
 
     /* Отпускание сохраняет ответ; рамка получает фактическое расписание. */
@@ -1277,7 +1294,7 @@
     /* «уже знаю»: слово закрывается целиком, обоими направлениями */
     function answerKnown(source) {
       if (busy || view !== routeId) return;
-      if (peeked) { answer(true, "swipe"); return; }
+      if (i >= list.length) { answer(true, source); return; }
       rememberAnswer();
       var it = list[i];
       var base = it.key.slice(0, -3);
@@ -1288,6 +1305,7 @@
       syncTabs();
       doneCnt++;
       i++; peeked = false;
+      tuneBeforeRetries();
       stash();
       advance(source, true, vocabSchedule(it));
     }
@@ -1303,7 +1321,15 @@
       if (busy || view !== routeId) return;
       if (calib && peeked) ok = false;
       rememberAnswer();
-      var it = list[i];
+      var it = currentCard();
+      if (i >= list.length) {
+        var key = retryKeys.shift();
+        if (!ok) retryKeys.push(key);
+        peeked = false;
+        stash();
+        advance(source, ok, vocabSchedule(it));
+        return;
+      }
       if (calib) {
         /* калибровка ничего не планирует: знакомое закрываем, незнакомое не трогаем */
         bumpCalib(it, ok);
@@ -1319,6 +1345,7 @@
       if (first && it.isNew) { newSeen++; if (ok) newKnown++; }
       vocabGrade(it, ok, first, expectedDue);
       var schedule = vocabSchedule(it);
+      if (!ok && !(schedule && schedule.learned)) retryKeys.push(it.key);
       if (first && ok && it.dir === "ru" && Store.vocabPaired(schedule) && schedule.pairRu) {
         var other = byKey[it.key.slice(0, -3) + "|de"];
         if (!list.slice(i + 1).some(function (item) { return item.key === other.key; })) {
@@ -1328,12 +1355,18 @@
         }
       }
       syncTabs();
-      /* Любой ответ завершает карточку; ошибка ждёт своего срока вне сессии. */
       doneCnt++;
       i++;
       peeked = false;
+      tuneBeforeRetries();
       stash();
       advance(source, ok, schedule);
+    }
+
+    function tuneBeforeRetries() {
+      if (i === list.length && retryKeys.length && levelMove === undefined) {
+        levelMove = vocabTuneLevel(newSeen, newKnown);
+      }
     }
 
     document.onkeydown = function (e) {
@@ -1345,11 +1378,12 @@
 
     function finish() {
       document.onkeydown = null;
+      document.documentElement.classList.remove("vocab-training");
       sessionClear();
 
       if (calib) return finishCalib();
 
-      var moved = vocabTuneLevel(newSeen, newKnown);
+      var moved = levelMove === undefined ? vocabTuneLevel(newSeen, newKnown) : levelMove;
       rememberResult();
       var sp = vocabSplit();
       app.innerHTML = "";
@@ -1385,7 +1419,6 @@
     }
 
     step();
-    stash();
 
     /* Итог калибровки: ступень — самая высокая, где знакомо хотя бы половину,
        плюс одна сверху, чтобы было куда расти. */
