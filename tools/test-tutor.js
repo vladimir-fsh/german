@@ -25,7 +25,7 @@ test('непроверенное задание не раскрывает отв
 
 // Небольшой DOM для настоящих обработчиков чата, сетевой транспорт подставной.
 function fixture(options={}) {
-  const w=env.load(['js/tutor-context.js','js/tutor-gateway.js','js/tutor-session.js','js/tutor.js']);
+  const w=env.load(['js/tutor-context.js','js/tutor-request.js','js/tutor-gateway.js','js/tutor-session.js','js/tutor.js']);
   const nodes=[];
   function node(tag) {
     const classes=new Set(); let text='';
@@ -42,28 +42,38 @@ function fixture(options={}) {
   w.document.getElementById=id=>({'app':app,'tabbar':bar,'tutor-tab':chatTab})[id]||null;
   w.innerHeight=844; w.AbortController=AbortController;
   const timers=[]; w.setTimeout=fn=>{timers.push(fn);return fn};w.clearTimeout=()=>{};
-  const requests=[],statusRequests=[];let configured=!!options.configured;
-  w.fetch=(url,opts)=>{
-    if(JSON.parse(opts.body).data.action==='status'){
-      if(options.manualStatus)return new Promise((resolve,reject)=>statusRequests.push({url,opts,resolve,reject}));
-      statusRequests.push({url,opts});return Promise.resolve({ok:true,json:async()=>({result:{configured}})});
-    }
-    return new Promise((resolve,reject)=>requests.push({url,opts,resolve,reject,setConfigured:value=>{configured=value}}));
-  };
-  let user=null;const listeners=[];
+  const requests=[],statusRequests=[],saves=[],keys=new Map();let revision=1;
+  if(options.configured)keys.set('owner',{key:'sk-test-browser-personal-key',revision:'1'});
+  w.fetch=(url,opts)=>new Promise((resolve,reject)=>requests.push({url,opts,resolve,reject}));
+  let user=null,generation=0;const listeners=[];
   w.Cloud={status:()=>({user}),config:()=>({projectId:'german-test'}),onChange:fn=>{listeners.push(fn);fn({user})},
-    tutorSession:()=>user?Promise.resolve({uid:user.uid,projectId:'german-test',token:'firebase-test-id-token'}):Promise.reject(Error('Войдите через Google'))};
+    tutorSession:()=>{
+      if(!user)return Promise.reject(Error('Войдите через Google'));
+      const uid=user.uid,version=generation,current=()=>!!user&&user.uid===uid&&generation===version;
+      return Promise.resolve({uid,projectId:'german-test',current,key:(action,key,signal)=>{
+        if(action==='read')return Promise.resolve({...keys.get(uid),configured:keys.has(uid)});
+        if(action==='status'){
+          const item={uid,action,signal};statusRequests.push(item);
+          if(options.manualStatus)return new Promise((resolve,reject)=>Object.assign(item,{resolve,reject}));
+          return Promise.resolve({configured:keys.has(uid),revision:keys.get(uid)?.revision});
+        }
+        return new Promise((resolve,reject)=>saves.push({uid,key,signal,resolve:()=>{
+          if(current()&&!signal?.aborted)keys.set(uid,{key,revision:String(++revision)});
+          resolve({configured:true});
+        },reject}));
+      }});
+    }};
   w.location={hash:''};
   w.Tutor.init(); w.Tutor.setContext('word:a',()=>({type:'word',title:'anspruchsvoll',word:'anspruchsvoll'}));
   chatTab.onclick();
   const cls=c=>nodes.find(n=>n.className===c), btn=text=>nodes.find(n=>n.tag==='button'&&n.textContent===text);
   const submit=()=>cls('tutor-compose').onsubmit({preventDefault(){}});
-  function connect(uid='owner') {user={uid,email:uid+'@example.invalid'};listeners.forEach(fn=>fn({user}));}
-  function logout(){user=null;listeners.forEach(fn=>fn({user}));}
-  return {w,nodes,requests,statusRequests,setConfigured:value=>{configured=value},timers,cls,btn,submit,connect,logout,app,bar,chatTab,question:nodes.find(n=>n.tag==='textarea')};
+  function connect(uid='owner') {generation++;user={uid,email:uid+'@example.invalid'};listeners.forEach(fn=>fn({user}));}
+  function logout(){generation++;user=null;listeners.forEach(fn=>fn({user}));}
+  return {w,nodes,requests,statusRequests,saves,keys,timers,cls,btn,submit,connect,logout,app,bar,chatTab,question:nodes.find(n=>n.tag==='textarea')};
 }
-function answer(r,text) {r.resolve({ok:true,json:async()=>({result:{text}})})}
-function failure(r,status) {r.resolve({ok:false,status,json:async()=>({error:{status:status===401?'UNAUTHENTICATED':status===429?'RESOURCE_EXHAUSTED':'UNAVAILABLE',message:'private upstream error'}})})}
+function answer(r,text) {r.resolve({ok:true,status:200,json:async()=>({status:'completed',output:[{type:'message',content:[{type:'output_text',text}]}]})})}
+function failure(r,status) {r.resolve({ok:false,status,json:async()=>({error:{message:'private upstream error'}})})}
 
 test('вкладка открывает чат поверх экрана без плавающей кнопки и сразу фокусирует вопрос',()=>{
   const h=fixture();
@@ -103,104 +113,59 @@ test('адресная строка и увеличение страницы н�
   assert.equal(overlay.classList.contains('keyboard-open'),true);
 });
 
-test('без входа запросов нет; после входа передаётся Firebase token и актуальный экран без ключа OpenAI', async () => {
-  const h=fixture();h.question.value='Поясни';h.submit();
-  assert.equal(h.requests.length,0);h.connect();
-  assert.equal(h.nodes.filter(n=>n.tag==='input')[0].value,'');
-  assert.doesNotMatch(JSON.stringify(h.w.localStorage._dump()),/sk-test/);
-  h.btn('Разбери на части').onclick(); h.btn('Разбери на части').onclick();await env.settle();
-  assert.equal(h.requests.length,1); const r=h.requests[0];
-  assert.equal(r.url,'https://europe-west3-german-test.cloudfunctions.net/explainGerman'); assert.equal(r.opts.headers.Authorization,'Bearer firebase-test-id-token');
-  assert.equal(r.opts.credentials,'omit'); assert.match(JSON.stringify(JSON.parse(r.opts.body).data.context),/anspruchsvoll/);
-  answer(r,'Anspruch + voll');await env.settle();
-  assert.match(h.cls('tutor-log').textContent,/Anspruch \+ voll/);
-  h.question.value='А что значит Anspruch?';h.submit();
-  await env.settle();const body=JSON.parse(h.requests[1].opts.body).data;
-  assert.ok(body.history.some(m=>m.role==='assistant'&&m.content==='Anspruch + voll'));
-  answer(h.requests[1],'Притязание');await env.settle();
-  h.w.Tutor.close();assert.equal(h.app.inert,false);assert.equal(h.bar.inert,false);
+test('без входа запросов нет; личный ключ идёт только в заголовок OpenAI, контекст и история берутся с экрана',async()=>{
+  const h=fixture({configured:true});h.question.value='Поясни';h.submit();assert.equal(h.requests.length,0);
+  h.connect();await env.settle();h.btn('Разбери на части').onclick();h.btn('Разбери на части').onclick();await env.settle();
+  assert.equal(h.requests.length,1);const r=h.requests[0],body=JSON.parse(r.opts.body);
+  assert.equal(r.url,'https://api.openai.com/v1/responses');assert.equal(r.opts.headers.Authorization,'Bearer sk-test-browser-personal-key');
+  assert.equal(r.opts.credentials,'omit');assert.match(body.input[0].content,/anspruchsvoll/);
+  assert.doesNotMatch(r.opts.body,/sk-test-browser|firebase-test-id-token/);
+  answer(r,'Anspruch + voll');await env.settle();assert.match(h.cls('tutor-log').textContent,/Anspruch \+ voll/);
+  h.question.value='А что значит Anspruch?';h.submit();await env.settle();
+  assert.ok(JSON.parse(h.requests[1].opts.body).input.some(m=>m.role==='assistant'&&m.content==='Anspruch + voll'));
+  answer(h.requests[1],'Притязание');await env.settle();h.w.Tutor.close();assert.equal(h.app.inert,false);
 });
 
-
-
-test('быстрая кнопка учитывает слово из поля и сохраняет его при ошибке', async () => {
-  const h=fixture();h.connect();h.question.value='anspruchsvoll';
-  h.btn('Разбери на части').onclick();
-  await env.settle();const body=JSON.parse(h.requests[0].opts.body).data;
-  assert.match(body.question,/Ученик уточнил слово, фрагмент или вопрос: anspruchsvoll/);
-  assert.match(h.cls('tutor-log').textContent,/Разбери на части: anspruchsvoll/);
-  failure(h.requests[0],429);await env.settle();
-  assert.equal(h.question.value,'anspruchsvoll');
-});
-
-test('ошибки сети и API оставляют вопрос для повтора; отмена и тайм-аут не засоряют историю', async () => {
-  for (const code of [401,429,500]) {
-    const h=fixture();h.connect();h.question.value='Поясни';h.submit();
-    await env.settle();failure(h.requests[0],code);await env.settle();
-    assert.equal(h.question.value,'Поясни');
-    assert.match(h.cls('tutor-status').textContent,code===401?/Google/:code===429?/лимит/:/недоступен/);
-    h.submit();await env.settle();assert.equal(JSON.parse(h.requests[1].opts.body).data.history.length,0);
-    answer(h.requests[1],'Ответ');await env.settle();
-  }
-  const h=fixture();h.connect();h.question.value='Поясни';h.submit();
-  await env.settle();h.submit(); assert.equal(h.requests[0].opts.signal.aborted,true);
-  h.requests[0].reject(Object.assign(Error('aborted'),{name:'AbortError'}));await env.settle();
-  assert.equal(h.question.value,'Поясни');
-  h.submit();await env.settle();h.timers.at(-1)();h.requests[1].reject(Object.assign(Error('aborted'),{name:'AbortError'}));await env.settle();
+test('быстрая команда сохраняет фрагмент после ошибки, отмена и тайм-аут возвращают вопрос',async()=>{
+  const h=fixture({configured:true});h.connect();h.question.value='anspruchsvoll';h.btn('Разбери на части').onclick();await env.settle();
+  assert.match(JSON.parse(h.requests[0].opts.body).input.at(-1).content,/Ученик уточнил.*anspruchsvoll/);
+  failure(h.requests[0],429);await env.settle();assert.equal(h.question.value,'anspruchsvoll');
+  assert.match(h.cls('tutor-status').textContent,/лимит/);
+  h.submit();await env.settle();h.submit();assert.equal(h.requests[1].opts.signal.aborted,true);
+  answer(h.requests[1],'Отменённый ответ');await env.settle();assert.equal(h.question.value,'anspruchsvoll');
+  h.submit();await env.settle();h.timers.at(-1)();answer(h.requests[2],'Поздний ответ');await env.settle();
   assert.match(h.cls('tutor-status').textContent,/слишком много времени/);
 });
 
-
-
-
-
-function settingsAnswer(r,configured){if(r.setConfigured)r.setConfigured(configured);r.resolve({ok:true,json:async()=>({result:{configured}})})}
-test('добавление ключа заменяется двумя командами после сохранения, включая повторное открытие и другое устройство',async()=>{
-  const h=fixture();assert.equal(h.btn('Добавить API-ключ').hidden,false);
-  assert.equal(h.btn('Объясни проще').hidden,true);assert.equal(h.btn('Разбери на части').hidden,true);
-  h.connect();await env.settle();assert.equal(h.btn('Добавить API-ключ').hidden,false);
-  h.btn('Добавить API-ключ').onclick();await env.settle();
-  const field=h.nodes.find(n=>n.tag==='input');field.value='sk-single-setup-test-only';
-  h.cls('tutor-key-form').onsubmit({preventDefault(){}});await env.settle();settingsAnswer(h.requests[0],true);await env.settle();
-  assert.equal(h.btn('Добавить API-ключ').hidden,true);assert.equal(h.cls('tutor-settings').hidden,true);
-  assert.equal(h.btn('Объясни проще').hidden,false);assert.equal(h.btn('Разбери на части').hidden,false);
-  assert.equal(h.cls('tutor-footer').hidden,false);assert.equal(field.value,'');
-  h.w.Tutor.close();h.w.Tutor.open();assert.equal(h.btn('Добавить API-ключ').hidden,true);await env.settle();
-  assert.equal(h.btn('Добавить API-ключ').hidden,true);
+test('ключ сохраняется в Firebase один раз, команды появляются после подтверждения и на другом устройстве',async()=>{
+  const h=fixture();h.connect();await env.settle();h.btn('Добавить API-ключ').onclick();await env.settle();
+  const field=h.nodes.find(n=>n.tag==='input');field.value='sk-test-save-in-firebase';h.cls('tutor-key-form').onsubmit({preventDefault(){}});
+  assert.equal(field.value,'');await env.settle();assert.equal(h.requests.length,0);assert.equal(h.saves[0].key,'sk-test-save-in-firebase');
+  h.saves[0].resolve();await env.settle();assert.equal(h.btn('Добавить API-ключ').hidden,true);
+  assert.equal(h.cls('tutor-settings').hidden,true);assert.equal(h.btn('Объясни проще').hidden,false);
+  assert.doesNotMatch(JSON.stringify(h.w.localStorage._dump()),/sk-test-save/);
+  h.w.Tutor.close();h.chatTab.onclick();await env.settle();assert.equal(h.btn('Добавить API-ключ').hidden,true);
   const other=fixture({configured:true});other.connect();await env.settle();assert.equal(other.btn('Добавить API-ключ').hidden,true);
   other.logout();assert.equal(other.btn('Добавить API-ключ').hidden,false);
 });
 
-test('ошибка проверки и поздний ответ прежнего аккаунта не скрывают первичную настройку',async()=>{
-  const h=fixture({manualStatus:true});h.connect();await env.settle();
-  failure(h.statusRequests[0],500);await env.settle();assert.equal(h.btn('Добавить API-ключ').hidden,false);
-  h.w.Tutor.close();h.w.Tutor.open();await env.settle();const old=h.statusRequests[1];
-  h.logout();h.connect('other');await env.settle();settingsAnswer(old,true);settingsAnswer(h.statusRequests[2],false);await env.settle();
-  assert.equal(h.btn('Добавить API-ключ').hidden,false);
+test('неверный ключ снова открывает добавление, новый ключ заменяет его без перезагрузки',async()=>{
+  const h=fixture({configured:true});h.connect();await env.settle();h.btn('Объясни проще').onclick();await env.settle();
+  failure(h.requests[0],401);await env.settle();assert.equal(h.btn('Добавить API-ключ').hidden,false);
+  h.btn('Добавить API-ключ').onclick();await env.settle();assert.equal(h.cls('tutor-settings').hidden,false);
+  const field=h.nodes.find(n=>n.tag==='input');field.value='sk-test-replacement-key';h.cls('tutor-key-form').onsubmit({preventDefault(){}});await env.settle();
+  h.saves[0].resolve();await env.settle();assert.equal(h.btn('Добавить API-ключ').hidden,true);
+  h.btn('Объясни проще').onclick();await env.settle();assert.equal(h.requests[1].opts.headers.Authorization,'Bearer sk-test-replacement-key');
+  answer(h.requests[1],'Ответ');await env.settle();
 });
 
-test('настройки сохраняют ключ только через Firebase, очищают поле и получают лишь статус на другом устройстве',async()=>{
-  const h=fixture();h.connect();h.w.Tutor.open(true);await env.settle();
-  assert.match(h.statusRequests[0].url,/\/tutorSettings$/);assert.equal(JSON.parse(h.statusRequests[0].opts.body).data.action,'status');
-  const field=h.nodes.find(n=>n.tag==='input'),key='sk-only-test-settings-not-real';field.value=key;
-  h.cls('tutor-key-form').onsubmit({preventDefault(){}});
-  assert.equal(field.value,'');await env.settle();
-  const r=h.requests[0];assert.match(r.url,/\/tutorSettings$/);
-  assert.deepEqual(JSON.parse(r.opts.body),{data:{action:'save',key}});
-  assert.doesNotMatch(JSON.stringify(h.w.localStorage._dump()),/sk-only-test/);
-  settingsAnswer(r,true);await env.settle();assert.match(h.cls('tutor-key-status muted').textContent,/Ключ сохранён/);
-  h.w.Tutor.close();h.w.Tutor.open();h.btn('Объясни проще').onclick();await env.settle();
-  assert.doesNotMatch(h.requests[1].opts.body,/sk-only-test/);answer(h.requests[1],'Пояснение');await env.settle();
-  const other=fixture({configured:true});other.connect();other.w.Tutor.open();await env.settle();
-  assert.equal(other.nodes.find(n=>n.tag==='input').value,'');assert.match(other.cls('tutor-key-status muted').textContent,/Ключ сохранён/);
-});
-
-test('ошибка сохранения и смена аккаунта не возвращают ключ в поле или статус',async()=>{
-  const h=fixture(),field=h.nodes.find(n=>n.tag==='input');field.value='sk-only-test-settings-not-real';
-  h.cls('tutor-key-form').onsubmit({preventDefault(){}});assert.equal(h.requests.length,0);
-  h.connect();await env.settle();field.value='sk-only-test-settings-not-real';h.cls('tutor-key-form').onsubmit({preventDefault(){}});await env.settle();
-  failure(h.requests[0],500);await env.settle();assert.equal(field.value,'');assert.doesNotMatch(h.cls('tutor-key-status muted').textContent,/sk-only-test/);
-  field.value='sk-only-test-new-key-not-real';h.cls('tutor-key-form').onsubmit({preventDefault(){}});await env.settle();
-  const old=h.requests[1];h.logout();settingsAnswer(old,true);await env.settle();
-  assert.equal(field.value,'');assert.equal(old.opts.signal.aborted,true);assert.equal(h.cls('tutor-key-status muted').textContent,'');
+test('ошибка записи и смена аккаунта не возвращают ключ в поле, поздний статус не открывает чужую настройку',async()=>{
+  const h=fixture({manualStatus:true});h.connect();await env.settle();h.statusRequests[0].resolve({configured:false});await env.settle();
+  h.btn('Добавить API-ключ').onclick();await env.settle();h.statusRequests[1].resolve({configured:false});await env.settle();
+  const field=h.nodes.find(n=>n.tag==='input');field.value='sk-test-failed-storage';h.cls('tutor-key-form').onsubmit({preventDefault(){}});await env.settle();
+  h.saves[0].reject(Error('Не удалось сохранить ключ в Firebase.'));await env.settle();assert.equal(field.value,'');
+  assert.doesNotMatch(h.cls('tutor-key-status muted').textContent,/sk-test/);
+  h.w.Tutor.close();h.chatTab.onclick();await env.settle();const old=h.statusRequests[2];
+  h.logout();h.connect('other');await env.settle();old.resolve({configured:true});h.statusRequests[3].resolve({configured:false});await env.settle();
+  assert.equal(h.btn('Добавить API-ключ').hidden,false);assert.equal(field.value,'');
 });

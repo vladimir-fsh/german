@@ -1,4 +1,4 @@
-/* Личный чат через Firebase. Переписка живёт в памяти вкладки, секреты остаются на сервере. */
+/* Личный чат: ключ из Firebase, запросы OpenAI из браузера, беседа в памяти. */
 window.Tutor = (function () {
   "use strict";
   try { localStorage.removeItem("de-tutor-model-v1"); } catch (e) {}
@@ -126,7 +126,7 @@ window.Tutor = (function () {
     log = node("div", "tutor-log"); log.setAttribute("aria-live", "polite"); panel.appendChild(log);
     settings = node("div", "tutor-settings"); settings.hidden = true;
     settings.appendChild(node("h3", "", "Ключ OpenAI"));
-    settings.appendChild(node("p", "muted", "Сохраните ключ в Firebase один раз. Чат сможет использовать его на ваших устройствах после Google-входа. Сохранённый ключ обратно не показывается."));
+    settings.appendChild(node("p", "muted", "Сохраните личный ключ в Firebase один раз. После Google-входа браузер использует его для прямых запросов к OpenAI. Ключ доступен вашей авторизованной сессии и не входит в резервную копию прогресса."));
     connectionText = node("p", "muted"); settings.appendChild(connectionText);
     cloudButton = button(settings, "btn sec", "Облако и вход", function () { close(); location.hash = "/more/cloud"; });
     keyForm = node("form", "tutor-key-form");

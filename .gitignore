@@ -6,6 +6,5 @@ node_modules/
 .next/
 *.tsbuildinfo
 _site/
-firebase/functions/.secret*
 .firebase/
 firebase-debug.log*

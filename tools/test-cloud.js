@@ -155,18 +155,25 @@ test('сохранённый Google-вход после перезагрузки
   finally {await restored.Cloud.signOut();await a.Cloud.signOut();}
 });
 
-test('чат получает действующий Firebase token без записи в прогресс; после выхода token недоступен', async () => {
-  const a=transport(fakeFirestore(),'owner',{signedIn:true});
-  const session=await a.Cloud.tutorSession();
-  assert.equal(session.uid,'owner');assert.equal(session.projectId,'german-test');assert.equal(session.token,'fake-firebase-id-token');
-  assert.doesNotMatch(a.Store.exportBackup(),/fake-firebase-id-token/);
-  assert.doesNotMatch(a.Store.exportRaw(),/fake-firebase-id-token/);
-  await a.Cloud.signOut();await assert.rejects(a.Cloud.tutorSession(),/Google/);
+test('ключ хранится отдельно от прогресса и экспорта, читается после входа на другом устройстве',async()=>{
+  const backend=fakeFirestore(),a=transport(backend,'owner',{signedIn:true});
+  const session=await a.Cloud.tutorSession(),key='sk-test-cloud-private-key';
+  await session.key('save',key);assert.equal(backend.docs.get('users/owner/germanSecrets/openai').key,key);
+  assert.equal((await session.key('status')).configured,true);assert.equal((await session.key('status')).key,undefined);
+  assert.equal((await session.key('read')).key,key);
+  assert.doesNotMatch(a.Store.exportBackup(),/sk-test-cloud/);assert.doesNotMatch(a.Store.exportRaw(),/sk-test-cloud/);
+  const b=transport(backend,'owner',{signedIn:true}),other=transport(backend,'other',{signedIn:true});
+  assert.equal((await (await b.Cloud.tutorSession()).key('read')).key,key);
+  assert.equal((await (await other.Cloud.tutorSession()).key('status')).configured,false);
+  await a.Cloud.signOut();assert.equal(session.current(),false);await assert.rejects(session.key('read'),{name:'AbortError'});
+  await assert.rejects(a.Cloud.tutorSession(),/Google/);await b.Cloud.signOut();await other.Cloud.signOut();
 });
 
-test('выход во время обновления Firebase token отменяет выдачу старой авторизации чату', async () => {
-  let finish;const tokenPromise=new Promise(resolve=>finish=resolve);
-  const a=transport(fakeFirestore(),'owner',{signedIn:true,tokenPromise});
-  const pending=a.Cloud.tutorSession();await env.settle();await a.Cloud.signOut();finish('late-token');
-  await assert.rejects(pending,/Аккаунт изменился/);
+test('выход до завершения чтения не отдаёт старый ключ; отменённый запрос не пишет Firebase',async()=>{
+  const backend=fakeFirestore(),a=transport(backend,'owner',{signedIn:true});
+  const session=await a.Cloud.tutorSession();await session.key('save','sk-test-cloud-private-key');
+  const pending=session.key('read');await a.Cloud.signOut();await assert.rejects(pending,{name:'AbortError'});
+  const b=transport(backend,'owner',{signedIn:true}),s=await b.Cloud.tutorSession();
+  const controller=new AbortController();controller.abort();await assert.rejects(s.key('save','sk-test-another-key',controller.signal),{name:'AbortError'});
+  assert.equal(backend.docs.get('users/owner/germanSecrets/openai').key,'sk-test-cloud-private-key');await b.Cloud.signOut();
 });

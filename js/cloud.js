@@ -79,11 +79,39 @@ window.Cloud = (function () {
   function tutorSession() {
     return init().then(function () {
       if (!user) throw new Error("Войдите через Google, чтобы пользоваться чатом.");
-      var current = user, cfg = config();
-      return current.getIdToken().then(function (token) {
-        if (!user || user.uid !== current.uid) throw new Error("Аккаунт изменился. Откройте чат снова.");
-        return { uid: current.uid, projectId: cfg.projectId, token: token };
-      });
+      var uid = user.uid, projectId = config().projectId, generation = epoch;
+      var ref = db.collection("users").doc(uid).collection("germanSecrets").doc("openai");
+      function current() { return !!user && user.uid === uid && epoch === generation && config().projectId === projectId; }
+      function check(signal) { if (!current() || (signal && signal.aborted)) throw { name: "AbortError" }; }
+      function key(action, value, signal) {
+        return Promise.resolve().then(function () {
+          check(signal);
+          if (action === "save") {
+            value = String(value || "").trim();
+            if (!/^sk-[\w-]{10,500}$/.test(value)) throw new Error("Проверьте ключ OpenAI: он должен начинаться с sk-.");
+            var write = ref.set({ key: value, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() });
+            value = "";
+            return write.then(function () { check(signal); return { configured: true }; });
+          }
+          if (action !== "read" && action !== "status") throw new Error("Неизвестное действие с ключом.");
+          // Только серверное чтение: ключ не сохраняется в localStorage и резервные копии.
+          return ref.get({ source: "server" }).then(function (doc) {
+            check(signal);
+            var data = doc.exists ? doc.data() : {}, saved = data.key;
+            var configured = typeof saved === "string" && /^sk-[\w-]{10,500}$/.test(saved);
+            var result = { configured: configured, revision: data.updatedAt && data.updatedAt.toMillis ? String(data.updatedAt.toMillis()) : "" };
+            if (action === "read") result.key = configured ? saved : "";
+            return result;
+          });
+        }).catch(function (error) {
+          if (error.name === "AbortError") throw error;
+          if (/permission-denied/.test(error.code || "")) throw new Error("Нет доступа к ключу. Проверьте вход и правила Firestore.");
+          if (/unavailable|network/.test(error.code || "")) throw new Error("Не удалось связаться с Firebase. Проверьте интернет и повторите сохранение.");
+          if (/resource-exhausted/.test(error.code || "")) throw new Error("Достигнут лимит Firebase. Попробуйте позже.");
+          throw new Error("Не удалось прочитать или сохранить ключ в Firebase. Повторите попытку.");
+        });
+      }
+      return { uid: uid, projectId: projectId, current: current, key: key };
     });
   }
   function collection(name) { return db.collection("users").doc(user.uid).collection(name); }

@@ -60,8 +60,9 @@ window.TutorSession = (function () {
       function fail(error, timedOut) {
         if (request !== call) return;
         request = null; cancel(call.timer); messages = call.history; draft = call.draft;
+        if (error.code === "API_KEY_REQUIRED" || error.code === "API_KEY_REJECTED") configured = false;
         status = timedOut ? "Ответ занял слишком много времени. Повторите запрос." : error.name === "AbortError"
-          ? "Запрос остановлен." : error.name === "TypeError" ? "Нет связи с сервером. Проверьте интернет и повторите запрос." : error.message;
+          ? "Запрос остановлен." : error.name === "TypeError" ? "Нет связи с OpenAI. Проверьте интернет и повторите запрос." : error.message;
         emit();
       }
       call.timer = later(function () { call.controller.abort(); fail({}, true); }, 80000);
@@ -86,7 +87,7 @@ window.TutorSession = (function () {
         if (settings !== call) return;
         settings = null; cancel(call.timer); if (configured === null) configured = false;
         keyStatus = error.name === "AbortError" ? "Не удалось дождаться сервера. Откройте настройки, чтобы проверить сохранение." :
-          error.name === "TypeError" ? "Не удалось связаться с сервером чата Firebase. Проверьте интернет и настройку сервера." : error.message;
+          error.name === "TypeError" ? "Не удалось связаться с Firebase. Проверьте интернет и повторите сохранение." : error.message;
         emit();
       }
       call.timer = later(function () { call.controller.abort(); fail({ name: "AbortError" }); }, 60000);
