@@ -20,6 +20,12 @@ class NoStore(SimpleHTTPRequestHandler):
         sys.stderr.write("%s %s\n" % (self.command, self.path))
 
 
+class CourseServer(ThreadingHTTPServer):
+    # Браузер загружает много скриптов одновременно. Стандартная очередь из
+    # пяти соединений на macOS может обрывать часть запросов при загрузке.
+    request_queue_size = 128
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Локальный сервер курса без кэша")
     parser.add_argument("port", nargs="?", type=int, default=8777)
@@ -29,4 +35,4 @@ if __name__ == "__main__":
     root = Path(__file__).resolve().parent.parent
     handler = partial(NoStore, directory=str(root))
     print("http://%s:%d - %s" % (args.host, port, root), flush=True)
-    ThreadingHTTPServer((args.host, port), handler).serve_forever()
+    CourseServer((args.host, port), handler).serve_forever()

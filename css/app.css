@@ -67,6 +67,107 @@
 /* Прокрутка пальцем остаётся доступной, полосы не занимают место. */
 * { box-sizing: border-box; scrollbar-width: none; }
 *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.tutor-overlay[hidden], .tutor-panel [hidden], .tutor-launcher[hidden] { display: none !important; }
+html.tutor-open, .tutor-open body { overflow: hidden; }
+.has-tutor main.wrap { padding-bottom: calc(156px + env(safe-area-inset-bottom)); }
+.tutor-launcher {
+  position: fixed; right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 32;
+  display: grid; place-items: center; width: 52px; height: 52px; border: 0; border-radius: 50%;
+  background: var(--accent); color: var(--btn-text, #fff); box-shadow: var(--shadow);
+}
+.tutor-launcher svg { width: 26px; height: 26px; }
+.tutor-overlay {
+  position: fixed; top: 0; left: 0; right: 0; height: 100dvh; z-index: 100;
+  display: flex; align-items: flex-end; overflow: hidden; isolation: isolate;
+  padding: max(12px, env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
+  overscroll-behavior: none;
+  --tutor-glass: rgba(250,251,255,.92);
+  --tutor-compose-glow: none;
+  --tutor-send-bg: var(--surface-2);
+  --tutor-send-color: var(--text-dim);
+  --tutor-focus-border: #aeb9c8;
+}
+.tutor-overlay::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(0deg, rgba(20,25,45,.32), rgba(20,25,45,.08));
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  animation: tutor-shade-in .24s ease-out both;
+}
+.tutor-panel {
+  width: 100%; max-height: 100%; min-height: 0; color: var(--text);
+  display: flex; flex-direction: column; gap: 8px; outline: none;
+  animation: tutor-rise .34s cubic-bezier(.16,1,.3,1) both;
+}
+.tutor-panel.is-settings {
+  background: var(--tutor-glass); border: 1px solid var(--border); border-radius: 26px;
+  padding: 12px; overflow: hidden; box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+}
+.tutor-log, .tutor-settings { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
+.tutor-log { max-height: 420px; }
+.tutor-settings { padding: 0 2px; }
+.tutor-message { padding: 14px; margin: 0 0 8px; border-radius: 20px; background: var(--tutor-glass); overflow-wrap: anywhere; white-space: pre-wrap; }
+.tutor-message.user { background: var(--accent-soft); margin-left: 24px; }
+.tutor-speaker { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+.tutor-settings h3 { margin: 12px 0 8px; }
+.tutor-settings label { display: block; font-size: 14px; margin: 12px 0; }
+.tutor-settings input {
+  display: block; width: 100%; min-width: 0; min-height: 44px; font: inherit; font-size: 16px;
+  color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px;
+}
+.tutor-settings input { margin-top: 6px; }
+.tutor-footer { flex-shrink: 0; }
+.tutor-quick { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.tutor-quick .btn.sec {
+  display: flex; gap: 10px; align-items: center; padding: 10px 18px; font-size: 15px;
+  min-height: 46px; max-width: 100%; border: 1px solid var(--border); border-radius: 26px;
+  background: var(--tutor-glass); color: var(--text); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+}
+.tutor-quick .btn::before { content: "✦"; color: var(--accent); font-size: 20px; }
+.tutor-status { font-size: 13px; color: var(--text-dim); overflow-wrap: anywhere; max-height: 72px; overflow-y: auto; }
+.tutor-status:not(:empty) { padding: 10px 14px; margin-top: 8px; border-radius: 18px; background: var(--tutor-glass); }
+.tutor-compose {
+  position: relative; isolation: isolate; display: flex; gap: 6px; align-items: flex-end; margin-top: 10px;
+  padding: 5px; border: 1px solid var(--border); border-radius: 32px;
+  background: var(--tutor-glass); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+}
+.tutor-compose::before {
+  content: ""; position: absolute; inset: -3px; z-index: -1; border-radius: inherit;
+  background: var(--tutor-compose-glow);
+  filter: blur(12px); opacity: .5; pointer-events: none;
+}
+.tutor-compose textarea {
+  display: block; flex: 1; width: 100%; min-width: 0; min-height: 48px; max-height: 112px;
+  resize: none; padding: 11px 12px; border: 0; outline: none; border-radius: 0;
+  background: transparent; color: var(--text); font: inherit; font-size: 16px; line-height: 26px;
+}
+.tutor-compose .btn {
+  flex-shrink: 0; width: 48px; height: 48px; min-height: 48px; padding: 0; border-radius: 50%; font-size: 24px;
+  background: var(--tutor-send-bg); color: var(--tutor-send-color);
+}
+.tutor-compose:focus-within { border-color: var(--tutor-focus-border); }
+@keyframes tutor-rise { from { transform: translateY(calc(100% + 24px)); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes tutor-shade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tutor-overlay {
+    --tutor-glass: rgba(35,38,45,.9);
+    --tutor-compose-glow: linear-gradient(110deg, #e96c9f, #bc70da 35%, #5a9df5 80%, #73bce0);
+    --tutor-send-bg: var(--accent); --tutor-send-color: var(--btn-text, #fff); --tutor-focus-border: var(--accent);
+  }
+}
+:root[data-theme="dark"] .tutor-overlay {
+  --tutor-glass: rgba(35,38,45,.9);
+  --tutor-compose-glow: linear-gradient(110deg, #e96c9f, #bc70da 35%, #5a9df5 80%, #73bce0);
+  --tutor-send-bg: var(--accent); --tutor-send-color: var(--btn-text, #fff); --tutor-focus-border: var(--accent);
+}
+@media (prefers-reduced-motion: reduce) { .tutor-panel, .tutor-overlay::before { animation: none; } }
+@media (max-width: 700px) {
+  .has-tutor .btnrow.sticky { padding-right: 84px; }
+}
 html, body { margin: 0; padding: 0; background: var(--bg); }
 body {
   min-height: 100vh; min-height: 100dvh;

@@ -2,31 +2,28 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const vm = require('node:vm');
-const source = fs.readFileSync(require('node:path').join(__dirname, '../js/app.js'), 'utf8');
-const bind = source.slice(source.indexOf('    function bindCard('), source.indexOf('    function flipCard()'));
+const env = require('./env.js');
 
 function setup(options = {}) {
   const handlers = {}, answers = [], frames = [], timers = [];
   let flips = 0;
   const drag = { style: {}, classList: { add() {}, remove() {} }, setPointerCapture() {},
     addEventListener(type, fn) { handlers[type] = fn; } };
-  const context = {
-    window: { innerWidth: options.width || 390, innerHeight: 844,
-      matchMedia: () => ({ matches: !!options.reduced }),
-      VocabFrames: { update: (host, schedule) => frames.push(schedule) } },
-    vocabSchedule: () => null, list: [{}], i: 0, busy: false, view: 1, routeId: 1,
-    calib: !!options.calib, peeked: false, finishGesture: null,
-    Date, setTimeout: (fn) => timers.push(fn),
-    answer: ok => { answers.push(ok); context.busy = true; },
-    answerKnown: () => { answers.push('known'); context.busy = true; },
-    undoPrevious: () => { if (options.canUndo) answers.push('undo'); },
-    flipCard: () => flips++
-  };
-  vm.createContext(context);
-  vm.runInContext(bind + '\nthis.bind = bindCard;', context);
+  const win = env.load(['js/vocab-gestures.js']);
+  let busy = false;
+  Object.assign(win, { innerWidth: options.width || 390, innerHeight: 844,
+    matchMedia: () => ({ matches: !!options.reduced }),
+    VocabFrames: { update: (host, schedule) => frames.push(schedule) },
+    setTimeout: fn => timers.push(fn) });
   const body = options.scrollBody;
-  context.bind(drag, body ? { classList: { contains: () => true }, querySelector: () => body } : {});
+  const finishGesture = win.VocabGestures.bind(drag,
+    body ? { classList: { contains: () => true }, querySelector: () => body } : {}, {
+      active: () => true, busy: () => busy, calibration: !!options.calib,
+      answer: ok => { answers.push(ok); busy = true; },
+      known: () => { answers.push('known'); busy = true; },
+      undo: () => { if (options.canUndo) answers.push('undo'); }, flip: () => flips++
+    });
+  const context = { finishGesture };
   function event(type, x, y, pointerId = 1) {
     handlers[type]({ type, clientX: x, clientY: y, pointerId, button: 0, isPrimary: true });
   }
@@ -134,7 +131,7 @@ test('эффект ответа использует переданное рас
 function training(words, storage) {
   const env = require('./env.js');
   const win = env.load(['js/progress-data.js', 'js/srs-config.js', 'js/sync.js',
-    'js/sessions.js', 'js/vocab-frames.js'], { storage });
+    'js/sessions.js', 'js/vocab-frames.js', 'js/vocab-training.js', 'js/vocab-gestures.js', 'js/vocab-view.js'], { storage });
   win.COURSE = { lessons: [] };
   win.VOCAB = words.map(de => ({ de, ru: '→ ' + de }));
   if (!storage) {
@@ -179,12 +176,13 @@ function training(words, storage) {
   win.VocabFrames.decorate = () => {};
   const effects = [];
   win.VocabFrames.update = (host, schedule) => effects.push(win.VocabFrames.rank(schedule).id);
-  const context = vm.createContext({ window: win, document: win.document, Store: win.Store, app,
-    S: win.Store.state(), routeId: 0, working: false, E: { shuffle: items => items }, el, esc: x => x,
-    findNext: () => null, syncTabs() {}, showResultLayout() { app.classList.add('result-screen'); },
-    setTimeout: fn => timers.push(fn) });
-  vm.runInContext(source.slice(source.indexOf('  var CFG = '), source.indexOf('  /* ---------- предупреждение')), context);
-  context.viewVocab('repeat');
+  win.setTimeout = fn => timers.push(fn);
+  win.Engine = { el, esc: x => x };
+  const model = win.VocabTraining.create({ store: win.Store, sessions: win.Sessions,
+    config: win.SRS_CONFIG, course: win.COURSE, lesson: () => null, words: win.VOCAB,
+    shuffle: items => items, nextLesson: () => null, day: () => '2026-11-08' });
+  win.VocabView.mount(app, 'repeat', { training: model, active: () => true,
+    context() {}, syncTabs() {}, go() {}, showResult() { app.classList.add('result-screen'); } });
   function swipe(dx, dy) {
     const drag = app.querySelector('.vdrag');
     assert.ok(drag, 'карточка доступна для свайпа');

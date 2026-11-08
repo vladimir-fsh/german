@@ -9,7 +9,14 @@
      чтение состояния и вызов мутаций — прямых присваиваний в S больше нет. */
   var Store = window.Store;
   var S = Store.state();
+  var attempts = window.ExerciseAttempt.create({ store: Store, engine: E,
+    practice: window.Practice, sessions: window.Sessions, review: window.ReviewPlan });
   var working = false, routeId = 0, disposeCloud = null, disposeUpdates = null;
+
+  function tutorContext(id, getData, onUse) {
+    if (window.Tutor) window.Tutor.setContext(id, getData, onUse);
+  }
+  if (window.Tutor) window.Tutor.init();
 
   Store.onChange(function (next) {
     S = next;
@@ -51,7 +58,6 @@
   }
 
   /* очередь повторения: id -> {box, due, ex, lesson} */
-  function srsAdd(id, ex, n) { S = Store.mutate("srsAdd", { id: id, ex: ex, n: n }); }
   function srsDue() {
     var now = Date.now(), out = [];
     for (var k in S.srs) if (S.srs[k].due <= now) out.push({ id: k, r: S.srs[k] });
@@ -68,6 +74,10 @@
     routeId++; working = false; document.onkeydown = null;
     var h = curPath();
     var m;
+    tutorContext(h, function () {
+      var names = { "/": "Курс немецкого A2 → B1", "/more": "Настройки приложения", "/more/cloud": "Облако и вход", "/review": "Повторение ошибок", "/vocab": "Тренировка слов" };
+      return { type: "page", title: names[h] || "Тренировка слов", note: "На экране нет отдельного слова или задания. Уточни, что объяснить." };
+    });
     document.documentElement.classList.remove("vocab-training");
     window.scrollTo(0, 0);
     window.onresize = null;
@@ -103,7 +113,7 @@
     });
     var pct = totalDays ? Math.round((doneDays / totalDays) * 100) : 0;
     var due = srsDue().length;
-    var words = vocabPending();
+    var vocab = training.summary(), words = vocab.pending;
     var acc = S.totalTried ? Math.round((S.totalCorrect / S.totalTried) * 100) : 0;
 
     /* Поврежденное хранилище: нули были бы враньем, показываем прочерки. */
@@ -140,7 +150,7 @@
     hero.appendChild(row);
     app.appendChild(hero);
 
-    var ws = vocabWordStats();
+    var ws = vocab;
     var vcard = el("div", "card");
     vcard.innerHTML = "<h2>Словарь</h2>" +
       '<div class="muted">Закрытые слова включают прежнее расписание и вашу самооценку. ' +
@@ -158,13 +168,13 @@
       vbc.onclick = function () { go("/vocab/calibrate"); };
       vrow.appendChild(vbc);
     }
-    var canStartNew = vocabPlan("new").length > 0;
+    var canStartNew = vocab.canStartNew;
     var vb = el("button", "btn" + (words && S.calibrated ? "" : " sec"),
       loading ? "Подтягиваю прогресс…" : words ? "Учить слова (" + words + ")" : canStartNew ? "Начать новые карточки" : "Повторы будут позже");
     vb.disabled = loading || (!words && !canStartNew);
     vb.onclick = function () { go(words ? "/vocab" : "/vocab/new"); };
     vrow.appendChild(vb);
-    var rep0 = loading ? 0 : vocabRepeatPending();
+    var rep0 = loading ? 0 : vocab.repeat;
     if (rep0) {
       var vb2 = el("button", "btn sec", "Повторить слова (" + rep0 + ")");
       vb2.onclick = function () { go("/vocab/repeat"); };
@@ -212,6 +222,10 @@
     var L = window["L" + n];
     if (!L) return go("/");
     var meta = window.COURSE.lessons.filter(function (x) { return x.n === n; })[0];
+    tutorContext("lesson:" + n, function () {
+      return { type: "lesson", title: L.title, description: L.ru,
+        topics: L.grammar.map(function (g) { return g.title; }), words: L.words };
+    });
     app.innerHTML = "";
     var c = el("div", "card");
     c.innerHTML =
@@ -291,6 +305,9 @@
     var L = window["L" + n];
     var g = L && L.grammar[gi];
     if (!g) return go("/l" + n);
+    tutorContext("grammar:" + n + ":" + gi, function () {
+      var data = window.TutorContext.theory(g); data.type = "theory"; data.lesson = n; return data;
+    });
     app.innerHTML = "";
     var c = el("div", "card");
     c.innerHTML = '<div class="kicker">Lektion ' + n + " · Теория</div><h2>" + esc(g.title) + "</h2>" +
@@ -313,7 +330,7 @@
     var i = run.i, api = null, answered = false, finished = false;
     function exerciseId(index) { return dayKey(n, di) + "-" + index; }
     function deleted(index) { return !!(S.deletedExercises || {})[exerciseId(index)]; }
-    var view = routeId;
+    var view = routeId, theoryDetails = [];
     window.Practice.save(run);
     app.innerHTML = "";
     var head = el("div", "card");
@@ -324,8 +341,8 @@
       var det = document.createElement("details"); det.className = "theory";
       det.innerHTML = "<summary>Теория: " + esc(g.title) + '</summary><div class="gram">' + g.html + "</div>";
       det.addEventListener("toggle", function () {
-        if (det.open && i < list.length) { var record = run.records[i] || (run.records[i] = {}); record.usedHint = true; window.Practice.save(run); }
-      }); head.appendChild(det);
+        if (det.open && api) api.hint();
+      }); head.appendChild(det); theoryDetails.push({ node: det, grammar: g });
     });
     head.appendChild(el("div", "muted", "Ответы сохраняются. Результат относится к первой попытке; открытая теория отмечается как подсказка."));
     /* день пройден, а отметка не легла (сбой, перезагрузка) — засчитать руками
@@ -379,10 +396,6 @@
       S = Store.mutate("exerciseDelete", { id: exerciseId(i), ex: list[i], reason: reason.value + (removalNote.value.trim() ? ": " + removalNote.value.trim() : "") });
       if (deleted(i)) advance("deleted");
     };
-    function count(record, index) {
-      var token = run.id + ":" + index;
-      if (!S.answered[token]) S = Store.mutate("answer", { ok: record.result.ok, verdict: record.result.verdict, attemptId: token });
-    }
     function step() {
       removePanel.hidden = true;
       while (i < list.length && (deleted(i) || (run.records[i] && run.records[i].omitted))) {
@@ -393,30 +406,30 @@
       window.Practice.save(run);
       if (i >= list.length) return done();
       var record = run.records[i] || (run.records[i] = {});
-      if (head.querySelector("details[open]")) record.usedHint = true;
       answered = !!record.result;
+      tutorContext("exercise:" + exerciseId(i), function () {
+        var data = window.TutorContext.exercise(list[i], api ? api.state().draft : record.draft, record.result, day.title);
+        data.lesson = n; data.day = di + 1;
+        data.openTheory = [];
+        theoryDetails.forEach(function (item) {
+          if (item.node.open) data.openTheory.push(window.TutorContext.theory(item.grammar));
+        });
+        return data;
+      }, function () { if (api) api.hint(); });
       var visible = list.map(function (ex, index) { return index; }).filter(function (index) { return !deleted(index); });
       var position = visible.indexOf(i);
       pl.querySelector(".cnt").textContent = (position + 1) + " / " + visible.length;
       pl.querySelector("i").style.width = Math.round(position / visible.length * 100) + "%";
-      api = E.render(list[i], host, function (ok, result) {
-        if (finished || view !== routeId || record !== run.records[i] || record.omitted || deleted(i)) return;
-        if (!record.result) {
-          record.result = result; window.Practice.save(run); count(record, i);
-          if (!ok && result.verdict !== "needs-review") srsAdd("L" + n + "D" + di + "-" + i, list[i], n);
-        }
-        answered = true; check.style.display = "none"; next.style.display = ""; syncBar();
-      }, {
-        draft: record.draft, isHinted: function () { return record.usedHint; },
-        onDraft: function (draft) { if (record.omitted || record !== run.records[i]) return; record.draft = draft; window.Practice.save(run); }
+      api = attempts.day(run, i, list[i], host, {
+        active: function () { return !finished && view === routeId && record === run.records[i] && !deleted(i); },
+        onResult: function () { answered = true; check.style.display = "none"; next.style.display = ""; syncBar(); }
       });
-      if (api.result && !record.result) { record.result = api.result; window.Practice.save(run); }
-      answered = !!record.result;
-      if (record.result) count(record, i);
-      check.style.display = !answered && api.check ? "" : "none";
+      if (head.querySelector("details[open]")) api.hint();
+      answered = !!api.state().result;
+      check.style.display = !answered && api.state().canCheck ? "" : "none";
       next.style.display = answered ? "" : "none"; syncBar();
     }
-    check.onclick = function () { if (api && api.check && !answered) api.check(); };
+    check.onclick = function () { if (api && !answered) api.check(); };
     next.onclick = function () { if (!answered || finished || view !== routeId) return; run.i = ++i; window.Practice.save(run); step(); };
     document.onkeydown = function (event) { if (event.key === "Enter" && answered) { event.preventDefault(); next.click(); } };
     /* manual — день засчитан кнопкой: результат считается только по сохранённым
@@ -424,6 +437,9 @@
     function done(manual) {
       if (finished) return; finished = true; working = false; document.onkeydown = null;
       var stats = window.Practice.stats(run), of = stats.answered;
+      tutorContext("day-result:" + run.id, function () {
+        return { type: "result", title: "Итог дня: " + day.title, answered: stats.answered, correct: stats.correct, hints: stats.hints };
+      });
       if (manual) {
         of = 0;
         run.records.forEach(function (record) { if (record && record.result) of++; });
@@ -493,10 +509,6 @@
     row.appendChild(check); row.appendChild(next); card.appendChild(row); app.appendChild(card);
     var api = null, answered = false;
     function syncBar() { row.className = "btnrow sticky" + (check.style.display === "none" && next.style.display === "none" ? " empty" : ""); }
-    function count(record) {
-      var grade = window.ReviewPlan.grade(run, i, record.result);
-      if (!S.answered[grade.attemptId]) S = Store.mutate("reviewAnswer", grade);
-    }
     function step() {
       if (view !== routeId) return;
       while (i < run.items.length) {
@@ -507,22 +519,20 @@
       if (i >= run.items.length) { window.Sessions.clear("review"); return go("/"); }
       stash();
       var record = run.records[i] || (run.records[i] = {});
-      if (!record.result && record.draft && record.draft.result) record.result = record.draft.result;
       answered = !!record.result;
+      tutorContext("review:" + run.items[i].id, function () {
+        return window.TutorContext.exercise(run.items[i].ex, api ? api.state().draft : record.draft, record.result, "Повторение ошибок");
+      });
       pl.querySelector(".cnt").textContent = (i + 1) + " / " + run.items.length;
       pl.querySelector("i").style.width = Math.round(i / run.items.length * 100) + "%";
-      api = E.render(run.items[i].ex, host, function (ok, result) {
-        if (view !== routeId) return;
-        if (!record.result) { record.result = result; stash(); }
-        count(record); answered = true;
-        check.style.display = "none"; next.style.display = ""; syncBar();
-      }, { draft: record.draft, onDraft: function (draft) { record.draft = draft; stash(); } });
-      if (api.result && !record.result) { record.result = api.result; stash(); }
-      answered = !!record.result;
-      if (record.result) count(record);
-      check.style.display = !answered && api.check ? "" : "none"; next.style.display = answered ? "" : "none"; syncBar();
+      api = attempts.review(run, i, host, {
+        active: function () { return view === routeId && record === run.records[i]; },
+        onResult: function () { answered = true; check.style.display = "none"; next.style.display = ""; syncBar(); }
+      });
+      answered = !!api.state().result;
+      check.style.display = !answered && api.state().canCheck ? "" : "none"; next.style.display = answered ? "" : "none"; syncBar();
     }
-    check.onclick = function () { if (api && api.check && !answered) api.check(); };
+    check.onclick = function () { if (api && !answered) api.check(); };
     next.onclick = function () { if (!answered || view !== routeId) return; i++; stash(); step(); };
     document.onkeydown = function (event) { if (event.key === "Enter" && answered) { event.preventDefault(); next.click(); } };
     step();
@@ -547,7 +557,7 @@
       b.className = "tab" + (mine === root ? " on" : "");
       var badge = b.querySelector(".tbadge");
       if (!badge || mine === "/more") return;
-      var n = mine === "/vocab" ? vocabPending() : srsDue().length;
+      var n = mine === "/vocab" ? training.summary().pending : srsDue().length;
       badge.textContent = n > 99 ? "99+" : n;
       badge.hidden = !n;
     });
@@ -682,162 +692,21 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
-  /* ---------- карточки слов ----------
-     Первый круг меняет расписание. Повтор промахов живёт в сессии. */
-  var CFG = window.SRS_CONFIG || {};
-  var V_SESSION = CFG.sessionNew || 10;   /* потолок обычной сессии */
-  var V_NEW = CFG.sessionNew || 10;       /* столько новых даёт добор по кнопке */
-
   var V_LEVELS = 5;
-
-  /* слова уроков (f = 0, идут первыми) плюс общий словарь A2–B1 со группами словаря */
-  function vocabPool() {
-    var out = [];
-    (window.COURSE.lessons || []).forEach(function (l) {
-      if (l.status !== "ready") return;
-      var L = window["L" + l.n];
-      if (!L || !L.words) return;
-      L.words.forEach(function (w) { out.push({ n: l.n, w: w, key: "L" + l.n + ":" + w.de, f: 0 }); });
-    });
-    (window.VOCAB || []).forEach(function (w) {
-      out.push({ n: null, w: w, key: "V:" + (w.id || w.de), f: w.f || 1 });
-    });
-    return out;
+  var training = window.VocabTraining.create({
+    store: Store, sessions: window.Sessions, config: window.SRS_CONFIG, course: window.COURSE,
+    lesson: function (n) { return window["L" + n]; }, words: window.VOCAB || [], shuffle: E.shuffle,
+    nextLesson: findNext, day: function () { return window.ProgressData.day(new Date()); }
+  });
+  function vocabBar(stats, loading) { return window.VocabView.bar(stats, loading); }
+  function viewVocab(mode) {
+    if (Store.blocked()) return viewMore();
+    working = true;
+    var view = routeId;
+    window.VocabView.mount(app, mode, { training: training, active: function () { return view === routeId; },
+      syncTabs: syncTabs, go: function (path) { if (curPath() === path) route(); else go(path); },
+      showResult: showResultLayout, context: tutorContext });
   }
-
-  /* Оба вида карточек нужны для восстановления сессий. Расписание общее. */
-  function vocabCards() {
-    var out = [];
-    vocabPool().forEach(function (it) {
-      out.push({ n: it.n, w: it.w, f: it.f, dir: "de", key: it.key + "|de" });
-      out.push({ n: it.n, w: it.w, f: it.f, dir: "ru", key: it.key + "|ru" });
-    });
-    return out;
-  }
-
-  /* новые слова: сначала лексика урока, потом общий словарь — ближе всего
-     к текущей группе словаря */
-  function vocabSortFresh(fresh) {
-    var lvl = S.vocabLevel || 1;
-    return fresh.sort(function (a, b) {
-      if ((a.f === 0) !== (b.f === 0)) return a.f === 0 ? -1 : 1;
-      if (a.f === 0) return 0;
-      var da = Math.abs(a.f - lvl), db = Math.abs(b.f - lvl);
-      if (da !== db) return da - db;
-      return a.f - b.f;
-    });
-  }
-
-  function vocabSplit() {
-    var now = Date.now(), due = [], fresh = [], learned = 0;
-    vocabCards().forEach(function (it) {
-      var v = window.Store.vocabSchedule(S.vocab, it.key.slice(0, -3));
-      var dir = window.Store.vocabPaired(v) && v.pairRu ? "de" : "ru";
-      if (it.dir !== dir) return;
-      if (!v) {
-        fresh.push(it);
-        return;
-      }
-      if (v.learned) { learned++; return; }
-      if ((v.due || 0) <= now) due.push(it);
-    });
-    due.sort(function (a, b) { return (vocabSchedule(a).due || 0) - (vocabSchedule(b).due || 0); });
-    return { due: due, fresh: vocabSortFresh(fresh), learned: learned };
-  }
-
-  function vocabSchedule(it) { return window.Store.vocabSchedule(S.vocab, it.key.slice(0, -3)); }
-
-  /* В начальную очередь попадает одна сторона слова.
-     Вторая половина длинного интервала добавляется в конец после ответа. */
-  function vocabOnePerWord(items, taken) {
-    var out = [];
-    items.forEach(function (it) {
-      var base = it.key.slice(0, -3);   /* ключ без "|de" / "|ru" */
-      if (taken[base]) return;
-      taken[base] = true;
-      out.push(it);
-    });
-    return out;
-  }
-
-  /* состав сессии: не больше десяти карточек за раз. Сначала то, что пора
-     повторить, остаток добивается новыми словами. Когда повторять нечего —
-     сессия целиком из новых, и добор идёт по кнопке.
-     mode === "new" — добор десяти новых слов по запросу, без повторений. */
-  function vocabNewRemaining() {
-    var today = window.ProgressData.day(new Date()), introduced = {};
-    Object.keys(S.vocab).forEach(function (key) {
-      var v = S.vocab[key];
-      if (v.introducedDay === today) introduced[key.slice(0, -3)] = true;
-    });
-    return Math.max(0, (CFG.maxNewPerDay || 10) - Object.keys(introduced).length);
-  }
-
-  function vocabPlan(mode) {
-    var sp = vocabSplit(), taken = {}, budget = vocabNewRemaining();
-    var due = mode === "new" ? [] : vocabOnePerWord(sp.due, taken).slice(0, V_SESSION);
-    if (due.length >= V_SESSION || sp.due.length > (CFG.newBacklogLimit || 20)) return due;
-    var current = findNext();
-    var fresh = vocabOnePerWord(sp.fresh, taken).filter(function (it) {
-      var started = S.vocab[it.key.slice(0, -3) + "|de"] || S.vocab[it.key.slice(0, -3) + "|ru"];
-      if (started) return true;
-      if (it.n && current && it.n > current.n) return false;
-      if (budget <= 0) return false;
-      budget--; return true;
-    }).slice(0, mode === "new" ? V_NEW : V_SESSION - due.length);
-    return due.concat(fresh);
-  }
-
-  /* Повторение: только то, чему пришёл срок. Промах уже назначил слову свой
-     интервал, поэтому отдельного списка «свежие ошибки» нет.
-     Порядок: короткий интервал вперёд, при равных — что свежее, затем что
-     просрочено дольше. Потолок сессии — 20 слов. */
-  var V_REPEAT = CFG.sessionRepeat || 20;
-  function vocabRepeatPlan() {
-    var pool = vocabSplit().due, taken = {};
-    pool.sort(function (a, b) {
-      var va = vocabSchedule(a), vb = vocabSchedule(b);
-      if ((va.iv || 0) !== (vb.iv || 0)) return (va.iv || 0) - (vb.iv || 0);
-      if ((vb.t || 0) !== (va.t || 0)) return (vb.t || 0) - (va.t || 0);
-      return (va.due || 0) - (vb.due || 0);
-    });
-    return vocabOnePerWord(pool, taken).slice(0, V_REPEAT);
-  }
-
-  function vocabRepeatPending() { return vocabRepeatPlan().length; }
-
-  /* Калибровка: по четыре незнакомых слова из каждой группы словаря.
-     Ответы не влияют на расписание — знакомое сразу закрывается, незнакомое
-     остаётся нетронутым. По долям знакомого выставляется стартовая ступень. */
-  var CALIB_PER_LEVEL = 4;
-
-  function vocabCalibPlan() {
-    var out = [];
-    for (var lvl = 1; lvl <= V_LEVELS; lvl++) {
-      var bucket = [];
-      (window.VOCAB || []).forEach(function (w) {
-        /* Названия и сокращения остаются в обучении, но не измеряют словарный запас. */
-        if (w.calibrate === false) return;
-        if ((w.f || 1) !== lvl) return;
-        var base = "V:" + (w.id || w.de), key = base + "|ru";
-        if (window.Store.vocabSchedule(S.vocab, base)) return;
-        bucket.push({ n: null, w: w, f: w.f, dir: "ru", key: key });
-      });
-      out = out.concat(E.shuffle(bucket).slice(0, CALIB_PER_LEVEL));
-    }
-    return out;
-  }
-
-  function vocabSession(mode) {
-    if (mode === "repeat") return E.shuffle(vocabRepeatPlan());
-    if (mode === "calib") return vocabCalibPlan();   /* порядок от простого к редкому */
-    return E.shuffle(vocabPlan(mode));
-  }
-
-  /* Незакрытая сессия переживает перезагрузку: очередь, позиция, счётчик
-     и слова, которые ещё надо прокрутить, лежат на диске.
-     Хранится отдельно от прогресса и не синхронизируется — это состояние
-     конкретной вкладки, а не то, что ты выучил. */
   var DAY_KEY = "de-b1-day-v1";
 
 
@@ -845,53 +714,6 @@
   function dayLoad(n, di) {
     var L = window["L" + n];
     return L && L.days[di] ? window.Practice.load(n, di, L.days[di].ex) : null;
-  }
-
-  function sessionLoad() {
-    return window.Sessions.load("vocab");
-  }
-  function sessionSave(st) { window.Sessions.save("vocab", st); }
-  function sessionClear() { window.Sessions.clear("vocab"); }
-
-  /* если новые слова уходят с первого раза — берём следующую порцию реже
-     встречающихся; если сыплешься — возвращаемся к более ходовым */
-  function vocabTuneLevel(seen, known) {
-    if (seen < 4) return null;
-    var lvl = S.vocabLevel || 1, share = known / seen, moved = null;
-    if (share >= 0.7 && lvl < V_LEVELS) { lvl++; moved = "up"; }
-    else if (share <= 0.3 && lvl > 1) { lvl--; moved = "down"; }
-    if (moved) S = Store.mutate("vocabLevel", { level: lvl });
-    return moved;
-  }
-
-  function vocabPending() { return vocabPlan().length; }
-
-  /* firstTry === false — ответ-повтор внутри сессии, расписание не трогаем */
-  function vocabGrade(it, ok, firstTry, expectedDue) {
-    if (firstTry) S = Store.mutate("vocabWordReviewDeferred", { key: it.key, ok: ok, expectedDue: expectedDue, day: window.ProgressData.day(new Date()) });
-  }
-
-  /* Закрытые ранее слова включают самооценку, поэтому это не доказанное знание. */
-  function vocabWordStats() {
-    var pool = vocabPool(), learned = 0, started = 0;
-    pool.forEach(function (it) {
-      var v = Store.vocabSchedule(S.vocab, it.key);
-      if (v && v.learned) learned++;
-      else if (v) started++;
-    });
-    return { total: pool.length, learned: learned, started: started };
-  }
-
-  function vocabBar(ws, loading) {
-    var pct = ws.total ? Math.round((ws.learned / ws.total) * 100) : 0;
-    function v(x) { return loading ? "—" : x; }
-    return '<div class="bar"><i style="width:' + (loading ? 0 : pct) + '%"></i></div>' +
-      '<div class="stats">' +
-      '<div class="stat"><b>' + v(ws.learned) + "</b><span>закрыто</span></div>" +
-      '<div class="stat"><b>' + v(ws.started) + "</b><span>в работе</span></div>" +
-      '<div class="stat"><b>' + v(ws.total - ws.learned - ws.started) + "</b><span>не начато</span></div>" +
-      '<div class="stat"><b>' + (loading ? "—" : pct + "%") + "</b><span>словаря</span></div>" +
-      "</div>";
   }
 
   function vocabWhen(key) {
@@ -908,556 +730,6 @@
     if (d < 5) return "через " + d + " дня";
     if (d < 31) return "через " + d + " дней";
     return "через месяц";
-  }
-
-  /* В старой сессии могли остаться независимые немецкие карточки.
-     Выполненная часть сохраняется; оставшаяся получает актуальное направление. */
-  function vocabResume(saved, byKey) {
-    if (!saved) return saved;
-    saved = JSON.parse(JSON.stringify(saved));
-    var completed = saved.keys.slice(0, saved.i), remaining = [], taken = {}, newKeys = [];
-    var currentKey = saved.keys[saved.i] || (saved.retryKeys || [])[0], now = Date.now();
-    saved.keys.slice(saved.i).forEach(function (key) {
-      var base = key.slice(0, -3), v = Store.vocabSchedule(S.vocab, base);
-      if (taken[base]) return;
-      if (!byKey[key]) return;
-      var dir = Store.vocabPaired(v) && v.pairRu ? "de" : "ru";
-      var next = base + "|" + dir;
-      if ((v && v.learned) || (saved.mode !== "calib" && ((v && v.due > now) ||
-          (saved.first && (saved.first[key] || saved.first[next]))))) {
-        completed.push(key);
-        saved.done = (saved.done || 0) + 1;
-        taken[base] = true;
-        return;
-      }
-      taken[base] = true;
-      if (!byKey[next]) return;
-      remaining.push(next);
-      if (!v) newKeys.push(next);
-    });
-    saved.keys = completed.concat(remaining); saved.i = completed.length;
-    saved.newKeys = newKeys; saved.policy = 2;
-    saved.retryKeys = (saved.retryKeys || []).filter(function (key) {
-      var it = byKey[key], v = it && vocabSchedule(it);
-      return it && !(v && v.learned);
-    });
-    if ((saved.keys[saved.i] || saved.retryKeys[0]) !== currentKey) saved.peeked = false;
-    return saved;
-  }
-
-  /* ---------- экран карточек ---------- */
-  function viewVocab(mode) {
-    if (Store.blocked()) return viewMore();
-    working = true;
-    var byKey = {};
-    vocabCards().forEach(function (c) { byKey[c.key] = c; });
-
-    var calib = mode === "calib";
-    var calibStat = {};   /* ступень → {показано, знакомо} */
-    var saved = sessionLoad();
-    if (saved && (saved.mode || "") !== (mode || "")) saved = null;
-    saved = vocabResume(saved, byKey);
-    if (saved) calibStat = saved.calibStat || {};
-    var list, startI = 0, startDone = 0, startFirst = {}, startNewSeen = 0, startNewKnown = 0;
-
-    if (saved) {
-      /* продолжаем прерванную сессию */
-      list = saved.keys.map(function (k) { return byKey[k] || { key: k }; });
-      var newKeys = saved.newKeys || [];
-      list.forEach(function (it) { it.isNew = newKeys.indexOf(it.key) >= 0; });
-      startI = Math.min(saved.i || 0, list.length);
-      startDone = saved.done || 0;
-      startFirst = saved.first || {};
-      startNewSeen = saved.newSeen || 0;
-      startNewKnown = saved.newKnown || 0;
-    } else {
-      list = vocabSession(mode);
-      list.forEach(function (it) { it.isNew = !vocabSchedule(it); });
-    }
-
-    app.innerHTML = "";
-
-    if (!list.length) {
-      var head = el("div", "card");
-      head.innerHTML = '<div class="kicker">Словарь</div><h2>Карточки слов</h2>';
-      app.appendChild(head);
-
-      var sp = vocabSplit();
-      var ws0 = vocabWordStats();
-      head.appendChild(el("div", "muted", calib
-        ? "Все слова словаря уже в работе — калибровать нечего."
-        : mode === "repeat"
-        ? "Повторять нечего: ни одному слову сейчас не подошёл срок."
-        : sp.fresh.length
-          ? "Всё, что пора повторить, пройдено. Можно взять новые слова."
-          : "Слова кончились: весь словарь уже в работе."));
-      head.insertAdjacentHTML("beforeend", vocabBar(ws0));
-      head.appendChild(el("div", "note", "Новых слов можно начать сегодня: " + vocabNewRemaining() + ". Сначала повторите просроченные карточки."));
-      var r0 = el("div", "btnrow");
-      if (vocabPlan("new").length) {
-        var bn = el("button", "btn", "Начать новые карточки");
-        bn.onclick = function () { go("/vocab/new"); };
-        r0.appendChild(bn);
-      }
-      var b0 = el("button", "btn sec", "← На главную");
-      b0.onclick = function () { go("/"); };
-      r0.appendChild(b0);
-      head.appendChild(r0);
-      return;
-    }
-
-    var total = list.length;
-    var doneCnt = startDone;
-    var retryKeys = saved ? saved.retryKeys : [];
-    var levelMove = saved ? saved.levelMove : undefined;
-    var firstAnswered = startFirst;   /* key → на этом слове уже был первый ответ */
-    var newSeen = startNewSeen, newKnown = startNewKnown;   /* статистика по новым словам сессии */
-
-    function stash() {
-      sessionSave({
-        at: Date.now(), policy: 2, mode: mode || "", i: i, done: doneCnt,
-        keys: list.map(function (it) { return it.key; }),
-        newKeys: list.filter(function (it) { return it.isNew; }).map(function (it) { return it.key; }),
-        first: firstAnswered, newSeen: newSeen, newKnown: newKnown, peeked: peeked, calibStat: calibStat,
-        retryKeys: retryKeys, levelMove: levelMove
-      });
-    }
-
-    var card = el("div", "vscreen");
-    var pl = el("div", "progline");
-    pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>';
-    card.appendChild(pl);
-    var intervalProgress = el("div", "vinterval muted");
-    card.appendChild(intervalProgress);
-    var host = el("div", "vhost");
-    card.appendChild(host);
-    app.appendChild(card);
-    app.classList.add("tight");
-    document.documentElement.classList.add("vocab-training");
-
-    /* высота ровно по окну: ни вертикальной полосы, ни прыжков адресной строки */
-    function fitScreen() {
-      card.style.height = "auto";
-      var top = card.getBoundingClientRect().top;
-      var bar = document.getElementById("tabbar");
-      var barH = bar ? bar.offsetHeight : 0;
-      card.style.height = Math.max(0, window.innerHeight - top - barH - 12) + "px";
-    }
-    fitScreen();
-    window.onresize = fitScreen;
-
-    var i = startI, revealed = false, busy = false, view = routeId, expectedDue = 0;
-
-    var peeked = false, lastAnswer = null;
-    function currentCard() { return list[i] || byKey[retryKeys[0]]; }
-    function wordEntries(key) {
-      var entries = {};
-      ['|ru', '|de'].forEach(function (dir) { entries[key + dir] = S.vocab[key + dir] || null; });
-      return JSON.parse(JSON.stringify(entries));
-    }
-    function rememberAnswer() {
-      var key = currentCard().key.slice(0, -3);
-      lastAnswer = {
-        list: list.slice(), i: i, done: doneCnt, total: total, retryKeys: retryKeys.slice(), levelMove: levelMove,
-        first: JSON.parse(JSON.stringify(firstAnswered)), newSeen: newSeen, newKnown: newKnown,
-        calibStat: JSON.parse(JSON.stringify(calibStat)), peeked: peeked,
-        op: i < list.length ? { key: key, before: wordEntries(key), beforeLevel: S.vocabLevel || 1, beforeCalibrated: !!S.calibrated } : null
-      };
-    }
-    function rememberResult() {
-      if (!lastAnswer || !lastAnswer.op) return;
-      lastAnswer.op.after = wordEntries(lastAnswer.op.key);
-      lastAnswer.op.afterLevel = S.vocabLevel || 1;
-      lastAnswer.op.afterCalibrated = !!S.calibrated;
-    }
-    function undoPrevious() {
-      if (busy || !lastAnswer || view !== routeId) return;
-      var previous = lastAnswer;
-      if (previous.op) S = Store.mutate('vocabUndo', previous.op);
-      if (previous.op && JSON.stringify(wordEntries(previous.op.key)) !== JSON.stringify(previous.op.before)) {
-        app.appendChild(el('div', 'note', 'Слово уже изменено на другом устройстве. Отмена недоступна.'));
-        lastAnswer = null;
-        return;
-      }
-      list = previous.list; i = previous.i; doneCnt = previous.done; total = previous.total;
-      retryKeys = previous.retryKeys; levelMove = previous.levelMove;
-      firstAnswered = previous.first; newSeen = previous.newSeen; newKnown = previous.newKnown;
-      calibStat = previous.calibStat;
-      lastAnswer = null;
-      app.innerHTML = '';
-      app.classList.remove('result-screen'); app.classList.add('tight');
-      document.documentElement.classList.add("vocab-training");
-      app.appendChild(card);
-      window.onresize = fitScreen;
-      step();
-      peeked = previous.peeked;
-      if (peeked) { revealed = true; host.querySelector('.vflip').classList.add('flipped'); }
-      stash(); syncTabs();
-    };
-
-    /* На итоге тот же жест вниз; обычная прокрутка и кнопки его не запускают. */
-    function bindResultUndo(result) {
-      var start = null, distance = 0;
-      result.addEventListener('touchstart', function (event) {
-        start = null; distance = 0;
-        if (event.touches.length !== 1 || event.target.closest('button, a, input, textarea, select, [contenteditable]')) return;
-        if ((document.scrollingElement || document.documentElement).scrollTop > 1) return;
-        start = { x: event.touches[0].clientX, y: event.touches[0].clientY };
-      }, { passive: true });
-      result.addEventListener('touchmove', function (event) {
-        if (!start) return;
-        if (event.touches.length !== 1) { start = null; return; }
-        var dx = event.touches[0].clientX - start.x, dy = event.touches[0].clientY - start.y;
-        distance = dy > 0 && dy > Math.abs(dx) * 1.4 ? dy : 0;
-        if (distance > 14 && event.cancelable) event.preventDefault();
-      }, { passive: false });
-      result.addEventListener('touchend', function () {
-        var undo = start && distance >= 100;
-        start = null; distance = 0;
-        if (undo) undoPrevious();
-      });
-      result.addEventListener('touchcancel', function () { start = null; distance = 0; });
-    }
-
-    var finishGesture = null;
-    /* Ответ и позиция сохраняются до эффекта, следующий свайп блокируется. */
-    function advance(source, ok, schedule) {
-      busy = true;
-      rememberResult();
-      if (finishGesture) finishGesture(source === "known-swipe" || (calib && ok) ? "known" : ok ? "good" : "bad", schedule);
-      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      setTimeout(function () {
-        if (view !== routeId) return;
-        busy = false;
-        step();
-      }, reduced ? 120 : 460);
-    }
-
-    function faceFront(it) {
-      var f = el("div", "vface vfront");
-      var inner = el("div", "vinner");
-      inner.appendChild(el("div", "vword", esc(it.dir === "de" ? it.w.de : it.w.ru)));
-      f.appendChild(inner);
-      window.VocabFrames.decorate(f, vocabSchedule(it));
-      return f;
-    }
-
-    function faceBack(it) {
-      var de2ru = it.dir === "de";
-      var b = el("div", "vface vback");
-      var inner = el("div", "vinner");
-      inner.innerHTML = '<div class="vword">' + esc(de2ru ? it.w.ru : it.w.de) + "</div>" +
-        (it.w.ex ? '<div class="vex">' + esc(it.w.ex) +
-          (it.w.exru ? "<i>" + esc(it.w.exru) + "</i>" : "") + "</div>" : "") +
-        (it.w.reg ? '<div class="vreg">' + esc(it.w.reg) +
-          (it.w.regEx ? '<div class="vex">' + esc(it.w.regEx) +
-            (it.w.regExRu ? '<i>' + esc(it.w.regExRu) + '</i>' : '') + '</div>' : '') + '</div>' : '');
-      b.appendChild(inner);
-      window.VocabFrames.decorate(b, vocabSchedule(it));
-      return b;
-    }
-
-    function step() {
-      var it = currentCard(), schedule;
-      while (it && (schedule = vocabSchedule(it)) && schedule.learned) {
-        if (i < list.length) { i++; doneCnt++; }
-        else retryKeys.shift();
-        saved = null;
-        it = currentCard();
-      }
-      if (!it) return finish();
-      tuneBeforeRetries();
-      revealed = false;
-      var paired = Store.vocabPaired(schedule);
-      expectedDue = schedule ? schedule.due || 0 : 0;
-      intervalProgress.textContent = i >= list.length ? "Повтор промахов · осталось " + retryKeys.length : calib ? "Русский → немецкий" : paired
-        ? "Интервал: " + (schedule.pairRu ? "½" : "0") + " из 1 · " + (it.dir === "ru" ? "русский → немецкий" : "немецкий → русский")
-        : it.dir === "ru" ? "Русский → немецкий" : "Немецкий → русский";
-
-      pl.querySelector(".cnt").textContent = doneCnt + " / " + total;
-      pl.querySelector("i").style.width = Math.round((doneCnt / total) * 100) + "%";
-
-      host.innerHTML = "";
-      var stage = el("div", "vstage");
-      var deck = el("div", "vdeck");
-
-      var slot = el("div", "vslot vtop");
-      var drag = el("div", "vdrag");
-      var flip = el("div", "vflip");
-      flip.appendChild(faceFront(it));
-      flip.appendChild(faceBack(it));
-      drag.appendChild(flip);
-      slot.appendChild(drag);
-      deck.appendChild(slot);
-
-      stage.appendChild(deck);
-      host.appendChild(stage);
-      fitScreen();
-
-      bindCard(drag, flip);
-
-      peeked = !!(saved && saved.i === i && saved.peeked);
-      saved = null;
-      stash();
-    }
-
-    /* Отпускание сохраняет ответ; рамка получает фактическое расписание. */
-    function bindCard(drag, flip) {
-      var x0 = 0, y0 = 0, dx = 0, dy = 0, pointer = null, axis = "", locked = false, moved = false;
-      var lastX = 0, lastT = 0, vx = 0, scrollBody = null, scrollStart = 0;
-      var W = Math.max(46, Math.min(90, window.innerWidth * 0.18));
-      var UP = Math.max(70, Math.min(120, window.innerHeight * 0.12));
-      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      function reset() {
-        drag.classList.remove("held");
-        drag.style.transition = reduced ? "none" : "transform .28s cubic-bezier(.2,.8,.3,1)";
-        drag.style.transform = "";
-      }
-      finishGesture = function (kind, schedule) {
-        var direction = kind === "bad" ? -1 : 1;
-        window.VocabFrames.update(drag, schedule);
-        drag.classList.remove("held");
-        drag.classList.add("vcommit-" + kind);
-        /* На время эффекта остаёмся в точке отпускания, без возврата к центру. */
-        if (!reduced) setTimeout(function () {
-          if (view !== routeId) return;
-          drag.style.transition = "transform .24s ease-in, opacity .24s ease-in";
-          drag.style.transform = "translate(" + (kind === "known" ? 0 : direction * 170) + "px," + (kind === "known" ? -180 : -8) + "px) rotate(" + (kind === "known" ? 0 : direction * 8) + "deg) scale(.92)";
-          drag.style.opacity = 0;
-        }, 210);
-      };
-
-      drag.addEventListener("pointerdown", function (e) {
-        if (busy || pointer !== null || e.isPrimary === false || (e.button !== undefined && e.button !== 0)) return;
-        scrollBody = flip.classList && flip.classList.contains('flipped') ? flip.querySelector('.vback .vinner') : null;
-        if (scrollBody && scrollBody.scrollHeight <= scrollBody.clientHeight + 1) scrollBody = null;
-        scrollStart = scrollBody ? scrollBody.scrollTop : 0;
-        pointer = e.pointerId;
-        axis = ""; locked = false; moved = false; dx = 0; dy = 0; vx = 0;
-        x0 = lastX = e.clientX; y0 = e.clientY; lastT = Date.now();
-        try { drag.setPointerCapture(pointer); } catch (err) {}
-        drag.style.transition = "none";
-        drag.classList.add("held");
-      });
-      drag.addEventListener("pointermove", function (e) {
-        if (pointer !== e.pointerId || busy) return;
-        dx = e.clientX - x0; dy = e.clientY - y0;
-        if (!locked) {
-          if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-          axis = Math.abs(dy) > Math.abs(dx) * 1.4 ? "y" : "x";
-          if (Math.max(Math.abs(dx), Math.abs(dy)) >= 40) locked = true;
-        }
-        moved = true;
-        if (axis === 'y' && scrollBody && !(dy > 0 && scrollStart <= 1)) {
-          scrollBody.scrollTop = scrollStart - dy;
-          return;
-        }
-        var now = Date.now(), dt = now - lastT;
-        if (dt > 0) vx = (e.clientX - lastX) / dt;
-        lastX = e.clientX; lastT = now;
-        var vertical = axis === "y", allowed = !vertical || (!calib && dy < 0);
-        var ox = vertical ? dx * .1 : Math.max(-120, Math.min(120, dx * .65));
-        var oy = vertical ? (allowed ? Math.max(-110, dy * .65) : dy * .12) : dy * .12;
-        drag.style.transform = reduced ? "" : "translate(" + ox + "px," + oy + "px) rotate(" + (vertical ? 0 : ox * .035) + "deg)";
-      });
-      function release(e) {
-        if (pointer !== e.pointerId) return;
-        pointer = null;
-        if (busy || view !== routeId) return;
-        drag.classList.remove("held");
-        var cancelled = e.type !== "pointerup";
-        if (moved && axis === 'y' && scrollBody && !(dy > 0 && scrollStart <= 1)) { reset(); return; }
-        if (!cancelled && moved) {
-          if (axis === "y" && dy >= UP) { reset(); undoPrevious(); return; }
-          if (axis === "y" && !calib && dy <= -UP) { answerKnown("known-swipe"); return; }
-          var flick = Date.now() - lastT < 100 && Math.abs(vx) > .5 && Math.abs(dx) > 24 && (vx > 0) === (dx > 0);
-          if (axis === "x" && (Math.abs(dx) >= W || flick)) { answer(dx > 0, "swipe"); return; }
-        }
-        reset();
-        if (!cancelled && !moved) flipCard();
-      }
-      drag.addEventListener("pointerup", release);
-      drag.addEventListener("pointercancel", release);
-      drag.addEventListener("lostpointercapture", release);
-    }
-
-    function flipCard() {
-      if (busy || view !== routeId) return;
-      var flip = host.querySelector(".vflip");
-      if (!flip) return;
-      revealed = true;
-      peeked = true; stash();   /* Подсказка сохраняется при переходах и перезагрузке. */
-      flip.classList.toggle("flipped");
-    }
-
-    /* «уже знаю»: слово закрывается целиком, обоими направлениями */
-    function answerKnown(source) {
-      if (busy || view !== routeId) return;
-      if (i >= list.length) { answer(true, source); return; }
-      rememberAnswer();
-      var it = list[i];
-      var base = it.key.slice(0, -3);
-      if (!firstAnswered[it.key] && it.isNew) { newSeen++; newKnown++; }
-      firstAnswered[it.key] = true;
-      if (calib) bumpCalib(it, true);
-      S = Store.mutate("vocabKnown", { key: base });
-      syncTabs();
-      doneCnt++;
-      i++; peeked = false;
-      tuneBeforeRetries();
-      stash();
-      advance(source, true, vocabSchedule(it));
-    }
-
-    function bumpCalib(it, known) {
-      var lvl = it.f || 1;
-      var st = calibStat[lvl] || (calibStat[lvl] = { shown: 0, known: 0 });
-      st.shown++;
-      if (known) st.known++;
-    }
-
-    function answer(ok, source) {
-      if (busy || view !== routeId) return;
-      if (calib && peeked) ok = false;
-      rememberAnswer();
-      var it = currentCard();
-      if (i >= list.length) {
-        var key = retryKeys.shift();
-        if (!ok) retryKeys.push(key);
-        peeked = false;
-        stash();
-        advance(source, ok, vocabSchedule(it));
-        return;
-      }
-      if (calib) {
-        /* калибровка ничего не планирует: знакомое закрываем, незнакомое не трогаем */
-        bumpCalib(it, ok);
-        if (ok) S = Store.mutate("vocabKnown", { key: it.key.slice(0, -3) });
-        doneCnt++;
-        i++; peeked = false;
-        stash();
-        advance(source, ok, vocabSchedule(it));
-        return;
-      }
-      var first = !firstAnswered[it.key];
-      firstAnswered[it.key] = true;
-      if (first && it.isNew) { newSeen++; if (ok) newKnown++; }
-      vocabGrade(it, ok, first, expectedDue);
-      var schedule = vocabSchedule(it);
-      if (!ok && !(schedule && schedule.learned)) retryKeys.push(it.key);
-      if (first && ok && it.dir === "ru" && Store.vocabPaired(schedule) && schedule.pairRu) {
-        var other = byKey[it.key.slice(0, -3) + "|de"];
-        if (!list.slice(i + 1).some(function (item) { return item.key === other.key; })) {
-          /* Вторую половину проверяем в конце круга. */
-          other.isNew = false;
-          list.push(other); total++;
-        }
-      }
-      syncTabs();
-      doneCnt++;
-      i++;
-      peeked = false;
-      tuneBeforeRetries();
-      stash();
-      advance(source, ok, schedule);
-    }
-
-    function tuneBeforeRetries() {
-      if (i === list.length && retryKeys.length && levelMove === undefined) {
-        levelMove = vocabTuneLevel(newSeen, newKnown);
-      }
-    }
-
-    document.onkeydown = function (e) {
-      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target && e.target.tagName)) return;
-      if (e.key === " " || e.key === "Enter") { e.preventDefault(); flipCard(); }
-      else if (e.key === "1") { e.preventDefault(); answer(true); }
-      else if (e.key === "2") { e.preventDefault(); answer(false); }
-    };
-
-    function finish() {
-      document.onkeydown = null;
-      document.documentElement.classList.remove("vocab-training");
-      sessionClear();
-
-      if (calib) return finishCalib();
-
-      var moved = levelMove === undefined ? vocabTuneLevel(newSeen, newKnown) : levelMove;
-      rememberResult();
-      var sp = vocabSplit();
-      app.innerHTML = "";
-      var ws = vocabWordStats();
-      showResultLayout();
-      var c = el("div", "card hero result-card");
-      var ending = total % 100 >= 11 && total % 100 <= 14 ? "карточек пройдено"
-        : total % 10 === 1 ? "карточка пройдена" : total % 10 >= 2 && total % 10 <= 4 ? "карточки пройдены" : "карточек пройдено";
-      c.innerHTML = '<div class="kicker">Сессия закрыта</div><h1>' + total + " " + ending + "</h1>" +
-        '<div class="muted">Ступень словаря: ' + S.vocabLevel + " из " + V_LEVELS +
-        (moved === "up" ? " — новые слова шли легко, дальше беру следующую группу словаря."
-          : moved === "down" ? " — новые слова буксовали, возвращаюсь к предыдущей группе словаря." : "") +
-        (sp.due.length ? "<br>Ждут повторения прямо сейчас: " + sp.due.length + "." : "") + "</div>" +
-        vocabBar(ws);
-      var r = el("div", "btnrow");
-      var repLeft = vocabRepeatPending();
-      if (repLeft) {
-        var br = el("button", "btn", "Повторить слова (" + repLeft + ")");
-        br.onclick = function () { sessionClear(); location.hash = "/vocab/repeat"; route(); };
-        r.appendChild(br);
-      }
-      if (vocabPlan("new").length) {
-        var bn2 = el("button", "btn" + (repLeft ? " sec" : ""), "Начать новые карточки");
-        bn2.onclick = function () { sessionClear(); location.hash = "/vocab/new"; route(); };
-        r.appendChild(bn2);
-      }
-      var b = el("button", "btn sec", "На главную");
-      b.onclick = function () { go("/"); };
-      r.appendChild(b);
-      bindResultUndo(c);
-      c.appendChild(r);
-      app.appendChild(c);
-    }
-
-    step();
-
-    /* Итог калибровки: ступень — самая высокая, где знакомо хотя бы половину,
-       плюс одна сверху, чтобы было куда расти. */
-    function finishCalib() {
-      var lvl = 1, known = 0, shown = 0;
-      for (var k = 1; k <= V_LEVELS; k++) {
-        var st = calibStat[k];
-        if (!st || !st.shown) continue;
-        known += st.known; shown += st.shown;
-        if (st.known / st.shown >= 0.5) lvl = k;
-      }
-      lvl = known ? Math.min(V_LEVELS, lvl + (known === shown ? 2 : 1)) : 1;
-      S = Store.mutate("calibrate", { level: lvl });
-      rememberResult();
-      syncTabs();
-
-      app.innerHTML = "";
-      showResultLayout();
-      var c = el("div", "card hero result-card");
-      var rows = "";
-      for (var m = 1; m <= V_LEVELS; m++) {
-        var s2 = calibStat[m];
-        if (!s2) continue;
-        rows += "<div>Ступень " + m + ": знакомо " + s2.known + " из " + s2.shown + "</div>";
-      }
-      c.innerHTML = '<div class="kicker">Калибровка</div><h1>Ступень ' + lvl + " из " + V_LEVELS + "</h1>" +
-        '<div class="muted">Знакомые слова закрыты сразу и в очередь не попадут — ' +
-        "их " + known + " из " + shown + ".<br>Новые слова теперь берутся с этой ступени.</div>" +
-        '<div class="muted" style="margin-top:10px">' + rows + "</div>";
-      var r = el("div", "btnrow");
-      var b = el("button", "btn", "Учить слова");
-      b.onclick = function () { go("/vocab"); };
-      var b2 = el("button", "btn sec", "На главную");
-      b2.onclick = function () { go("/"); };
-      r.appendChild(b); r.appendChild(b2);
-      bindResultUndo(c);
-      c.appendChild(r);
-      app.appendChild(c);
-    }
   }
 
   /* ---------- предупреждение о сохранении ----------

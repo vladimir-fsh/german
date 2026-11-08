@@ -103,8 +103,10 @@ function fakeFirestore() {
   return {db,docs,setFail:value=>{fail=value}};
 }
 function transport(backend, uid='test-user', options={}) {
-  const win=client(options), callbacks=[];let current=options.signedIn?{uid,email:'test@example.invalid'}:null;
-  const auth={onAuthStateChanged:fn=>{callbacks.push(fn);queueMicrotask(()=>fn(current))},signInWithPopup:()=>{current={uid,email:'test@example.invalid'};callbacks.forEach(fn=>fn(current));return Promise.resolve()},signOut:()=>{current=null;callbacks.forEach(fn=>fn(null));return Promise.resolve()}};
+  const win=client(options), callbacks=[];
+  const makeUser=()=>({uid,email:'test@example.invalid',getIdToken:()=>options.tokenPromise||Promise.resolve('fake-firebase-id-token')});
+  let current=options.signedIn?makeUser():null;
+  const auth={onAuthStateChanged:fn=>{callbacks.push(fn);queueMicrotask(()=>fn(current))},signInWithPopup:()=>{current=makeUser();callbacks.forEach(fn=>fn(current));return Promise.resolve()},signOut:()=>{current=null;callbacks.forEach(fn=>fn(null));return Promise.resolve()}};
   win.firebase={initializeApp:()=>({auth:()=>auth,firestore:()=>backend.db}),auth:{GoogleAuthProvider:function(){this.setCustomParameters=()=>{}}},firestore:{FieldValue:{serverTimestamp:()=>1}}};
   win.FIREBASE_CONFIG={apiKey:'AIzaFakePublicConfig',projectId:'german-test',authDomain:'german-test.firebaseapp.com',appId:'1:123:web:abc'};
   const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../js/cloud.js'),'utf8'),win);
@@ -151,4 +153,20 @@ test('сохранённый Google-вход после перезагрузки
   restored.Cloud.start();await restored.Cloud.init();await env.settle();
   try {assert.equal(restored.Cloud.status().connected,true);assert.equal(restored.Store.state().totalCorrect,1);}
   finally {await restored.Cloud.signOut();await a.Cloud.signOut();}
+});
+
+test('чат получает действующий Firebase token без записи в прогресс; после выхода token недоступен', async () => {
+  const a=transport(fakeFirestore(),'owner',{signedIn:true});
+  const session=await a.Cloud.tutorSession();
+  assert.equal(session.uid,'owner');assert.equal(session.projectId,'german-test');assert.equal(session.token,'fake-firebase-id-token');
+  assert.doesNotMatch(a.Store.exportBackup(),/fake-firebase-id-token/);
+  assert.doesNotMatch(a.Store.exportRaw(),/fake-firebase-id-token/);
+  await a.Cloud.signOut();await assert.rejects(a.Cloud.tutorSession(),/Google/);
+});
+
+test('выход во время обновления Firebase token отменяет выдачу старой авторизации чату', async () => {
+  let finish;const tokenPromise=new Promise(resolve=>finish=resolve);
+  const a=transport(fakeFirestore(),'owner',{signedIn:true,tokenPromise});
+  const pending=a.Cloud.tutorSession();await env.settle();await a.Cloud.signOut();finish('late-token');
+  await assert.rejects(pending,/Аккаунт изменился/);
 });

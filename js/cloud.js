@@ -76,6 +76,16 @@ window.Cloud = (function () {
     stop(); localStorage.removeItem(LINK);
     return auth ? auth.signOut() : Promise.resolve();
   }
+  function tutorSession() {
+    return init().then(function () {
+      if (!user) throw new Error("Войдите через Google, чтобы пользоваться чатом.");
+      var current = user, cfg = config();
+      return current.getIdToken().then(function (token) {
+        if (!user || user.uid !== current.uid) throw new Error("Аккаунт изменился. Откройте чат снова.");
+        return { uid: current.uid, projectId: cfg.projectId, token: token };
+      });
+    });
+  }
   function collection(name) { return db.collection("users").doc(user.uid).collection(name); }
   function payload(value) {
     var json = JSON.stringify(value);
@@ -220,7 +230,7 @@ window.Cloud = (function () {
     document.addEventListener("visibilitychange", function () { if (!document.hidden) resume(); });
     try { if (config()) init().catch(function (e) { emit(friendly(e)); }); } catch (e) { emit(friendly(e)); }
   }
-  return { init: init, start: start, config: config, saveConfig: saveConfig, signIn: signIn, signOut: signOut,
+  return { init: init, start: start, config: config, saveConfig: saveConfig, signIn: signIn, signOut: signOut, tutorSession: tutorSession,
     connect: function () { return connect(true); }, sync: sync, status: status, deviceBackups: deviceBackups, restoreWork: restoreWork,
     onChange: function (fn) { listeners.push(fn); fn(status()); return function () { listeners = listeners.filter(function (other) { return other !== fn; }); }; }
   };

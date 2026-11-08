@@ -2,8 +2,21 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const env = require("./env.js");
-const SYNC = ["js/progress-data.js", "js/srs-config.js", "js/sync.js"];
+const SYNC = ["js/progress-data.js", "js/srs-config.js", "js/sync.js", "js/vocab-training.js"];
 const T = Date.UTC(2026, 9, 1, 12);
+
+
+function vocabulary(win, options = {}) {
+  let state = options.state, saved = options.saved;
+  const training = win.VocabTraining.create({
+    store: Object.assign({}, win.Store, { state: () => state || win.Store.state() }),
+    sessions: { load: () => saved, save: (kind, value) => { saved = JSON.parse(JSON.stringify(value)); }, clear: () => { saved = null; } },
+    config: win.SRS_CONFIG, course: win.COURSE || { lessons: [] }, words: win.VOCAB || [], lesson: n => win['L' + n],
+    shuffle: options.shuffle || (items => items), nextLesson: () => null,
+    day: () => '2026-11-08', now: options.now || Date.now
+  });
+  return { training, state: value => { state = value; }, saved: value => { if (value) saved = value; return saved; } };
+}
 
 function stored() { return { v: 4, done: { L18D0: { at: T, score: 14, of: 16 } }, srs: {}, vocab: {}, vocabLevel: 1, calibrated: true, streak: 2, lastDay: "2026-09-30", totalTried: 16, totalCorrect: 14, resetAt: 0 }; }
 
@@ -100,54 +113,45 @@ test("половина интервала переживает перезагр�
 test("новая очередь, калибровка и старые сессии начинают с русского; половина открывает немецкую сторону", () => {
   const win = env.load(SYNC);
   win.COURSE = { lessons: [] }; win.VOCAB = [{ de: "Test", ru: "тест", f: 1 }];
-  const source = require("node:fs").readFileSync(env.ROOT + "/js/app.js", "utf8");
-  const context = require("node:vm").createContext({ window: win, Store: win.Store,
-    S: win.Store.state(), V_LEVELS: 5, CFG: win.SRS_CONFIG, E: { shuffle: (items) => items } });
-  require("node:vm").runInContext(source.slice(source.indexOf("  function vocabPool()"), source.indexOf("  /* Незакрытая сессия")), context);
-  require("node:vm").runInContext(source.slice(source.indexOf("  function vocabResume("), source.indexOf("  /* ---------- экран карточек")), context);
-  assert.equal(context.vocabSplit().fresh[0].dir, "ru");
-  assert.equal(context.vocabSplit().fresh.length, 1);
-  assert.equal(context.vocabCalibPlan()[0].dir, "ru");
-  context.S = win.Store._reduce(reviewWord(30), []);
-  assert.equal(context.vocabRepeatPlan()[0].dir, "ru");
-  context.S = win.Store._reduce(reviewWord(30), [wordOp(1, "ru", true)]);
-  assert.equal(context.vocabRepeatPlan()[0].dir, "de");
-  assert.equal(context.vocabSplit().fresh.length, 0);
-  const cards = {}; context.vocabCards().forEach((card) => { cards[card.key] = card; });
-  context.S = win.Store._reduce(reviewWord(1), []);
+  const h = vocabulary(win), training = h.training;
+  assert.equal(training.plan()[0].dir, "ru");
+  assert.equal(training.summary().fresh, 1);
+  assert.equal(training.plan("calib")[0].dir, "ru");
+  h.state(win.Store._reduce(reviewWord(30), []));
+  assert.equal(training.plan("repeat")[0].dir, "ru");
+  h.state(win.Store._reduce(reviewWord(30), [wordOp(1, "ru", true)]));
+  assert.equal(training.plan("repeat")[0].dir, "de");
+  assert.equal(training.summary().fresh, 0);
+  h.state(win.Store._reduce(reviewWord(1), []));
   const saved = { keys: ["V:Done|de", "V:Test|de", "V:Test|ru"], i: 1, done: 1, first: { "V:Done|de": true }, at: T };
-  const resumed = context.vocabResume(saved, cards);
-  assert.deepEqual(Array.from(resumed.keys), ["V:Done|de", "V:Test|ru"]);
-  assert.equal(resumed.i, 1); assert.equal(resumed.done, 1);
+  h.saved(saved); const run = training.open();
+  assert.equal(run.current().card.key, "V:Test|ru");
+  assert.deepEqual(Array.from(h.saved().keys), ["V:Done|de", "V:Test|ru"]);
+  assert.equal(h.saved().i, 1); assert.equal(h.saved().done, 1);
   assert.equal(saved.keys.length, 3);
 });
 
 test("повседневные варианты сохраняют старые ключи повторения, сессии и калибровки", () => {
   const win = env.load(["data/lessons.js", "data/vocab.js"].concat(SYNC));
-  const source = require("node:fs").readFileSync(env.ROOT + "/js/app.js", "utf8");
-  // Запускаем настоящие функции выбора карточек без мобильного DOM.
-  const context = require("node:vm").createContext({
-    window: win, S: win.Store.state(), V_LEVELS: 5, CFG: win.SRS_CONFIG,
-    E: { shuffle: (items) => items }
-  });
-  require("node:vm").runInContext(source.slice(source.indexOf("  function vocabPool()"),
-    source.indexOf("  /* Незакрытая сессия")), context);
-  const cards = context.vocabCards();
+  const { training } = vocabulary(win);
+  // Достаточный дневной бюджет для проверки всей учебной очереди.
+  win.SRS_CONFIG.maxNewPerDay = 10000; win.SRS_CONFIG.sessionNew = 10000;
+  const all = vocabulary(win).training;
+  const cards = all.plan();
   assert.equal(new Set(cards.map((card) => card.key)).size, cards.length);
   assert.equal(new Set(win.VOCAB.map((word) => word.de)).size, win.VOCAB.length);
   const word = win.VOCAB.find((word) => word.de === "genug");
   assert.equal(word.id, "ausreichend");
   assert.equal(word.f, 1);
   assert.match(word.reg, /ausreichend/);
-  for (const direction of ["de", "ru"]) {
+  for (const direction of ["ru"]) {
     const savedKey = "V:ausreichend|" + direction;
     const restoredCard = cards.find((card) => card.key === savedKey);
     assert.equal(restoredCard.w.de, "genug");
     win.Store.mutate("vocabReview", { key: savedKey, ok: true, day: "2026-10-07" });
     assert.ok(win.Store.state().vocab[savedKey].due);
   }
-  context.S = win.Store.state();
-  assert.ok(!context.vocabCalibPlan().some((card) => card.w.de === "genug"));
+  assert.ok(!training.plan("calib").some((card) => card.w.de === "genug"));
   for (const changed of win.VOCAB.filter((word) => word.id)) {
     assert.ok(changed.reg.includes(changed.id), changed.de + ": прежний вариант на обороте");
     assert.ok(cards.some((card) => card.key === "V:" + changed.id + "|ru"));
@@ -158,23 +162,18 @@ test("названия остаются в обучении, но не опре�
   const win = env.load(["data/vocab.js"].concat(SYNC));
   win.COURSE = { lessons: [] };
   const names = new Set(["Afrika", "Amerika", "Berlin", "China"]);
-  const source = require("node:fs").readFileSync(env.ROOT + "/js/app.js", "utf8");
-  const context = require("node:vm").createContext({
-    window: win, S: win.Store.state(), V_LEVELS: 5, CFG: win.SRS_CONFIG,
-    E: { shuffle: (items) => items.slice().sort((a, b) => Number(names.has(b.w.de)) - Number(names.has(a.w.de))) }
-  });
-  require("node:vm").runInContext(source.slice(source.indexOf("  function vocabPool()"),
-    source.indexOf("  /* Незакрытая сессия")), context);
-  const calibration = context.vocabCalibPlan();
+  win.SRS_CONFIG.maxNewPerDay = 10000; win.SRS_CONFIG.sessionNew = 10000;
+  const { training } = vocabulary(win, { shuffle: items => items.slice().sort((a, b) => Number(names.has(b.w.de)) - Number(names.has(a.w.de))) });
+  const calibration = training.plan("calib");
   assert.equal(calibration.length, 20);
   assert.ok(!calibration.some((card) => names.has(card.w.de)));
   assert.deepEqual(Array.from(calibration.filter((card) => card.f === 5), (card) => card.w.de).sort(),
     ["anspruchsvoll", "die Nachhaltigkeit", "hinterfragen", "umstritten"].sort());
   for (const word of win.VOCAB.filter((word) => word.calibrate === false)) {
     assert.ok(!calibration.some((card) => card.w.de === word.de));
-    assert.ok(context.vocabSplit().fresh.some((card) => card.w.de === word.de));
+    assert.ok(training.plan().some((card) => card.w.de === word.de));
   }
-  for (const name of names) assert.ok(context.vocabSplit().fresh.some((card) => card.w.de === name));
+  for (const name of names) assert.ok(training.plan().some((card) => card.w.de === name));
 });
 
 test("формальные синонимы учатся на обороте без отдельного расписания", () => {
@@ -634,26 +633,21 @@ test('новые ошибки ждут 12 часов на обеих сторо�
 });
 
 test('повторить не выбирает ошибку до 12 часов; черновик не возвращает отвеченные слова', () => {
-  const win = env.load(SYNC), vm = require('node:vm');
-  win.COURSE = []; win.VOCAB = [{ de: 'Test', ru: 'тест', f: 1 }];
+  const win = env.load(SYNC);
+  win.COURSE = { lessons: [] }; win.VOCAB = [{ de: 'Test', ru: 'тест', f: 1 }];
   const failed = { ...wordOp(1, 'ru', false, T, 0), type: 'vocabWordReviewDeferred' };
   const state = win.Store._reduce(null, [failed]);
   let now = T + 12 * 3600000 - 1;
-  const context = vm.createContext({window:win,Store:win.Store,S:state,CFG:win.SRS_CONFIG,V_LEVELS:5,
-    Date: { now: () => now }, E:{shuffle:items=>items}});
-  const source = require('node:fs').readFileSync(env.ROOT+'/js/app.js','utf8');
-  vm.runInContext(source.slice(source.indexOf('  function vocabPool()'),source.indexOf('  /* Незакрытая сессия')),context);
-  vm.runInContext(source.slice(source.indexOf('  function vocabResume('),source.indexOf('  /* ---------- экран карточек')),context);
-  assert.equal(context.vocabRepeatPlan().length,0);
-  const cards={}; context.vocabCards().forEach(card=>{cards[card.key]=card;});
-  const saved={policy:2,mode:'repeat',keys:['V:Test|ru'],i:0,done:0,first:{'V:Test|ru':true},peeked:true};
-  const resumed=context.vocabResume(saved,cards);
-  assert.equal(resumed.i,1); assert.equal(resumed.done,1); assert.equal(resumed.peeked,false);
-  assert.equal(saved.i,0);
-  const elsewhere=context.vocabResume({...saved,first:{}},cards);
-  assert.equal(elsewhere.i,1);
+  const h = vocabulary(win, { state, now: () => now });
+  assert.equal(h.training.plan('repeat').length, 0);
+  const saved = { policy: 2, mode: 'repeat', keys: ['V:Test|ru'], i: 0, done: 0, first: {'V:Test|ru':true}, peeked: true };
+  h.saved(saved); let run = h.training.open('repeat'); run.current();
+  assert.equal(h.saved().i, 1); assert.equal(h.saved().done, 1); assert.equal(h.saved().peeked, false);
+  assert.equal(saved.i, 0);
+  h.saved({...saved,first:{}}); run = h.training.open('repeat');
+  assert.equal(run.current().card, null);
   now++;
-  assert.equal(context.vocabRepeatPlan().length,1);
-  const ready=context.vocabResume({...saved,first:{}},cards);
-  assert.equal(ready.i,0);
+  assert.equal(h.training.plan('repeat').length, 1);
+  h.saved({...saved,first:{}}); run = h.training.open('repeat');
+  assert.equal(run.current().card.key, 'V:Test|ru');
 });
