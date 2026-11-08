@@ -2,7 +2,7 @@
 window.Tutor = (function () {
   "use strict";
   try { localStorage.removeItem("de-tutor-model-v1"); } catch (e) {}
-  var root, panel, launcher, log, input, send, status, settings, connectionText, quick, footer;
+  var root, panel, chatTab, log, input, send, status, settings, connectionText, quick, footer;
   var setupKey, explainButton, partsButton, keyField, keyForm, keyStatus, saveKey, cloudButton;
   var opened = false, settingsOpen = false, previousFocus, releaseSwipe, accountId = "";
   var session = window.TutorSession.create({ gateway: window.TutorGateway, onChange: renderState });
@@ -80,6 +80,11 @@ window.Tutor = (function () {
   function fit() {
     if (!opened) return;
     var vv = window.visualViewport;
+    var layoutHeight = Math.max(window.innerHeight, document.documentElement.clientHeight || 0);
+    var keyboardOpen = vv && (!vv.scale || Math.abs(vv.scale - 1) < .01) && layoutHeight - vv.height > 120;
+    // VisualViewport уже исключает клавиатуру. Отступ под домашний индикатор нужен только без неё.
+    if (keyboardOpen) root.classList.add("keyboard-open");
+    else root.classList.remove("keyboard-open");
     root.style.top = (vv ? vv.offsetTop : 0) + "px";
     root.style.height = (vv ? vv.height : window.innerHeight) + "px";
   }
@@ -89,7 +94,7 @@ window.Tutor = (function () {
       previousFocus = document.activeElement; opened = true; root.hidden = false;
       document.documentElement.classList.add("tutor-open");
       document.getElementById("app").inert = true; document.getElementById("tabbar").inert = true;
-      launcher.hidden = true; input.value = state.draft;
+      chatTab.classList.add("on"); chatTab.setAttribute("aria-expanded", "true"); input.value = state.draft;
       renderLog(); fit();
       if (window.SwipeBack) releaseSwipe = window.SwipeBack.mount(panel, close, log);
     }
@@ -101,7 +106,8 @@ window.Tutor = (function () {
   }
   function close() {
     if (!opened) return;
-    session.setDraft(input.value); opened = false; root.hidden = true; launcher.hidden = false;
+    session.setDraft(input.value); opened = false; root.hidden = true;
+    chatTab.classList.remove("on"); chatTab.setAttribute("aria-expanded", "false");
     document.documentElement.classList.remove("tutor-open");
     document.getElementById("app").inert = false; document.getElementById("tabbar").inert = false;
     input.blur();
@@ -111,10 +117,8 @@ window.Tutor = (function () {
   }
   function init() {
     if (root) return;
-    document.documentElement.classList.add("has-tutor");
-    launcher = button(document.body, "tutor-launcher", "", function () { open(); });
-    launcher.setAttribute("aria-label", "Открыть чат: объяснить текущий экран");
-    launcher.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2v-10a9 9 0 0 1 18 0Z"/><path d="M7 10h8M7 14h5"/></svg>';
+    chatTab = document.getElementById("tutor-tab");
+    chatTab.onclick = function () { open(); };
     root = node("div", "tutor-overlay"); root.hidden = true;
     root.addEventListener("click", function (e) { if (e.target === root) close(); });
     panel = node("section", "tutor-panel"); panel.tabIndex = -1;

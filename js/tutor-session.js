@@ -86,7 +86,7 @@ window.TutorSession = (function () {
         if (settings !== call) return;
         settings = null; cancel(call.timer); if (configured === null) configured = false;
         keyStatus = error.name === "AbortError" ? "Не удалось дождаться сервера. Откройте настройки, чтобы проверить сохранение." :
-          error.name === "TypeError" ? "Нет связи с Firebase. Повторите позже." : error.message;
+          error.name === "TypeError" ? "Не удалось связаться с сервером чата Firebase. Проверьте интернет и настройку сервера." : error.message;
         emit();
       }
       call.timer = later(function () { call.controller.abort(); fail({ name: "AbortError" }); }, 60000);

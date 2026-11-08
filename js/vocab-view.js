@@ -71,7 +71,7 @@ window.VocabView = (function () {
       var top = card.getBoundingClientRect().top;
       var bar = document.getElementById("tabbar");
       var barH = bar ? bar.offsetHeight : 0;
-      card.style.height = Math.max(0, window.innerHeight - top - barH - (window.Tutor ? 76 : 12)) + "px";
+      card.style.height = Math.max(0, window.innerHeight - top - barH - 12) + "px";
     }
     fitScreen();
     window.onresize = fitScreen;

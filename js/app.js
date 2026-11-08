@@ -542,24 +542,18 @@
   var tabs = document.querySelectorAll(".tab");
 
   Array.prototype.forEach.call(tabs, function (b) {
+    if (!b.getAttribute("data-go")) return;
     b.onclick = function () { go(b.getAttribute("data-go")); };
   });
 
-  /* подсветка активной вкладки и счётчики на значках */
+  /* Чат открывается поверх текущего экрана, сохраняя его контекст. */
   function syncTabs() {
     var h = curPath();
-    var root = h === "/" || /^\/l\d+/.test(h) ? "/"
-      : h.indexOf("/vocab") === 0 ? "/vocab"
-      : h.indexOf("/review") === 0 ? "/review"
-      : h.indexOf("/more") === 0 ? "/more" : "/";
+    var root = h.indexOf("/more") === 0 ? "/more" : "/";
     Array.prototype.forEach.call(tabs, function (b) {
       var mine = b.getAttribute("data-go");
+      if (!mine) return;
       b.className = "tab" + (mine === root ? " on" : "");
-      var badge = b.querySelector(".tbadge");
-      if (!badge || mine === "/more") return;
-      var n = mine === "/vocab" ? training.summary().pending : srsDue().length;
-      badge.textContent = n > 99 ? "99+" : n;
-      badge.hidden = !n;
     });
   }
 

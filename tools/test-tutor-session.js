@@ -98,3 +98,11 @@ test('зависшее сохранение ключа разблокирует 
   h.settings[0].resolve({ configured: true }); await tick(); assert.equal(s.state().configured, false);
   s.refresh(); h.settings[1].resolve({ configured: true }); await tick(); assert.equal(s.state().configured, true);
 });
+
+test('сбой запроса настройки относится к серверу чата, а не ко всей синхронизации Firebase', async () => {
+  const h = fixture(), s = h.session; s.open();
+  h.settings[0].reject(new TypeError('Failed to fetch')); await tick();
+  assert.match(s.state().keyStatus, /сервером чата Firebase/);
+  assert.match(s.state().keyStatus, /настройку сервера/);
+  assert.equal(s.state().settingsPending, false);
+});

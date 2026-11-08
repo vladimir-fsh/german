@@ -67,16 +67,8 @@
 /* Прокрутка пальцем остаётся доступной, полосы не занимают место. */
 * { box-sizing: border-box; scrollbar-width: none; }
 *::-webkit-scrollbar { display: none; width: 0; height: 0; }
-.tutor-overlay[hidden], .tutor-panel [hidden], .tutor-launcher[hidden] { display: none !important; }
+.tutor-overlay[hidden], .tutor-panel [hidden] { display: none !important; }
 html.tutor-open, .tutor-open body { overflow: hidden; }
-.has-tutor main.wrap { padding-bottom: calc(156px + env(safe-area-inset-bottom)); }
-.tutor-launcher {
-  position: fixed; right: calc(16px + env(safe-area-inset-right));
-  bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 32;
-  display: grid; place-items: center; width: 52px; height: 52px; border: 0; border-radius: 50%;
-  background: var(--accent); color: var(--btn-text, #fff); box-shadow: var(--shadow);
-}
-.tutor-launcher svg { width: 26px; height: 26px; }
 .tutor-overlay {
   position: fixed; top: 0; left: 0; right: 0; height: 100dvh; z-index: 100;
   display: flex; align-items: flex-end; overflow: hidden; isolation: isolate;
@@ -89,6 +81,7 @@ html.tutor-open, .tutor-open body { overflow: hidden; }
   --tutor-send-color: var(--text-dim);
   --tutor-focus-border: #aeb9c8;
 }
+.tutor-overlay.keyboard-open { padding-bottom: 6px; }
 .tutor-overlay::before {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: linear-gradient(0deg, rgba(20,25,45,.32), rgba(20,25,45,.08));
@@ -165,9 +158,6 @@ html.tutor-open, .tutor-open body { overflow: hidden; }
   --tutor-send-bg: var(--accent); --tutor-send-color: var(--btn-text, #fff); --tutor-focus-border: var(--accent);
 }
 @media (prefers-reduced-motion: reduce) { .tutor-panel, .tutor-overlay::before { animation: none; } }
-@media (max-width: 700px) {
-  .has-tutor .btnrow.sticky { padding-right: 84px; }
-}
 html, body { margin: 0; padding: 0; background: var(--bg); }
 body {
   min-height: 100vh; min-height: 100dvh;

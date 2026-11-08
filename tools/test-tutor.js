@@ -38,7 +38,8 @@ function fixture(options={}) {
     nodes.push(n);return n;
   }
   w.document.createElement=node; w.document.body=node('body'); w.document.documentElement=node('html');
-  const app=node('main'),bar=node('nav'); w.document.getElementById=id=>id==='app'?app:bar;
+  const app=node('main'),bar=node('nav'),chatTab=node('button');chatTab.textContent='Чат';chatTab.className='tab';
+  w.document.getElementById=id=>({'app':app,'tabbar':bar,'tutor-tab':chatTab})[id]||null;
   w.innerHeight=844; w.AbortController=AbortController;
   const timers=[]; w.setTimeout=fn=>{timers.push(fn);return fn};w.clearTimeout=()=>{};
   const requests=[],statusRequests=[];let configured=!!options.configured;
@@ -54,22 +55,25 @@ function fixture(options={}) {
     tutorSession:()=>user?Promise.resolve({uid:user.uid,projectId:'german-test',token:'firebase-test-id-token'}):Promise.reject(Error('Войдите через Google'))};
   w.location={hash:''};
   w.Tutor.init(); w.Tutor.setContext('word:a',()=>({type:'word',title:'anspruchsvoll',word:'anspruchsvoll'}));
-  w.Tutor.open();
+  chatTab.onclick();
   const cls=c=>nodes.find(n=>n.className===c), btn=text=>nodes.find(n=>n.tag==='button'&&n.textContent===text);
   const submit=()=>cls('tutor-compose').onsubmit({preventDefault(){}});
   function connect(uid='owner') {user={uid,email:uid+'@example.invalid'};listeners.forEach(fn=>fn({user}));}
   function logout(){user=null;listeners.forEach(fn=>fn({user}));}
-  return {w,nodes,requests,statusRequests,setConfigured:value=>{configured=value},timers,cls,btn,submit,connect,logout,app,bar,question:nodes.find(n=>n.tag==='textarea')};
+  return {w,nodes,requests,statusRequests,setConfigured:value=>{configured=value},timers,cls,btn,submit,connect,logout,app,bar,chatTab,question:nodes.find(n=>n.tag==='textarea')};
 }
 function answer(r,text) {r.resolve({ok:true,json:async()=>({result:{text}})})}
 function failure(r,status) {r.resolve({ok:false,status,json:async()=>({error:{status:status===401?'UNAUTHENTICATED':status===429?'RESOURCE_EXHAUSTED':'UNAVAILABLE',message:'private upstream error'}})})}
 
-test('иконка открывает компактный чат и сразу фокусирует вопрос, настройки доступны отдельно',()=>{
+test('вкладка открывает чат поверх экрана без плавающей кнопки и сразу фокусирует вопрос',()=>{
   const h=fixture();
+  assert.equal(h.cls('tutor-launcher'),undefined);assert.equal(h.chatTab.attrs['aria-expanded'],'true');
+  assert.equal(h.w.location.hash,'');
   assert.equal(h.w.document.activeElement,h.question);
   assert.equal(h.cls('tutor-settings').hidden,true);assert.equal(h.cls('tutor-log').hidden,true);
   assert.equal(h.cls('tutor-footer').hidden,false);assert.equal(h.requests.length,0);
-  h.question.value='Поясни это слово';h.question.oninput();h.w.Tutor.close();h.w.Tutor.open();
+  h.question.value='Поясни это слово';h.question.oninput();h.w.Tutor.close();
+  assert.equal(h.chatTab.attrs['aria-expanded'],'false');h.chatTab.onclick();
   assert.equal(h.question.value,'Поясни это слово');assert.equal(h.w.document.activeElement,h.question);
   h.btn('Добавить API-ключ').onclick();assert.equal(h.cls('tutor-settings').hidden,false);assert.equal(h.cls('tutor-footer').hidden,true);
   assert.notEqual(h.w.document.activeElement,h.question);
@@ -80,9 +84,23 @@ test('панель следует за видимой областью при о
   const h=fixture();h.w.visualViewport={height:430,offsetTop:14};h.w._fire('resize');
   const overlay=h.cls('tutor-overlay');
   assert.equal(overlay.style.height,'430px');assert.equal(overlay.style.top,'14px');
+  assert.equal(overlay.classList.contains('keyboard-open'),true);
   h.w.visualViewport.height=844;h.w.visualViewport.offsetTop=0;h.w._fire('resize');
   assert.equal(overlay.style.height,'844px');assert.equal(overlay.style.top,'0px');
+  assert.equal(overlay.classList.contains('keyboard-open'),false);
   h.w.Tutor.close();assert.equal(overlay.hidden,true);assert.equal(h.app.inert,false);assert.equal(h.bar.inert,false);
+});
+
+test('адресная строка и увеличение страницы не убирают безопасный нижний отступ',()=>{
+  const h=fixture(),overlay=h.cls('tutor-overlay');
+  h.w.visualViewport={height:780,offsetTop:0,scale:1};h.w._fire('resize');
+  assert.equal(overlay.classList.contains('keyboard-open'),false);
+  h.w.visualViewport={height:422,offsetTop:0,scale:2};h.w._fire('resize');
+  assert.equal(overlay.classList.contains('keyboard-open'),false);
+  // Некоторые браузеры уменьшают innerHeight вместе с клавиатурой.
+  h.w.innerHeight=430;h.w.document.documentElement.clientHeight=844;
+  h.w.visualViewport={height:430,offsetTop:0,scale:1};h.w._fire('resize');
+  assert.equal(overlay.classList.contains('keyboard-open'),true);
 });
 
 test('без входа запросов нет; после входа передаётся Firebase token и актуальный экран без ключа OpenAI', async () => {
