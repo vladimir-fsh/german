@@ -131,7 +131,7 @@ test('эффект ответа использует переданное рас
 function training(words, storage) {
   const env = require('./env.js');
   const win = env.load(['js/progress-data.js', 'js/srs-config.js', 'js/sync.js',
-    'js/sessions.js', 'js/vocab-frames.js', 'js/vocab-training.js', 'js/vocab-gestures.js', 'js/vocab-view.js'], { storage });
+    'js/sessions.js', 'js/word-explanations.js', 'js/vocab-frames.js', 'js/vocab-training.js', 'js/vocab-gestures.js', 'js/vocab-view.js'], { storage });
   win.COURSE = { lessons: [] };
   win.VOCAB = words.map(de => ({ de, ru: '→ ' + de }));
   if (!storage) {
@@ -146,6 +146,7 @@ function training(words, storage) {
     const children = [], classes = new Set(cls.split(' ')), handlers = {};
     const node = {
       tag, style: {}, handlers, children, textContent: html,
+      setAttribute(name, value) { this[name] = value; },
       appendChild(child) { children.push(child); },
       insertAdjacentHTML(position, value) { html += value; },
       set innerHTML(value) { html = value; children.length = 0; },
@@ -197,6 +198,15 @@ function training(words, storage) {
     .filter(([key]) => key.startsWith('de-b1-oplog-')));
   return { win, app, root, swipe, card, effects, journal };
 }
+
+test('иконка объяснений обновляется без смены карточки, нажатие не отвечает и не переворачивает',()=>{
+  const h=training(['A','B']),button=h.app.querySelector('.word-note-open');assert.equal(button.hidden,true);
+  h.win.WordExplanations.save('V:A','Объяснение');assert.equal(button.hidden,false);
+  const before=h.journal();let opened;
+  h.win.WordExplanationView={open:(key,word)=>{opened={key,word};return ()=>{}}};button.onclick();
+  assert.deepEqual(opened,{key:'V:A',word:'A'});assert.equal(h.card(),'→ A');assert.equal(h.journal(),before);
+  const id=h.win.WordExplanations.list('V:A')[0].id;h.win.WordExplanations.remove('V:A',id);assert.equal(button.hidden,true);
+});
 
 test('свайп вверх после просмотра закрывает обе стороны слова и исключает его из повторов', () => {
   const h = training(['A', 'B']);

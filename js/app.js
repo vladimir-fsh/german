@@ -11,7 +11,7 @@
   var S = Store.state();
   var attempts = window.ExerciseAttempt.create({ store: Store, engine: E,
     practice: window.Practice, sessions: window.Sessions, review: window.ReviewPlan });
-  var working = false, routeId = 0, disposeCloud = null, disposeUpdates = null;
+  var working = false, routeId = 0, disposeCloud = null, disposeUpdates = null, disposeVocab = null;
 
   function tutorContext(id, getData, onUse) {
     if (window.Tutor) window.Tutor.setContext(id, getData, onUse);
@@ -69,6 +69,7 @@
   window.addEventListener("hashchange", route);
 
   function route() {
+    if (disposeVocab) { disposeVocab(); disposeVocab = null; }
     if (disposeUpdates) { disposeUpdates(); disposeUpdates = null; }
     if (disposeCloud) { disposeCloud(); disposeCloud = null; }
     routeId++; working = false; document.onkeydown = null;
@@ -697,7 +698,7 @@
     if (Store.blocked()) return viewMore();
     working = true;
     var view = routeId;
-    window.VocabView.mount(app, mode, { training: training, active: function () { return view === routeId; },
+    disposeVocab = window.VocabView.mount(app, mode, { training: training, active: function () { return view === routeId; },
       syncTabs: syncTabs, go: function (path) { if (curPath() === path) route(); else go(path); },
       showResult: showResultLayout, context: tutorContext });
   }

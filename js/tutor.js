@@ -43,6 +43,15 @@ window.Tutor = (function () {
       var item = node("div", "tutor-message " + m.role);
       item.appendChild(node("b", "tutor-speaker", m.role === "user" ? "Вы" : "Объяснение"));
       item.appendChild(node("div", "", m.display || m.content)); log.appendChild(item);
+      if (m.role === "assistant" && m.wordKey && window.WordExplanations) {
+        var saved = window.WordExplanations.contains(m.wordKey, m.content);
+        var save = button(item, "btn sec tutor-save", saved ? "Сохранено" : "Сохранить объяснение", function () {
+          try { window.WordExplanations.save(m.wordKey, m.content); renderLog(); }
+          catch (error) { saveStatus.textContent = "Не удалось сохранить объяснение. Проверьте сохранение прогресса."; }
+        });
+        save.disabled = saved || !window.Store.ready();
+        var saveStatus = node("div", "tutor-save-status"); saveStatus.setAttribute("role", "status"); item.appendChild(saveStatus);
+      }
     });
     log.scrollTop = log.scrollHeight;
   }
@@ -60,15 +69,17 @@ window.Tutor = (function () {
     if (show && state.configured === true) show = false;
     settingsOpen = show; settings.hidden = !show;
     footer.hidden = show;
-    quick.hidden = show; log.hidden = show || !state.messages.length;
+    log.hidden = show || !state.messages.length;
+    syncSetup();
     if (show) { panel.classList.add("is-settings"); input.blur(); if (opened) panel.focus({ preventScroll: true }); }
     else panel.classList.remove("is-settings");
     if (show) { updateConnection(); session.refresh(); }
   }
   function syncSetup() {
     setupKey.hidden = state.configured === true || (state.configured === null && !!state.user);
-    explainButton.hidden = state.configured !== true;
-    partsButton.hidden = state.configured !== true;
+    explainButton.hidden = state.configured !== true || state.suggestionsUsed;
+    partsButton.hidden = state.configured !== true || state.suggestionsUsed;
+    quick.hidden = settingsOpen || (setupKey.hidden && explainButton.hidden && partsButton.hidden);
   }
   function updateConnection() {
     if (!connectionText) return;
@@ -177,6 +188,7 @@ window.Tutor = (function () {
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
     if (window.Cloud) window.Cloud.onChange(function (cloud) { session.setAccount(cloud.user); });
+    if (window.Store) window.Store.onChange(function () { if (opened) renderLog(); });
     window.addEventListener("resize", fit);
     if (window.visualViewport) { window.visualViewport.addEventListener("resize", fit); window.visualViewport.addEventListener("scroll", fit); }
     window.addEventListener("hashchange", close);

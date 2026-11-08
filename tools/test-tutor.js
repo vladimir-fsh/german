@@ -25,7 +25,7 @@ test('непроверенное задание не раскрывает отв
 
 // Небольшой DOM для настоящих обработчиков чата, сетевой транспорт подставной.
 function fixture(options={}) {
-  const w=env.load(['js/tutor-context.js','js/tutor-request.js','js/tutor-gateway.js','js/tutor-session.js','js/tutor.js']);
+  const w=env.load(['js/progress-data.js','js/srs-config.js','js/sync.js','js/word-explanations.js','js/tutor-context.js','js/tutor-request.js','js/tutor-gateway.js','js/tutor-session.js','js/tutor.js']);
   const nodes=[];
   function node(tag) {
     const classes=new Set(); let text='';
@@ -74,6 +74,28 @@ function fixture(options={}) {
 }
 function answer(r,text) {r.resolve({ok:true,status:200,json:async()=>({status:'completed',output:[{type:'message',content:[{type:'output_text',text}]}]})})}
 function failure(r,status) {r.resolve({ok:false,status,json:async()=>({error:{message:'private upstream error'}})})}
+
+test('после любой подсказки обе команды исчезают до новой беседы, закрытие их не возвращает',async()=>{
+  for(const label of ['Объясни проще','Разбери на части']){
+    const h=fixture({configured:true});h.connect();await env.settle();h.btn(label).onclick();
+    assert.equal(h.btn('Объясни проще').hidden,true);assert.equal(h.btn('Разбери на части').hidden,true);
+    assert.equal(h.cls('tutor-quick').hidden,true);await env.settle();answer(h.requests[0],'Ответ');await env.settle();
+    h.w.Tutor.close();h.chatTab.onclick();await env.settle();assert.equal(h.cls('tutor-quick').hidden,true);
+    h.w.Tutor.setContext('word:b',()=>({type:'word',title:'bekommen'}));
+    assert.equal(h.btn('Объясни проще').hidden,false);assert.equal(h.btn('Разбери на части').hidden,false);
+  }
+});
+
+test('ответ сохраняется к исходному слову один раз, сохранение доступно снова после удаления',async()=>{
+  const h=fixture({configured:true});h.connect();await env.settle();
+  h.w.Tutor.setContext('word:a',()=>({type:'word',title:'anspruchsvoll',wordKey:'V:stable-word'}));
+  h.btn('Объясни проще').onclick();await env.settle();answer(h.requests[0],'Anspruch + voll');await env.settle();
+  h.btn('Сохранить объяснение').onclick();const notes=h.w.WordExplanations.list('V:stable-word');
+  assert.equal(notes.length,1);assert.equal(notes[0].text,'Anspruch + voll');assert.equal(h.btn('Сохранено').disabled,true);
+  h.w.WordExplanations.remove('V:stable-word',notes[0].id);
+  assert.equal(h.nodes.filter(n=>n.tag==='button'&&n.textContent==='Сохранить объяснение').at(-1).disabled,false);
+  assert.equal(h.w.WordExplanations.list('V:anspruchsvoll').length,0);
+});
 
 test('вкладка открывает чат поверх экрана без плавающей кнопки и сразу фокусирует вопрос',()=>{
   const h=fixture();
@@ -155,7 +177,7 @@ test('неверный ключ снова открывает добавлени
   h.btn('Добавить API-ключ').onclick();await env.settle();assert.equal(h.cls('tutor-settings').hidden,false);
   const field=h.nodes.find(n=>n.tag==='input');field.value='sk-test-replacement-key';h.cls('tutor-key-form').onsubmit({preventDefault(){}});await env.settle();
   h.saves[0].resolve();await env.settle();assert.equal(h.btn('Добавить API-ключ').hidden,true);
-  h.btn('Объясни проще').onclick();await env.settle();assert.equal(h.requests[1].opts.headers.Authorization,'Bearer sk-test-replacement-key');
+  h.question.value='Поясни';h.submit();await env.settle();assert.equal(h.requests[1].opts.headers.Authorization,'Bearer sk-test-replacement-key');
   answer(h.requests[1],'Ответ');await env.settle();
 });
 

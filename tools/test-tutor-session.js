@@ -22,6 +22,23 @@ function fixture() {
 }
 const tick = () => env.settle();
 
+test('подсказки скрываются после нажатия до новой беседы, включая ошибку и повторное открытие',async()=>{
+  const h=fixture(),s=h.session;assert.equal(s.state().suggestionsUsed,false);
+  s.preset('explain','Объясни проще');assert.equal(s.state().suggestionsUsed,true);await tick();
+  h.calls[0].reject(new TypeError('network'));await tick();assert.equal(s.state().suggestionsUsed,true);
+  s.close();s.open();assert.equal(s.state().suggestionsUsed,true);
+  s.setContext('word:a',()=>({word:'anspruchsvoll'}));assert.equal(s.state().suggestionsUsed,true);
+  s.setContext('word:b',()=>({word:'bekommen'}));assert.equal(s.state().suggestionsUsed,false);
+  s.preset('parts','Разбери на части');assert.equal(s.state().suggestionsUsed,true);s.stop();
+  assert.equal(s.state().suggestionsUsed,true);s.setAccount({uid:'other'});assert.equal(s.state().suggestionsUsed,false);
+});
+
+test('ответ хранит ключ исходного слова, не подменяя его текущим контекстом',async()=>{
+  const h=fixture(),s=h.session;s.setContext('word:a',()=>({type:'word',wordKey:'V:anspruchsvoll'}));
+  s.ask('Поясни');await tick();h.calls[0].resolve('Anspruch + voll');await tick();
+  assert.equal(s.state().messages[1].wordKey,'V:anspruchsvoll');
+});
+
 test('беседа передаёт свежий контекст, отмечает подсказку и продолжает историю', async () => {
   const h = fixture(), s = h.session; let word = 'anspruchsvoll', hints = 0;
   s.setContext('word:a', () => ({ word }), () => hints++);

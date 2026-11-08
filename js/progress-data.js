@@ -17,6 +17,7 @@ window.ProgressData = (function () {
   function number(v, max) { if (typeof v !== "number" || !isFinite(v) || v < 0 || v > (max || 1e15)) fail(); }
   function text(v, max) { if (typeof v !== "string" || v.length > (max || 12000)) fail(); }
   function identifier(v) { text(v, 500); if (!v || ["__proto__", "constructor", "prototype"].indexOf(v) >= 0) fail(); }
+  function wordKey(v) { identifier(v); if (!/^(V:|L\d+:).+/.test(v)) fail(); }
   function optional(v, fn) { if (v != null) fn(v); }
   function strings(v) { if (!Array.isArray(v) || !v.length || v.length > 100) fail(); v.forEach(function (s) { text(s); }); }
   function exercise(ex) {
@@ -57,6 +58,17 @@ window.ProgressData = (function () {
       object(value.wordHints);
       Object.keys(value.wordHints).forEach(function (key) { identifier(key); text(value.wordHints[key], 24000); });
     }
+    if (value.wordExplanations != null) {
+      object(value.wordExplanations);
+      Object.keys(value.wordExplanations).forEach(function (key) {
+        wordKey(key); var entries = object(value.wordExplanations[key]);
+        Object.keys(entries).forEach(function (id) {
+          identifier(id); var entry = object(entries[id]); number(entry.at);
+          if (entry.deleted === true) { if (entry.text != null) fail(); }
+          else { text(entry.text, 14000); if (!entry.text.trim() || entry.deleted != null) fail(); }
+        });
+      });
+    }
     object(value.done); object(value.srs); object(value.vocab);
     Object.keys(value.done).forEach(function (k) {
       if (!/^L\d+D\d+$/.test(k)) fail();
@@ -92,7 +104,7 @@ window.ProgressData = (function () {
   function operation(op) {
     safe(op, 0); object(op); text(op.type, 40); identifier(op.device); number(op.seq); number(op.lc); number(op.t);
     if (Math.floor(op.seq) !== op.seq || Math.floor(op.lc) !== op.lc) fail();
-    if (["answer", "reviewAnswer", "dayDone", "practiceDone", "exerciseDelete", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabWordReview", "vocabWordReviewDeferred", "vocabKnown", "vocabUndo", "wordHint", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
+    if (["answer", "reviewAnswer", "dayDone", "practiceDone", "exerciseDelete", "touchDay", "srsAdd", "srsHit", "vocabGrade", "vocabReview", "vocabWordReview", "vocabWordReviewDeferred", "vocabKnown", "vocabUndo", "wordHint", "wordExplanationSave", "wordExplanationDelete", "vocabLevel", "calibrate", "reset", "restore"].indexOf(op.type) < 0) fail();
     if (op.type === "answer" || op.type === "reviewAnswer" || op.type === "vocabGrade" || op.type === "vocabReview" || op.type === "vocabWordReview" || op.type === "vocabWordReviewDeferred" || op.type === "srsHit") { if (typeof op.ok !== "boolean") fail(); }
     if (op.type === "dayDone" || op.type === "practiceDone") { number(op.n, 999); number(op.di, 999); number(op.score); number(op.of); if (op.score > op.of) fail(); }
     if (op.type === "exerciseDelete") { identifier(op.id); if (!/^L\d+D\d+-\d+$/.test(op.id)) fail(); exercise(op.ex); text(op.reason, 1000); if (!op.reason.trim()) fail(); }
@@ -122,6 +134,8 @@ window.ProgressData = (function () {
     if (op.type === "srsAdd") { exercise(op.ex); number(op.n, 999); }
     if (op.type === "vocabLevel" || op.type === "calibrate") { number(op.level, 5); if (op.level < 1 || Math.floor(op.level) !== op.level) fail(); }
     if (op.type === "wordHint") { identifier(op.key); text(op.text, 24000); }
+    if (op.type === "wordExplanationSave") { wordKey(op.key); identifier(op.device + ":" + op.seq); text(op.text, 14000); if (!op.text.trim()) fail(); }
+    if (op.type === "wordExplanationDelete") { wordKey(op.key); identifier(op.id); }
     if (op.type === "restore") state(op.state);
     return op;
   }

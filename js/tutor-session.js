@@ -14,10 +14,10 @@ window.TutorSession = (function () {
     var controller = options.controller || function () { return new AbortController(); };
     var user = null, id = "", provider = function () { return { type: "page", title: "Курс немецкого A2 → B1" }; }, onUse = null;
     var messages = [], draft = "", status = "", keyStatus = "", configured = null, active = false;
-    var request = null, settings = null;
+    var request = null, settings = null, suggestionsUsed = false;
     function state() {
       return { user: user, messages: messages.slice(), draft: draft, status: status, keyStatus: keyStatus,
-        configured: configured, pending: !!request, settingsPending: !!settings };
+        configured: configured, pending: !!request, settingsPending: !!settings, suggestionsUsed: suggestionsUsed };
     }
     function emit() { changed(state()); }
     function context() {
@@ -38,13 +38,13 @@ window.TutorSession = (function () {
     function setContext(next, getData, whenUsed) {
       provider = getData; onUse = whenUsed || null;
       if (next === id) return;
-      stop(); id = next; messages = []; draft = ""; status = ""; emit();
+      stop(); id = next; messages = []; draft = ""; status = ""; suggestionsUsed = false; emit();
     }
     function setAccount(next) {
       var nextId = next ? next.uid : "", oldId = user ? user.uid : "";
       user = next ? { uid: next.uid, email: next.email || "" } : null;
       if (nextId !== oldId) {
-        stop(); cancelSettings(); configured = null; keyStatus = ""; messages = []; draft = "";
+        stop(); cancelSettings(); configured = null; keyStatus = ""; messages = []; draft = ""; suggestionsUsed = false;
         emit(); if (active && user) refresh();
       } else emit();
     }
@@ -71,13 +71,16 @@ window.TutorSession = (function () {
         return gateway.request(data, call.history, question, call.controller.signal);
       }).then(function (text) {
         if (request !== call) return;
-        request = null; cancel(call.timer); messages = messages.concat([{ role: "assistant", content: text }]); status = ""; emit();
+        request = null; cancel(call.timer); messages = messages.concat([{ role: "assistant", content: text,
+          wordKey: data.type === "word" ? data.wordKey || "" : "" }]); status = ""; emit();
       }, function (error) { fail(error); });
       return true;
     }
     function preset(kind, label) {
       var fragment = draft.trim();
-      return ask(PROMPTS[kind] + (fragment ? "\nУченик уточнил слово, фрагмент или вопрос: " + fragment : ""), label + (fragment ? ": " + fragment : ""));
+      var accepted = ask(PROMPTS[kind] + (fragment ? "\nУченик уточнил слово, фрагмент или вопрос: " + fragment : ""), label + (fragment ? ": " + fragment : ""));
+      if (accepted) { suggestionsUsed = true; emit(); }
+      return accepted;
     }
     function keyCall(action, key) {
       cancelSettings();

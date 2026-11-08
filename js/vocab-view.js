@@ -76,7 +76,16 @@ window.VocabView = (function () {
     fitScreen();
     window.onresize = fitScreen;
 
-    var busy = false;
+    var busy = false, noteButton = null, notesDeck = null, closeNotes = null;
+    function syncSavedIcon() {
+      if (!active() || !noteButton || !current.card) return;
+      var count = window.WordExplanations.list(current.card.key.slice(0, -3)).length;
+      noteButton.hidden = !count || busy;
+      noteButton.disabled = busy;
+      if (count) notesDeck.classList.add("has-notes"); else notesDeck.classList.remove("has-notes");
+      noteButton.setAttribute("aria-label", "Сохранённые объяснения: " + count);
+    }
+    var unsubscribeNotes = Store.onChange(syncSavedIcon);
     function undoPrevious() {
       if (busy || !active()) return;
       var undo = run.undo();
@@ -116,6 +125,7 @@ window.VocabView = (function () {
     /* Ответ и позиция сохраняются до эффекта, следующий свайп блокируется. */
     function advance(source, ok, schedule) {
       busy = true;
+      if (noteButton) noteButton.hidden = true;
       if (finishGesture) finishGesture(source === "known-swipe" || (calib && ok) ? "known" : ok ? "good" : "bad", schedule);
       var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       setTimeout(function () {
@@ -150,12 +160,13 @@ window.VocabView = (function () {
     }
 
     function step() {
+      if (closeNotes) { closeNotes(); closeNotes = null; }
       current = run.current(); total = current.total;
       var it = current.card, schedule = current.schedule;
       if (!it) return finish();
       tutorContext("word:" + it.key, function () {
         var data = window.TutorContext.word(it.w, it.dir, !!(host.querySelector(".vflip.flipped")));
-        data.lesson = it.n || null; return data;
+        data.lesson = it.n || null; data.wordKey = it.key.slice(0, -3); return data;
       });
       var paired = Store.vocabPaired(schedule);
       intervalProgress.textContent = current.retry ? "Повтор промахов · осталось " + current.retryCount : calib ? "Русский → немецкий" : paired
@@ -168,6 +179,7 @@ window.VocabView = (function () {
       host.innerHTML = "";
       var stage = el("div", "vstage");
       var deck = el("div", "vdeck");
+      notesDeck = deck;
 
       var slot = el("div", "vslot vtop");
       var drag = el("div", "vdrag");
@@ -177,6 +189,13 @@ window.VocabView = (function () {
       drag.appendChild(flip);
       slot.appendChild(drag);
       deck.appendChild(slot);
+      noteButton = el("button", "word-note-open"); noteButton.type = "button";
+      noteButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4V4Z"/><path d="M9 8h6M9 11h6"/></svg>';
+      noteButton.onclick = function () {
+        if (busy || !active()) return;
+        closeNotes = window.WordExplanationView.open(it.key.slice(0, -3), it.w.de, noteButton);
+      };
+      deck.appendChild(noteButton); syncSavedIcon();
 
       stage.appendChild(deck);
       host.appendChild(stage);
@@ -208,7 +227,7 @@ window.VocabView = (function () {
     }
 
     document.onkeydown = function (e) {
-      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target && e.target.tagName)) return;
+      if (/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(e.target && e.target.tagName)) return;
       if (e.key === " " || e.key === "Enter") { e.preventDefault(); flipCard(); }
       else if (e.key === "1") { e.preventDefault(); answer(true); }
       else if (e.key === "2") { e.preventDefault(); answer(false); }
@@ -257,6 +276,7 @@ window.VocabView = (function () {
     }
 
     step();
+    return function () { unsubscribeNotes(); if (closeNotes) closeNotes(); };
 
     /* Итог калибровки: ступень - самая высокая, где знакомо хотя бы половину,
        плюс одна сверху, чтобы было куда расти. */

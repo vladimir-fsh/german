@@ -61,7 +61,7 @@ window.Store = (function () {
 
   function blank() {
     return {
-      v: SCHEMA, done: {}, srs: {}, vocab: {}, wordHints: {}, deletedExercises: {},
+      v: SCHEMA, done: {}, srs: {}, vocab: {}, wordHints: {}, wordExplanations: {}, deletedExercises: {},
       vocabLevel: 1, calibrated: false, streak: 0, lastDay: null,
       totalCorrect: 0, totalTried: 0, totalUncertain: 0, attempts: [], answered: {}, resetAt: 0
     };
@@ -314,6 +314,20 @@ window.Store = (function () {
           s.vocabLevel = op.beforeLevel;
           s.calibrated = op.beforeCalibrated;
         }
+        return s;
+
+      case "wordExplanationSave":
+        if (!s.wordExplanations) s.wordExplanations = {};
+        var explanations = s.wordExplanations[op.key] || (s.wordExplanations[op.key] = {});
+        var explanationId = op.device + ":" + op.seq;
+        if (explanations[explanationId] || Object.keys(explanations).some(function (id) { return explanations[id].text === op.text; })) return s;
+        explanations[explanationId] = { text: op.text, at: op.t };
+        return s;
+
+      case "wordExplanationDelete":
+        if (!s.wordExplanations) s.wordExplanations = {};
+        if (!s.wordExplanations[op.key]) s.wordExplanations[op.key] = {};
+        s.wordExplanations[op.key][op.id] = { deleted: true, at: op.t };
         return s;
 
       case "wordHint":
@@ -589,7 +603,7 @@ window.Store = (function () {
     if (snapshot.cloudId) throw new Error("Это устройство уже связано с другим облачным прогрессом. Сначала экспортируйте данные.");
     var local = reduce(snapshot.state, cloudOperations());
     var empty = !local.totalTried && !Object.keys(local.done).length && !Object.keys(local.vocab).length &&
-      !Object.keys(local.srs).length && !Object.keys(local.wordHints || {}).length && !Object.keys(local.deletedExercises || {}).length && !local.calibrated;
+      !Object.keys(local.srs).length && !Object.keys(local.wordHints || {}).length && !Object.keys(local.wordExplanations || {}).length && !Object.keys(local.deletedExercises || {}).length && !local.calibrated;
     var covered = cloudOperations().filter(function (op) { return op.seq <= (seed.cursor[op.device] || 0); });
     var original = reduce(snapshot.state, covered);
     if (!empty && stableJSON(original) !== stableJSON(upgrade(seed.state))) {
@@ -656,7 +670,7 @@ window.Store = (function () {
       return result;
     },
     mutate: mutate,
-    onChange: function (fn) { listeners.push(fn); },
+    onChange: function (fn) { listeners.push(fn); return function () { listeners = listeners.filter(function (listener) { return listener !== fn; }); }; },
     onStatus: function (fn) { statusListeners.push(fn); fn(warning() || "только это устройство", warning() ? "bad" : ""); },
     start: start,
     /* для отладки и тестов */

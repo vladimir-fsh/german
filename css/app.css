@@ -104,6 +104,8 @@ html.tutor-open, .tutor-open body { overflow: hidden; }
 .tutor-message { padding: 14px; margin: 0 0 8px; border-radius: 20px; background: var(--tutor-glass); overflow-wrap: anywhere; white-space: pre-wrap; }
 .tutor-message.user { background: var(--accent-soft); margin-left: 24px; }
 .tutor-speaker { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+.tutor-save { min-height: 44px; margin-top: 12px; white-space: normal; }
+.tutor-save-status { font-size: 13px; white-space: normal; }
 .tutor-settings h3 { margin: 12px 0 8px; }
 .tutor-settings label { display: block; font-size: 14px; margin: 12px 0; }
 .tutor-settings input {
@@ -143,6 +145,7 @@ html.tutor-open, .tutor-open body { overflow: hidden; }
   background: var(--tutor-send-bg); color: var(--tutor-send-color);
 }
 .tutor-compose:focus-within { border-color: var(--tutor-focus-border); }
+.tutor-quick[hidden] + .tutor-status:empty + .tutor-compose { margin-top: 0; }
 @keyframes tutor-rise { from { transform: translateY(calc(100% + 24px)); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes tutor-shade-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-color-scheme: dark) {
@@ -492,6 +495,34 @@ html.vocab-training, html.vocab-training body { overflow: hidden; overscroll-beh
 .vstage { perspective: 1100px; margin: 10px 0 6px; }
 
 .vdeck { position: relative; height: 320px; }
+.word-note-open {
+  position: absolute; right: 12px; bottom: 12px; z-index: 2;
+  display: grid; place-items: center; width: 44px; height: 44px; padding: 10px;
+  border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--accent);
+  box-shadow: var(--shadow); touch-action: manipulation;
+}
+.word-note-open[hidden] { display: none; }
+.word-note-open svg { width: 22px; height: 22px; pointer-events: none; }
+.vdeck.has-notes .vback { padding-bottom: 78px; }
+html.word-notes-open, .word-notes-open body { overflow: hidden; }
+.word-notes-overlay {
+  position: fixed; inset: 0; z-index: 110; display: flex; align-items: flex-end;
+  padding: max(12px, env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
+  background: rgba(0,0,0,.32); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.word-notes-panel {
+  width: 100%; max-height: min(80dvh, 680px); min-height: 0; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border);
+  border-radius: 24px; background: var(--surface); box-shadow: var(--shadow); overflow: hidden;
+}
+.word-notes-title { margin: 0; font-size: 22px; overflow-wrap: anywhere; }
+.word-notes-list { overflow-y: auto; min-height: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.word-note { padding: 12px; border: 1px solid var(--border); border-radius: 16px; }
+.word-note + .word-note { margin-top: 12px; }
+.word-note-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.word-note-delete { margin-top: 12px; min-height: 44px; }
+.word-notes-back { flex-shrink: 0; min-height: 44px; }
 .vslot { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
 
 /* на экране карточек страница не прокручивается, поэтому жест целиком наш */
