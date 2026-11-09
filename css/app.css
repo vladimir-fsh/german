@@ -99,10 +99,13 @@ html.tutor-open, .tutor-open body { overflow: hidden; }
   -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
 }
 .tutor-log, .tutor-settings { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
-.tutor-log { max-height: 420px; }
+.tutor-log {
+  max-height: 420px; padding: 14px; border: 1px solid var(--border); border-radius: 20px;
+  background: var(--tutor-glass); box-shadow: var(--shadow);
+}
 .tutor-settings { padding: 0 2px; }
-.tutor-message { padding: 14px; margin: 0 0 8px; border-radius: 20px; background: var(--tutor-glass); overflow-wrap: anywhere; white-space: pre-wrap; }
-.tutor-message.user { background: var(--accent-soft); margin-left: 24px; }
+.tutor-message { overflow-wrap: anywhere; white-space: pre-wrap; }
+.tutor-message + .tutor-message { margin-top: 20px; }
 .tutor-speaker { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
 .tutor-save { min-height: 44px; margin-top: 12px; white-space: normal; }
 .tutor-save-status { font-size: 13px; white-space: normal; }
