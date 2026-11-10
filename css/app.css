@@ -718,5 +718,5 @@ main.wrap.result-screen {
 .phrase-answer { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 20px; }
 .phrase-actions { background: var(--bg); padding: 12px 0 4px; display: grid; gap: 10px; }
 .phrase-grades { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.phrase-actions .btn, .phrase-home-actions .btn, .phrase-result .btn { min-height: 48px; width: 100%; }
-.phrase-home-actions, .phrase-result { display: grid; gap: 12px; }
+.phrase-actions .btn, .phrase-result .btn { min-height: 48px; width: 100%; }
+.phrase-result { display: grid; gap: 12px; }
