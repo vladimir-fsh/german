@@ -5,7 +5,7 @@ window.VocabTraining = (function () {
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
   var stages = [
     { id: "new", label: "Не начато" },
-    { id: "learning", label: "10 мин" },
+    { id: "learning", label: "Старый шаг" },
     { id: "retry", label: "После ошибки" },
     { id: "days1", label: "1–2 дня" },
     { id: "days3", label: "3–6 дней" },
@@ -339,7 +339,7 @@ window.VocabTraining = (function () {
         } else {
           var firstTry = !first[it.key]; first[it.key] = true;
           if (firstTry && it.isNew) { newSeen++; if (ok) newKnown++; }
-          if (firstTry) Store.mutate("vocabWordReviewDeferred", { key: it.key, ok: ok, expectedDue: expectedDue, day: options.day() });
+          if (firstTry) Store.mutate("vocabWordReviewDaily", { key: it.key, ok: ok, expectedDue: expectedDue, day: options.day() });
           schedule = vocabSchedule(it);
           if (!ok && !(schedule && schedule.learned)) retry.push(it.key);
           if (firstTry && ok && it.dir === "ru" && Store.vocabPaired(schedule) && schedule.pairRu) {

@@ -62,7 +62,7 @@ test('отмена последнего ответа после итога; ра
   assert.equal(run.current().card.key, 'P:s20-1|ru');
   run.answer(true); run.current(); run.finish();
   assert.equal(h.training.plan('repeat').length, 0);
-  h.clock.skew = 11 * 60000;
+  h.clock.skew = 25 * 3600000;
   run = h.training.open('repeat'); assert.equal(run.current().total, 10);
   const repeatedKey = run.current().card.key;
   run.answer(true);
@@ -91,7 +91,7 @@ test('несколько десяток новых фраз в тот же де�
   }
   assert.equal(h.training.summary().started, 30);
   assert.equal(h.training.plan('').length, 4);
-  h.clock.skew = 11 * 60000;
+  h.clock.skew = 25 * 3600000;
   assert.equal(h.training.plan('repeat').length, 20);
   assert.equal(h.training.open('repeat').current().total, 20);
 });
@@ -110,7 +110,7 @@ test('новые фразы идут одной темой до её конца,
     run.current(); run.finish();
   }
   assert.deepEqual(seen, Array.from(h.w.PHRASE_TOPICS, t => t.id));
-  h.clock.skew = 11 * 60000;
+  h.clock.skew = 25 * 3600000;
   const repeated = h.training.plan('repeat');
   assert.equal(repeated.length, 20);
   assert.ok(new Set(repeated.map(card => card.w.topic)).size > 1);
@@ -147,4 +147,47 @@ test('фазы считают слова один раз, короткое об�
   assert.equal(h.w.VocabTraining.interval({ stage: 'learning', step: 0, t: 1000, due: 43201000, iv: 100 }), 'После ошибки · 12 ч');
   assert.equal(h.w.VocabTraining.interval({ stage: 'learning', step: 1, t: 1000, due: 601000 }), 'Обучение · 10 мин');
   assert.equal(h.w.VocabTraining.interval({ stage: 'review', iv: 30, pairRu: true }), 'Интервал: 30 дн. · ½ шага');
+});
+
+test('новые успехи слов и фраз сразу через сутки, ошибки через 12 часов; журнал воспроизводим', () => {
+  const h = fixture();
+  for (const training of [h.words, h.training]) {
+    const run = training.open('');
+    const key = run.current().card.key;
+    run.answer(true);
+    const schedule = h.w.Store.state().vocab[key];
+    assert.equal(schedule.stage, 'review');
+    assert.equal(schedule.iv, 1);
+    assert.equal(schedule.due - schedule.t, 86400000);
+    assert.equal(training.plan('repeat').length, 0);
+    assert.equal(run.undo().restored, true);
+    run.current(); run.answer(false);
+    const failed = h.w.Store.state().vocab[key];
+    assert.equal(failed.due - failed.t, 43200000);
+    assert.equal(failed.stage, 'learning');
+  }
+  const restored = fixture(h.w.localStorage._dump());
+  assert.equal(JSON.stringify(restored.w.Store.state().vocab), JSON.stringify(h.w.Store.state().vocab));
+});
+test('исторические 10 минут сохраняются; следующий успех после ошибки или старого шага назначает сутки', () => {
+  const h = fixture();
+  const key = 'P:s01-1|ru';
+  h.w.Store.mutate('vocabWordReviewDeferred', { key, ok: true, expectedDue: 0, day: '2026-11-10' });
+  const old = h.w.Store.state().vocab[key];
+  assert.equal(old.due - old.t, 600000);
+  h.clock.skew = 11 * 60000;
+  const run = h.training.open('repeat'); run.current(); run.answer(true);
+  let schedule = h.w.Store.state().vocab[key];
+  assert.equal(schedule.due - schedule.t, 86400000);
+  run.current(); run.finish();
+  h.clock.skew += 25 * 3600000;
+  const again = h.training.open('repeat'); again.current(); again.answer(false);
+  h.clock.skew += 13 * 3600000;
+  // Закончить локальный круг промахов, затем проверить ответ по назначенному сроку.
+  again.current(); again.answer(true); again.current(); again.finish();
+  const next = h.training.open('repeat'); next.current(); next.answer(true);
+  schedule = h.w.Store.state().vocab[key];
+  assert.equal(schedule.stage, 'review');
+  assert.equal(schedule.iv, 1);
+  assert.equal(schedule.due - schedule.t, 86400000);
 });

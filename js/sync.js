@@ -269,6 +269,7 @@ window.Store = (function () {
 
       /* Общее расписание слова: на длинном интервале два ответа = один шаг.
          expectedDue и направление защищают от повторного ответа другой вкладки. */
+      case "vocabWordReviewDaily":
       case "vocabWordReviewDeferred":
       case "vocabWordReview":
         var base = op.key.slice(0, -3), dir = op.key.slice(-2);
@@ -288,9 +289,11 @@ window.Store = (function () {
         }
         v.pairRu = false;
         s.vocab[base + "|ru"] = v;
-        /* Исторический алгоритм коротких шагов остаётся неизменным. */
+        /* Новый успех сразу завершает обучение; старые операции сохраняют короткий шаг. */
+        if (op.type === "vocabWordReviewDaily" && op.ok &&
+            (v.stage || (v.reps ? "review" : "learning")) === "learning") v.step = 1;
         apply(s, { type: "vocabReview", key: base + "|ru", ok: op.ok, t: op.t, seq: op.seq, day: op.day });
-        if (op.type === "vocabWordReviewDeferred" && !op.ok) {
+        if ((op.type === "vocabWordReviewDeferred" || op.type === "vocabWordReviewDaily") && !op.ok) {
           s.vocab[base + "|ru"].due = op.t + cfg("wordRetryHours", 12) * 3600000;
         }
         return s;

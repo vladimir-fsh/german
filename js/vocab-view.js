@@ -4,6 +4,7 @@ window.VocabView = (function () {
   function bar(ws, loading) {
     var total = ws.total || 0, segments = "", rows = "";
     (ws.stages || []).forEach(function (stage) {
+      if (stage.id === "learning" && !stage.count && !loading) return;
       var width = loading || !total ? 0 : stage.count / total * 100;
       segments += '<i class="phase-' + stage.id + '" style="width:' + width + '%"></i>';
       rows += '<div class="phase-stat"><span><i class="phase-' + stage.id + '"></i>' + stage.label +
