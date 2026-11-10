@@ -37,6 +37,7 @@ window.PhraseView = (function () {
       button(top, "← На главную", function () { options.go("/"); }, true);
       top.appendChild(el("span", "muted", current.retry ? "Повтор промахов · " + current.retryCount : (current.done + 1) + " / " + current.total));
       section.appendChild(top);
+      section.appendChild(el("div", "muted phrase-interval", window.VocabTraining.interval(current.schedule)));
       var card = el("div", "card phrase-card");
       card.appendChild(el("div", "eyebrow", esc((window.PHRASE_TOPICS.filter(function (topic) { return topic.id === w.topic; })[0] || {}).title || "Бытовая ситуация")));
       card.appendChild(el("h2", null, esc(w.title)));

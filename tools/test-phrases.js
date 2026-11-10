@@ -125,3 +125,26 @@ test('смешанный старый черновик сохраняет пор
   for (const key of keys) { assert.equal(run.current().card.key, key); run.answer(true); }
   assert.equal(run.current().card, null);
 });
+
+test('фазы считают слова один раз, короткое обучение важнее старого интервала', () => {
+  const h = fixture(), state = JSON.parse(JSON.stringify(h.w.Store.state()));
+  const samples = [
+    { stage: 'learning', step: 1, iv: 30 },
+    { stage: 'learning', step: 0, iv: 100 },
+    { iv: 1 }, { iv: 3 }, { iv: 7 }, { iv: 30, pairRu: true }, { iv: 100 }, { learned: true }
+  ];
+  samples.forEach((value, i) => {
+    const base = 'P:' + h.w.PHRASES[i].id;
+    state.vocab[base + '|ru'] = { wordSchedule: 1, stage: 'review', reps: 2, due: 1000, t: 0, ...value };
+    state.vocab[base + '|de'] = { iv: 100, learned: true };
+  });
+  h.w.Store.mutate('restore', { state });
+  const stats = h.training.summary();
+  assert.equal(stats.stages.reduce((n, s) => n + s.count, 0), 140);
+  assert.equal(stats.stages[0].count, 132);
+  stats.stages.slice(1).forEach(s => assert.equal(s.count, 1));
+  assert.equal(h.words.summary().stages[0].count, 1);
+  assert.equal(h.w.VocabTraining.interval({ stage: 'learning', step: 0, t: 1000, due: 43201000, iv: 100 }), 'После ошибки · 12 ч');
+  assert.equal(h.w.VocabTraining.interval({ stage: 'learning', step: 1, t: 1000, due: 601000 }), 'Обучение · 10 мин');
+  assert.equal(h.w.VocabTraining.interval({ stage: 'review', iv: 30, pairRu: true }), 'Интервал: 30 дн. · ½ шага');
+});

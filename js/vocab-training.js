@@ -3,6 +3,35 @@
 window.VocabTraining = (function () {
   "use strict";
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
+  var stages = [
+    { id: "new", label: "Не начато" },
+    { id: "learning", label: "10 мин" },
+    { id: "retry", label: "После ошибки" },
+    { id: "days1", label: "1–2 дня" },
+    { id: "days3", label: "3–6 дней" },
+    { id: "days7", label: "7–29 дней" },
+    { id: "days30", label: "30–99 дней" },
+    { id: "days100", label: "100+ дней" },
+    { id: "closed", label: "Закрыто" }
+  ];
+  function phase(v) {
+    if (!v) return "new";
+    if (v.learned) return "closed";
+    if ((v.stage || (v.reps ? "review" : "learning")) === "learning") return v.step ? "learning" : "retry";
+    var days = v.iv || 0;
+    return days >= 100 ? "days100" : days >= 30 ? "days30" : days >= 7 ? "days7" : days >= 3 ? "days3" : "days1";
+  }
+  function interval(v) {
+    var stage = phase(v);
+    if (stage === "new") return "Новая карточка";
+    if (stage === "closed") return "Закрыто";
+    if (stage === "learning" || stage === "retry") {
+      var minutes = Math.max(1, Math.round(((v.due || 0) - (v.t || 0)) / 60000));
+      var duration = minutes >= 60 ? Math.round(minutes / 60) + " ч" : minutes + " мин";
+      return (stage === "retry" ? "После ошибки · " : "Обучение · ") + duration;
+    }
+    return "Интервал: " + Math.round((v.iv || 0) * 10) / 10 + " дн." + (v.pairRu ? " · ½ шага" : "");
+  }
   function create(options) {
     var Store = options.store, sessions = options.sessions, clockNow = options.now || Date.now;
     var CFG = options.config || {};
@@ -201,12 +230,17 @@ window.VocabTraining = (function () {
     function vocabWordStats() {
       var S = Store.state();
       var pool = vocabPool(), learned = 0, started = 0;
+      var counts = {};
+      stages.forEach(function (stage) { counts[stage.id] = 0; });
       pool.forEach(function (it) {
         var v = Store.vocabSchedule(S.vocab, it.key);
+        counts[phase(v)]++;
         if (v && v.learned) learned++;
         else if (v) started++;
       });
-      return { total: pool.length, learned: learned, started: started };
+      return { total: pool.length, learned: learned, started: started, stages: stages.map(function (stage) {
+        return { id: stage.id, label: stage.label, count: counts[stage.id] };
+      }) };
     }
 
     function summary() {
@@ -351,5 +385,5 @@ window.VocabTraining = (function () {
     }
     return { summary: summary, plan: vocabSession, open: open };
   }
-  return { create: create };
+  return { create: create, phase: phase, interval: interval };
 })();

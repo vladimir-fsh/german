@@ -2,15 +2,15 @@
 window.VocabView = (function () {
   "use strict";
   function bar(ws, loading) {
-    var pct = ws.total ? Math.round((ws.learned / ws.total) * 100) : 0;
-    function v(x) { return loading ? "-" : x; }
-    return '<div class="bar"><i style="width:' + (loading ? 0 : pct) + '%"></i></div>' +
-      '<div class="stats">' +
-      '<div class="stat"><b>' + v(ws.learned) + "</b><span>закрыто</span></div>" +
-      '<div class="stat"><b>' + v(ws.started) + "</b><span>в работе</span></div>" +
-      '<div class="stat"><b>' + v(ws.total - ws.learned - ws.started) + "</b><span>не начато</span></div>" +
-      '<div class="stat"><b>' + (loading ? "-" : pct + "%") + "</b><span>словаря</span></div>" +
-      "</div>";
+    var total = ws.total || 0, segments = "", rows = "";
+    (ws.stages || []).forEach(function (stage) {
+      var width = loading || !total ? 0 : stage.count / total * 100;
+      segments += '<i class="phase-' + stage.id + '" style="width:' + width + '%"></i>';
+      rows += '<div class="phase-stat"><span><i class="phase-' + stage.id + '"></i>' + stage.label +
+        '</span><b>' + (loading ? "-" : stage.count) + '</b></div>';
+    });
+    return '<div class="phase-progress" aria-label="Распределение по интервалам">' +
+      '<div class="phase-bar" aria-hidden="true">' + segments + '</div><div class="phase-grid">' + rows + '</div></div>';
   }
 
   function mount(app, mode, options) {
@@ -172,6 +172,8 @@ window.VocabView = (function () {
       intervalProgress.textContent = current.retry ? "Повтор промахов · осталось " + current.retryCount : calib ? "Русский → немецкий" : paired
         ? "Интервал: " + (schedule.pairRu ? "½" : "0") + " из 1 · " + (it.dir === "ru" ? "русский → немецкий" : "немецкий → русский")
         : it.dir === "ru" ? "Русский → немецкий" : "Немецкий → русский";
+
+      if (!calib) intervalProgress.textContent = window.VocabTraining.interval(schedule) + " · " + intervalProgress.textContent;
 
       pl.querySelector(".cnt").textContent = current.done + " / " + total;
       pl.querySelector("i").style.width = Math.round((current.done / total) * 100) + "%";

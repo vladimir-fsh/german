@@ -188,6 +188,7 @@
     var phrases = phraseTraining.summary(), pc = el("div", "card");
     pc.appendChild(el("h2", null, "Фразы для жизни"));
     pc.appendChild(el("p", "muted", window.PHRASE_TOPICS.length + " тем · " + phrases.total + " фраз для повседневного общения"));
+    pc.insertAdjacentHTML("beforeend", vocabBar(phrases, loading));
     var phraseSession = window.Sessions.load("phrases");
     var phraseRepeat = phraseSession && phraseSession.mode === "repeat";
     var prow = el("div", "btnrow");

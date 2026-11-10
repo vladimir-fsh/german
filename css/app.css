@@ -720,3 +720,22 @@ main.wrap.result-screen {
 .phrase-grades { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .phrase-actions .btn, .phrase-result .btn { min-height: 48px; width: 100%; }
 .phrase-result { display: grid; gap: 12px; }
+
+/* Числа доступны без распознавания цвета; каждое слово считается один раз. */
+.phase-progress { margin: 16px 0; }
+.phase-bar { display: flex; height: 8px; overflow: hidden; border-radius: 8px; background: var(--border); }
+.phase-bar i { height: 100%; }
+.phase-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; margin-top: 12px; }
+.phase-stat, .phase-stat span { display: flex; align-items: center; gap: 6px; }
+.phase-stat { justify-content: space-between; font-size: 12px; }
+.phase-stat span i { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.phase-new { background: #8b939e; }
+.phase-learning { background: #d69a56; }
+.phase-retry { background: #d66e76; }
+.phase-days1 { background: #b3a06a; }
+.phase-days3 { background: #78ad8a; }
+.phase-days7 { background: #4da8aa; }
+.phase-days30 { background: #719adc; }
+.phase-days100 { background: #ae89d8; }
+.phase-closed { background: #7d858f; }
+.phrase-interval { font-size: 12px; text-align: center; }
