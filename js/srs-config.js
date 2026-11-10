@@ -36,6 +36,7 @@ window.SRS_CONFIG = {
   frameDays: [0, 3, 7, 30, 100],
 
   /* размеры сессий */
+  phraseSession: 10,
   sessionNew: 10,      /* карточек в обычной сессии */
   sessionRepeat: 20,   /* карточек в сессии повторения */
 

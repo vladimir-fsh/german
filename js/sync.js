@@ -654,7 +654,7 @@ window.Store = (function () {
     clearWarning: function (source) { delete externalWarnings[source]; setStatus("только это устройство"); },
     flush: function () { saveLocal(); setStatus("Сохранено на устройстве", "ok"); },
     exportBackup: function () { return JSON.stringify({ kind: "de-b1-backup", version: 2, at: Date.now(), state: state, drafts: window.Practice ? window.Practice.exportDrafts() : null, sessions: window.Sessions ? window.Sessions.exportSessions() : null }, null, 2); },
-    exportRaw: function () { var raw = {}; [LS_STATE, LS_OPS, LS_FOREIGN, "de-b1-snapshot-v1", "de-b1-days-v2", "de-b1-day-v1", "de-b1-session-v1", "de-b1-review-v1"].concat(diskLogKeys()).forEach(function (key) { try { raw[key] = localStorage.getItem(key); } catch (e) { raw[key] = null; } }); return JSON.stringify(raw, null, 2); },
+    exportRaw: function () { var raw = {}; [LS_STATE, LS_OPS, LS_FOREIGN, "de-b1-snapshot-v1", "de-b1-days-v2", "de-b1-day-v1", "de-b1-session-v1", "de-b1-review-v1", "de-b1-phrases-v1"].concat(diskLogKeys()).forEach(function (key) { try { raw[key] = localStorage.getItem(key); } catch (e) { raw[key] = null; } }); return JSON.stringify(raw, null, 2); },
     importBackup: function (text) {
       if (typeof text !== "string" || text.length > 10000000) throw new Error("Файл слишком большой.");
       var parsed; try { parsed = JSON.parse(text); } catch (e) { throw new Error("Некорректный JSON. Текущий прогресс не изменен."); }

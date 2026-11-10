@@ -1,7 +1,7 @@
 /* Сессии слов и повторения ошибок: ввод, позиция и подсказки в одном экспорте. */
 window.Sessions = (function () {
   "use strict";
-  var DATA = window.ProgressData, keys = { vocab: "de-b1-session-v1", review: "de-b1-review-v1" };
+  var DATA = window.ProgressData, keys = { vocab: "de-b1-session-v1", review: "de-b1-review-v1", phrases: "de-b1-phrases-v1" };
   var cache = {}, loaded = {}, dirty = {}, blocked = {};
   function integer(n, max) { if (typeof n !== "number" || n < 0 || n !== Math.floor(n) || n > (max == null ? 1e15 : max)) throw new Error("Некорректная сессия занятий"); }
   function list(value) { if (!Array.isArray(value) || value.length > 2000) throw new Error("Некорректная очередь"); return value; }
@@ -9,7 +9,7 @@ window.Sessions = (function () {
   function validate(kind, value) {
     if (value == null) return null;
     DATA.safe(value); DATA.object(value); integer(value.i); integer(value.at);
-    if (kind === "vocab") {
+    if (kind === "vocab" || kind === "phrases") {
       if (value.policy != null && value.policy !== 2) throw new Error("Неизвестное расписание сессии");
       if (["", "new", "repeat", "calib"].indexOf(value.mode || "") < 0) throw new Error("Неизвестная сессия");
       list(value.keys).forEach(function (key) { text(key); if (!/\|(de|ru)$/.test(key)) throw new Error("Некорректная карточка"); });
@@ -57,7 +57,7 @@ window.Sessions = (function () {
   function validateImport(value) { DATA.object(value); var result = {}; Object.keys(value).forEach(function (kind) { if (!keys[kind]) throw new Error("Неизвестная сессия"); result[kind] = validate(kind, value[kind]); }); return result; }
   return {
     load: load, save: save, clear: clear, flush: flush, validateImport: validateImport,
-    exportSessions: function () { return { vocab: load("vocab"), review: load("review") }; },
+    exportSessions: function () { return { vocab: load("vocab"), review: load("review"), phrases: load("phrases") }; },
     importSessions: function (value) { var all = validateImport(value || {}); clear(); Object.keys(all).forEach(function (kind) { save(kind, all[kind]); }); }
   };
 })();

@@ -709,3 +709,14 @@ main.wrap.result-screen {
 .cloud-backups { margin-top: 12px; }
 .cloud-backup { border-top: 1px solid var(--border); padding: 12px 0; }
 .cloud-back { margin-top: 20px; }
+
+/* Фразы: длинный текст остаётся в потоке, частые действия - у нижнего края. */
+.phrase-session { min-height: calc(100svh - 110px - env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
+.phrase-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.phrase-card { margin: auto 0; overflow-wrap: anywhere; }
+.phrase-prompt, .phrase-sample { font-size: 23px; line-height: 1.45; font-weight: 650; }
+.phrase-answer { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 20px; }
+.phrase-actions { background: var(--bg); padding: 12px 0 4px; display: grid; gap: 10px; }
+.phrase-grades { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.phrase-actions .btn, .phrase-home-actions .btn, .phrase-result .btn { min-height: 48px; width: 100%; }
+.phrase-home-actions, .phrase-result { display: grid; gap: 12px; }

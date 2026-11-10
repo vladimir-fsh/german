@@ -28,7 +28,7 @@
      или карточки пересобирать нельзя, иначе ответ пропадёт на полуслове.
      Списки и главная перерисовываются всегда — именно на них видно прогресс. */
   /* Текущий маршрут. Всё, что не похоже на наш маршрут, считается главной. */
-  var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|review|more(\/cloud)?|l\d+(\/(g|d)\d+)?)?$/;
+  var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|phrases(\/(train|repeat))?|review|more(\/cloud)?|l\d+(\/(g|d)\d+)?)?$/;
   function curPath() {
     var h = location.hash.replace(/^#/, "");
     return ROUTE_RE.test(h) ? h : "/";
@@ -37,6 +37,7 @@
   function redrawable() {
     var h = curPath();
     if (h === "/more") return !working;
+    if (h === "/phrases") return !working;
     if (h === "/" || /^\/l\d+$/.test(h)) return true;
     if (h === "/vocab" || h === "/review") return !working;
     return false;
@@ -86,6 +87,7 @@
     syncTabs();
     if (h === "/") return viewHome();
     if (h === "/review") return viewReview();
+    if (/^\/phrases/.test(h)) return viewPhrases(h.split("/")[2]);
     if (h === "/vocab") return viewVocab();
     if (h === "/vocab/new") return viewVocab("new");
     if (h === "/vocab/repeat") return viewVocab("repeat");
@@ -183,6 +185,13 @@
     }
     vcard.appendChild(vrow);
     app.appendChild(vcard);
+
+    var phrases = phraseTraining.summary(), pc = el("div", "card");
+    pc.appendChild(el("h2", null, "Фразы для жизни"));
+    pc.appendChild(el("p", "muted", window.PHRASE_TOPICS.length + " тем · " + phrases.total + " фраз для повседневного общения"));
+    var pb = el("button", "btn", loading ? "Подтягиваю прогресс…" : "Открыть фразы" + (phrases.due ? " · повторить " + phrases.due : ""));
+    pb.disabled = loading; pb.onclick = function () { go("/phrases"); };
+    pc.appendChild(pb); app.appendChild(pc);
 
     var list = el("div", "card");
     list.appendChild(el("h2", null, "Программа"));
@@ -693,6 +702,15 @@
     lesson: function (n) { return window["L" + n]; }, words: window.VOCAB || [], shuffle: E.shuffle,
     nextLesson: findNext, day: function () { return window.ProgressData.day(new Date()); }
   });
+  var phraseTraining = window.PhraseTraining.create({ store: Store, sessions: window.Sessions,
+    day: function () { return window.ProgressData.day(new Date()); } });
+  function viewPhrases(mode) {
+    if (Store.blocked()) return viewMore();
+    working = !!mode;
+    disposeVocab = window.PhraseView.mount(app, mode, { training: phraseTraining,
+      go: function (path) { if (curPath() === path) route(); else go(path); },
+      showResult: showResultLayout, context: tutorContext });
+  }
   function vocabBar(stats, loading) { return window.VocabView.bar(stats, loading); }
   function viewVocab(mode) {
     if (Store.blocked()) return viewMore();

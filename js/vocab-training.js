@@ -6,6 +6,7 @@ window.VocabTraining = (function () {
   function create(options) {
     var Store = options.store, sessions = options.sessions, clockNow = options.now || Date.now;
     var CFG = options.config || {};
+    var prefix = options.prefix || "V:", sessionKind = options.sessionKind || "vocab";
     var V_SESSION = CFG.sessionNew || 10;   /* потолок обычной сессии */
     var V_NEW = CFG.sessionNew || 10;       /* столько новых даёт добор по кнопке */
 
@@ -21,7 +22,7 @@ window.VocabTraining = (function () {
         L.words.forEach(function (w) { out.push({ n: l.n, w: w, key: "L" + l.n + ":" + w.de, f: 0 }); });
       });
       (options.words || []).forEach(function (w) {
-        out.push({ n: null, w: w, key: "V:" + (w.id || w.de), f: w.f || 1 });
+        out.push({ n: null, w: w, key: prefix + (w.id || w.de), f: w.f || 1 });
       });
       return out;
     }
@@ -90,10 +91,12 @@ window.VocabTraining = (function () {
        сессия целиком из новых, и добор идёт по кнопке.
        mode === "new" - добор десяти новых слов по запросу, без повторений. */
     function vocabNewRemaining() {
+      if (CFG.maxNewPerDay === null) return Infinity;
       var S = Store.state();
       var today = options.day(), introduced = {};
       Object.keys(S.vocab).forEach(function (key) {
         var v = S.vocab[key];
+        if (sessionKind === "phrases" ? key.indexOf(prefix) !== 0 : key.indexOf("P:") === 0) return;
         if (v.introducedDay === today) introduced[key.slice(0, -3)] = true;
       });
       return Math.max(0, (CFG.maxNewPerDay || 10) - Object.keys(introduced).length);
@@ -105,7 +108,8 @@ window.VocabTraining = (function () {
       var due = mode === "new" ? [] : vocabOnePerWord(sp.due, taken).slice(0, V_SESSION);
       if (due.length >= V_SESSION || sp.due.length > (CFG.newBacklogLimit || 20)) return due;
       var current = options.nextLesson();
-      var fresh = vocabOnePerWord(sp.fresh, taken).filter(function (it) {
+      var candidates = options.selectFresh ? options.selectFresh(sp.fresh.slice()) : sp.fresh;
+      var fresh = vocabOnePerWord(candidates, taken).filter(function (it) {
         var started = S.vocab[it.key.slice(0, -3) + "|de"] || S.vocab[it.key.slice(0, -3) + "|ru"];
         if (started) return true;
         if (it.n && current && it.n > current.n) return false;
@@ -217,7 +221,7 @@ window.VocabTraining = (function () {
       mode = mode || "";
       var byKey = {};
       vocabCards().forEach(function (card) { byKey[card.key] = card; });
-      var saved = sessions.load("vocab");
+      var saved = sessions.load(sessionKind);
       if (saved && (saved.mode || "") !== mode) saved = null;
       saved = vocabResume(saved, byKey);
       var list = saved ? saved.keys.map(function (key) { return byKey[key] || { key: key }; }) : vocabSession(mode);
@@ -229,14 +233,14 @@ window.VocabTraining = (function () {
       var previous = null, expectedDue = 0, presented = "", finished = null;
       function card() { return list[i] || byKey[retry[0]] || null; }
       function stash() {
-        sessions.save("vocab", { at: clockNow(), policy: 2, mode: mode, i: i, done: done,
+        sessions.save(sessionKind, { at: clockNow(), policy: 2, mode: mode, i: i, done: done,
           keys: list.map(function (it) { return it.key; }),
           newKeys: list.filter(function (it) { return it.isNew; }).map(function (it) { return it.key; }),
           first: first, newSeen: newSeen, newKnown: newKnown, peeked: peeked,
           calibStat: calibStat, retryKeys: retry, levelMove: levelMove });
       }
       function tune() {
-        if (newSeen < 4) return null;
+        if (options.tune === false || newSeen < 4) return null;
         var level = Store.state().vocabLevel || 1, share = newKnown / newSeen, moved = null;
         if (share >= .7 && level < V_LEVELS) { level++; moved = "up"; }
         else if (share <= .3 && level > 1) { level--; moved = "down"; }
@@ -327,7 +331,7 @@ window.VocabTraining = (function () {
       function finish() {
         if (card()) return null;
         if (finished) return clone(finished);
-        sessions.clear("vocab");
+        sessions.clear(sessionKind);
         var level = 1, known = 0, shown = 0;
         if (mode === "calib") {
           for (var k = 1; k <= V_LEVELS; k++) {
