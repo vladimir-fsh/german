@@ -137,7 +137,7 @@ window.Tutor = (function () {
     log = node("div", "tutor-log"); log.setAttribute("aria-live", "polite"); panel.appendChild(log);
     settings = node("div", "tutor-settings"); settings.hidden = true;
     settings.appendChild(node("h3", "", "Ключ OpenAI"));
-    settings.appendChild(node("p", "muted", "Сохраните личный ключ в Firebase один раз. После Google-входа браузер использует его для прямых запросов к OpenAI. Ключ доступен вашей авторизованной сессии и не входит в резервную копию прогресса."));
+    settings.appendChild(node("p", "muted", "Сохраните личный ключ в Firebase один раз. После входа через Google браузер отправляет с ним запросы к OpenAI. Ключ доступен вашей сессии и не входит в резервную копию."));
     connectionText = node("p", "muted"); settings.appendChild(connectionText);
     cloudButton = button(settings, "btn sec", "Облако и вход", function () { close(); location.hash = "/more/cloud"; });
     keyForm = node("form", "tutor-key-form");

@@ -90,7 +90,7 @@ async function testResumeRedraws() {
   /* так ведёт себя iOS: соседняя вкладка ответила, пока приложение свёрнуто */
   win.document.hidden = true;
   win._fire("visibilitychange");
-  eq("пока скрыто — не дёргаем", seen, before);
+  eq("пока скрыто, слушатели не вызываются", seen, before);
 
   win.document.hidden = false;
   win._fire("visibilitychange");

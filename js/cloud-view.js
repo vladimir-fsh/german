@@ -5,7 +5,7 @@ window.mountCloud = function (host, back) {
   var card = node("section", "", "card cloud-panel");
   card.appendChild(node("h2", "Облако и вход"));
   card.appendChild(node("p", "Войдите в один Google-аккаунт на всех устройствах. Прогресс уроков, слова и удалённые задания будут общими.", "muted"));
-  card.appendChild(node("p", "Первый вход выполните на телефоне с основным прогрессом. Если на устройствах уже разные исходные данные, приложение попросит сохранить копии и остановит автоматический перенос.", "note"));
+  card.appendChild(node("p", "Первый вход делайте на телефоне с основным прогрессом. Если данные на устройствах различаются, приложение остановит перенос и попросит сохранить копии.", "note"));
   var account = node("p", "", "cloud-account"); card.appendChild(account);
   var status = node("p", "", "note"); status.setAttribute("role", "status"); card.appendChild(status);
   var actions = node("div", "", "btnrow cloud-actions");
@@ -14,7 +14,7 @@ window.mountCloud = function (host, back) {
   var retry = node("button", "Синхронизировать", "btn"); retry.type = "button";
   var logout = node("button", "Выйти из аккаунта", "btn sec"); logout.type = "button";
   [login, connect, retry, logout].forEach(function (b) { actions.appendChild(b); }); card.appendChild(actions);
-  card.appendChild(node("p", "Без сети можно продолжать занятия. Прогресс отправится в облако после восстановления связи.", "note"));
+  card.appendChild(node("p", "Без сети занятия продолжаются. Прогресс уйдёт в облако, когда появится связь.", "note"));
   var backups = node("section", "", "cloud-backups");
   var load = node("button", "Занятия с других устройств", "btn sec"); load.type = "button"; backups.appendChild(load);
   var list = node("div"); backups.appendChild(list); card.appendChild(backups);
@@ -55,8 +55,8 @@ window.mountCloud = function (host, back) {
           box.appendChild(node("p", (item.at ? new Date(item.at).toLocaleString("ru-RU") : "Без даты") + " · черновиков: " + Object.keys(data.drafts).length + " · сессий: " + Object.keys(data.sessions).filter(function (key) { return !!data.sessions[key]; }).length, "note"));
           var button = node("button", "Загрузить это занятие", "btn sec"); button.type = "button";
           button.onclick = function () {
-            if (!window.confirm("Загрузить черновики и незавершённые сессии? Они заменят местные черновики. Завершённый прогресс сохранится. При необходимости сначала экспортируйте местную резервную копию в разделе «Ещё».")) return;
-            try { cloud.restoreWork(data); status.textContent = "Занятие загружено. Можно продолжить в курсе или карточках."; }
+            if (!window.confirm("Загрузить черновики и незавершённые сессии? Они заменят местные черновики, завершённый прогресс останется. Если нужно, сначала экспортируйте резервную копию в разделе «Ещё».")) return;
+            try { cloud.restoreWork(data); status.textContent = "Занятие загружено. Продолжайте в курсе или карточках."; }
             catch (e) { status.textContent = e.message; }
           }; box.appendChild(button); list.appendChild(box);
         });

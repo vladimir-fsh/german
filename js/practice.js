@@ -9,7 +9,7 @@ window.Practice = (function () {
   function read() {
     if (dirty) return memory;
     try { var raw = localStorage.getItem(KEY); var parsed = raw ? JSON.parse(raw) : {}; validateImport(parsed); memory = parsed; }
-    catch (e) { blockedDrafts = true; window.Store.warn("Не удалось прочитать черновики занятий. Прогресс сохранен; исходные черновики доступны в экспорте хранилища.", "practice"); }
+    catch (e) { blockedDrafts = true; window.Store.warn("Не удалось прочитать черновики занятий. Прогресс сохранён. Исходные черновики есть в экспорте хранилища.", "practice"); }
     return memory;
   }
   function validate(draft, length) {
@@ -46,7 +46,7 @@ window.Practice = (function () {
   function flush() {
     if (blockedDrafts) { dirty = true; window.Store.warn("Исходные черновики повреждены и не перезаписаны. Новую работу экспортируйте перед восстановлением.", "practice"); return false; }
     try { localStorage.setItem(KEY, JSON.stringify(memory)); dirty = false; window.Store.clearWarning("practice"); if (window.dispatchEvent && window.Event) window.dispatchEvent(new window.Event("cloud-work-change")); return true; }
-    catch (e) { dirty = true; window.Store.warn("Ответы занятия пока только в памяти. Не закрывайте страницу: экспортируйте резервную копию или повторите сохранение.", "practice"); return false; }
+    catch (e) { dirty = true; window.Store.warn("Ответы занятия пока только в памяти. Не закрывайте страницу. Экспортируйте резервную копию или повторите сохранение.", "practice"); return false; }
   }
   function save(draft) { var all = read(); all["L" + draft.n + "D" + draft.di] = draft; draft.at = Date.now(); dirty = true; flush(); }
   function remove(n, di) { var all = read(); delete all["L" + n + "D" + di]; dirty = true; flush(); try { var old = JSON.parse(localStorage.getItem(LEGACY)); if (old && old.n === n && old.di === di) localStorage.removeItem(LEGACY); } catch (e) {} }

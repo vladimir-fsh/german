@@ -36,7 +36,7 @@ window.Cloud = (function () {
     if (/unauthorized-domain/.test(code)) return "Этот адрес не разрешён для входа. Откройте опубликованное приложение или добавьте домен в Firebase.";
     if (/popup-blocked/.test(code)) return "Браузер заблокировал окно Google. Разрешите всплывающее окно и нажмите вход ещё раз.";
     if (/popup-closed|cancelled-popup/.test(code)) return "Вход отменён.";
-    if (/network|unavailable/.test(code)) return "Нет связи с Firebase. Прогресс остаётся на устройстве; повторите синхронизацию после подключения.";
+    if (/network|unavailable/.test(code)) return "Нет связи с Firebase. Прогресс остаётся на устройстве. Повторите синхронизацию, когда появится связь.";
     if (/resource-exhausted/.test(code)) return "Достигнут лимит Firebase. Прогресс сохранён локально.";
     return e && e.message || "Не удалось подключить Firebase.";
   }
@@ -117,7 +117,7 @@ window.Cloud = (function () {
   function collection(name) { return db.collection("users").doc(user.uid).collection(name); }
   function payload(value) {
     var json = JSON.stringify(value);
-    if (unescape(encodeURIComponent(json)).length > 800000) throw new Error("Данные слишком велики для одной записи Firebase. Экспортируйте резервную копию; прогресс остаётся локальным.");
+    if (unescape(encodeURIComponent(json)).length > 800000) throw new Error("Данные слишком велики для одной записи Firebase. Прогресс остаётся на устройстве. Экспортируйте резервную копию.");
     return json;
   }
   function aux() {

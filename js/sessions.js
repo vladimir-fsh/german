@@ -40,7 +40,7 @@ window.Sessions = (function () {
     if (loaded[kind]) return cache[kind];
     loaded[kind] = true;
     try { var raw = localStorage.getItem(keys[kind]); cache[kind] = validate(kind, raw ? JSON.parse(raw) : null); }
-    catch (e) { cache[kind] = null; blocked[kind] = true; window.Store.warn("Сессия занятий повреждена. Исходная запись сохранена для экспорта; новую работу экспортируйте перед восстановлением.", "session-" + kind); }
+    catch (e) { cache[kind] = null; blocked[kind] = true; window.Store.warn("Сессия занятий повреждена. Исходная запись сохранена для экспорта. Экспортируйте новую работу перед восстановлением.", "session-" + kind); }
     return cache[kind];
   }
   function flush(kind) {
@@ -49,7 +49,7 @@ window.Sessions = (function () {
       if (!dirty[name]) return;
       if (blocked[name]) { ok = false; window.Store.warn("Поврежденная сессия не перезаписана. Экспортируйте новую работу перед восстановлением.", "session-" + name); return; }
       try { localStorage.setItem(keys[name], JSON.stringify(cache[name])); dirty[name] = false; window.Store.clearWarning("session-" + name); if (window.dispatchEvent && window.Event) window.dispatchEvent(new window.Event("cloud-work-change")); }
-      catch (e) { ok = false; window.Store.warn("Сессия занятий пока только в памяти. Не закрывайте страницу: скачайте резервную копию или повторите сохранение.", "session-" + name); }
+      catch (e) { ok = false; window.Store.warn("Сессия занятий пока только в памяти. Не закрывайте страницу. Скачайте резервную копию или повторите сохранение.", "session-" + name); }
     }); return ok;
   }
   function save(kind, value) { load(kind); cache[kind] = validate(kind, value); dirty[kind] = true; flush(kind); }
