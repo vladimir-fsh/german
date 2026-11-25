@@ -44,10 +44,8 @@ window.PhraseView = (function () {
       section.appendChild(top);
       section.appendChild(el("div", "muted phrase-interval", window.VocabTraining.interval(current.schedule)));
       var card = el("div", "card phrase-card");
-      card.appendChild(el("div", "eyebrow", esc((window.PHRASE_TOPICS.filter(function (topic) { return topic.id === w.topic; })[0] || {}).title || "Бытовая ситуация")));
       card.appendChild(el("h2", null, esc(w.title)));
       card.appendChild(el("p", "muted", esc(w.context)));
-      card.appendChild(el("p", "note", reverse ? "Вспомни смысл по-русски" : "Как сказать по-немецки?"));
       var prompt = el("p", "phrase-prompt", esc(reverse ? w.de : w.ru));
       prompt.lang = reverse ? "de" : "ru"; card.appendChild(prompt);
       if (revealed) {
@@ -56,7 +54,6 @@ window.PhraseView = (function () {
         answer.appendChild(el("div", "muted", "Возможный вариант"));
         var text = el("p", "phrase-sample", esc(reverse ? w.ru : w.de));
         text.lang = reverse ? "ru" : "de"; answer.appendChild(text);
-        answer.appendChild(el("p", "note", "Вспомнил без подсказки? Другой верный вариант тоже подходит."));
         card.appendChild(answer);
       }
       section.appendChild(card);
