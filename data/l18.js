@@ -9,45 +9,45 @@ window.L18 = {
     {
       title: "Когда у прилагательного появляется окончание",
       html: `
-<p>У прилагательного два положения в предложении, и от этого зависит всё.</p>
+<p>У прилагательного в предложении два положения. От положения зависит, будет ли у него окончание.</p>
 
-<h3>1. Описание состояния или действия - без окончания</h3>
+<h3>1. Описывает состояние или действие: без окончания</h3>
 <p>Прилагательное описывает состояние с <span class="de">sein, werden, bleiben</span> или само действие? Тогда оно не склоняется. Важно, к чему относится слово, а не только где стоит глагол.</p>
 <div class="ex"><span class="de">Das Wetter ist <b>gut</b>. · Es geht mir <b>gut</b>. · Ich habe <b>gut</b> geschlafen. · Es wird alles wieder <b>gut</b>.</span>
 <span class="ru">Погода хорошая. · У меня всё хорошо. · Я хорошо спал. · Всё снова будет хорошо.</span></div>
 
-<h3>2. Описание существительного - обычно с окончанием</h3>
+<h3>2. Описывает существительное: обычно с окончанием</h3>
 <div class="ex"><span class="de">Ich habe einen <b>guten</b> Test geschrieben. · Herr Rot ist ein <b>guter</b> Lehrer. · Ich liebe das <b>gute</b> Wetter.</span>
-<span class="ru">Я написал хороший тест. · Господин Рот — хороший учитель. · Я люблю хорошую погоду.</span></div>
+<span class="ru">Я написал хороший тест. · Господин Рот - хороший учитель. · Я люблю хорошую погоду.</span></div>
 
 <div class="hack">
-  <span class="lbl">Хак № 1 · тест на бутерброд</span>
+  <span class="lbl">Хак № 1 · проверь бутерброд</span>
   Прилагательное зажато между артиклем и существительным, как котлета в булке?
   <span class="big">ein · <u>gut__</u> · Lehrer → окончание есть</span>
-  Описывает состояние или действие? <b>Словарная форма.</b> В <span class="de">Ich sehe einen guten Lehrer</span> слово <span class="de">guten</span> тоже стоит после глагола, но описывает <span class="de">Lehrer</span> и склоняется. Есть отдельные несклоняемые слова, например <span class="de">rosa</span>.
+  Описывает состояние или действие? Пиши <b>словарную форму</b>. В <span class="de">Ich sehe einen guten Lehrer</span> слово <span class="de">guten</span> тоже стоит после глагола. Но оно описывает <span class="de">Lehrer</span>, поэтому склоняется. Некоторые слова не склоняются совсем, например <span class="de">rosa</span>.
 </div>
 
-<h3>Почему окончания вообще нужны</h3>
-<p>Немецкому нужен <b>сигнал</b> — маркер рода и падежа. Обычно сигналит артикль: <code>der</code>, <code>dem</code>, <code>einen</code>. Но артикль не всегда может: <span class="de">ein</span> одинаков для мужского и среднего рода. Тогда сигналит прилагательное.</p>
+<h3>Зачем нужны окончания</h3>
+<p>Немецкому нужен <b>сигнал</b>, то есть маркер рода и падежа. Обычно сигнал даёт артикль: <code>der</code>, <code>dem</code>, <code>einen</code>. Но не всегда: <span class="de">ein</span> одинаков для мужского и среднего рода. Тогда сигнал даёт прилагательное.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 2 · правило одного сигнала</span>
-  Для основных форм этого урока удобно смотреть, показывает ли артикль род и падеж.
+  <span class="lbl">Хак № 2 · дай сигнал один раз</span>
+  Для основных форм урока проверь, показывает ли артикль род и падеж.
   <span class="big">Артикль сказал → прилагательное молчит (-e / -en)<br>Артикль промолчал → прилагательное говорит (-er / -es)</span>
-  Это подсказка для выбора таблицы, а не универсальный закон. Проверяй род, число и падеж: в Genitiv мужского и среднего рода без артикля будет <span class="de">-en</span>, а не <span class="de">-es</span>. Genitiv подробнее разбирается позже.
+  Хак помогает выбрать таблицу, но работает не везде. Проверяй род, число и падеж: в Genitiv мужского и среднего рода без артикля будет <span class="de">-en</span>, а не <span class="de">-es</span>. Genitiv разберём позже.
 </div>
 
 <div class="flow">
-  <div class="step"><div class="txt">Прилагательное прямо перед существительным?<i>Нет → пиши словарную форму, дальше не думай.</i></div></div>
-  <div class="step"><div class="txt">Посмотри на артикль: у него есть окончание-сигнал?<i>der, das, die, den, dem, eine, einen — сигнал есть. ein — сигнала нет.</i></div></div>
-  <div class="step"><div class="txt">Сигнала нет → прилагательное берёт хвост артикля <span class="end">-er</span> / <span class="end">-es</span>.<i>Сигнал есть → слабое окончание <span class="end">-e</span> или <span class="end">-en</span>.</i></div></div>
+  <div class="step"><div class="txt">Прилагательное прямо перед существительным?<i>Если нет, пиши словарную форму. На этом всё.</i></div></div>
+  <div class="step"><div class="txt">Посмотри на артикль: у него есть окончание-сигнал?<i>У der, das, die, den, dem, eine, einen сигнал есть. У ein сигнала нет.</i></div></div>
+  <div class="step"><div class="txt">Сигнала нет? Прилагательное берёт хвост артикля <span class="end">-er</span> / <span class="end">-es</span>.<i>Сигнал есть? Тогда у прилагательного слабое окончание <span class="end">-e</span> или <span class="end">-en</span>.</i></div></div>
 </div>
 `
     },
     {
       title: "ein / eine + прилагательное (Nominativ, Akkusativ)",
       html: `
-<p>Группа <b>ein-Wörter</b>: <span class="de">ein, eine, kein, keine</span> и все притяжательные — <span class="de">mein, dein, sein, ihr, unser, euer</span>. Склоняются одинаково.</p>
+<p>В группу <b>ein-Wörter</b> входят <span class="de">ein, eine, kein, keine</span> и все притяжательные слова: <span class="de">mein, dein, sein, ihr, unser, euer</span>. Все они склоняются одинаково.</p>
 
 <div class="hack">
   <span class="lbl">Хак № 3 · отрежь хвост у артикля</span>
@@ -58,7 +58,7 @@ window.L18 = {
     da<span class="tail">S</span> Kind <span class="arrow">→</span> ein gute<span class="tail">s</span> Kind
     <small>das: окончание -es</small>
   </div>
-  Подсказка работает в Nominativ мужского и среднего рода и в Akkusativ среднего рода, когда артикль - голое <span class="de">ein / kein / mein</span>. Женский род и множественное в этом хаке не нуждаются: у <span class="de">eine</span> сигнал уже есть.
+  Хак работает в Nominativ мужского и среднего рода и в Akkusativ среднего рода, если артикль голый: <span class="de">ein / kein / mein</span>. Для женского рода и множественного числа хак не нужен: у <span class="de">eine</span> сигнал уже есть.
 </div>
 
 <div class="scrollx">
@@ -89,16 +89,16 @@ window.L18 = {
   <div class="cell f">то же</div>
   <div class="cell p">то же</div>
 </div>
-<p class="muted">Из восьми клеток по-настоящему подвижна одна — подсвеченная. Женский и средний род в Akkusativ не меняются вообще.</p>
+<p class="muted">Из восьми клеток меняется только одна, подсвеченная. Женский и средний род в Akkusativ не меняются.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 4 · мужчина в аккузативе тонет в «-n»</span>
+  <span class="lbl">Хак № 4 · в аккузативе дай мужчине три «-n»</span>
   <div class="rhyme">de<span>n</span> · eine<span>n</span> · gute<span>n</span> Mann</div>
-  Все три слова кончаются на <b>-n</b>. Если в предложении есть мужской род и вопрос «кого? что?» — ставь <span class="end">-n</span> везде, где можно. Это ловушка №1 всего урока.
+  Все три слова кончаются на <b>-n</b>. Если слово мужского рода отвечает на вопрос «кого? что?», ставь <span class="end">-n</span> везде, где можно. Это главная ошибка урока.
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 5 · связка с глаголом</span>
+  <span class="lbl">Хак № 5 · спроси падеж у глагола</span>
   Падеж задаёт глагол, а не прилагательное:
   <span class="big">sein → Nominativ · haben, brauchen, kaufen, tragen, sehen → Akkusativ</span>
   <span class="de">Er <b>ist</b> ein gut<span class="end">er</span> Lehrer.</span> ↔ <span class="de">Er <b>hat</b> ein<span class="end">en</span> gut<span class="end">en</span> Lehrer.</span>
@@ -106,21 +106,21 @@ window.L18 = {
 
 <h3>Примеры целиком</h3>
 <div class="ex"><span class="de">Herr Klein ist <b>ein kleiner Mann</b>. Er hat <b>eine kleine Nase</b>. Sie haben <b>ein kleines Kind</b>.</span>
-<span class="ru">Господин Кляйн — маленький мужчина. У него маленький нос. У них маленький ребёнок.</span></div>
+<span class="ru">Господин Кляйн - маленький мужчина. У него маленький нос. У них маленький ребёнок.</span></div>
 <div class="ex"><span class="de">Ich brauche <b>einen neuen Pullover</b>, <b>eine warme Jacke</b> und <b>ein weißes Hemd</b>.</span>
 <span class="ru">Мне нужен новый свитер, тёплая куртка и белая рубашка.</span></div>
 `
     },
     {
-      title: "der / die / das + прилагательное — стена из -en",
+      title: "der / die / das + прилагательное: стена из -en",
       html: `
-<p>Определённый артикль всегда показывает и род, и падеж. Сигнал уже прозвучал — значит прилагательное молчит. Молчание в немецком звучит только двумя способами: <span class="end">-e</span> и <span class="end">-en</span>. Третьего варианта не существует.</p>
+<p>Определённый артикль всегда показывает и род, и падеж. Сигнал уже есть, значит прилагательное молчит. Молчит оно слабым окончанием, а их всего два: <span class="end">-e</span> и <span class="end">-en</span>.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 6 · пять клеток и стена</span>
-  Нарисуй таблицу 4×3. Пять клеток сверху слева — <span class="end">-e</span>. Всё остальное — <span class="end">-en</span>.
+  <span class="lbl">Хак № 6 · нарисуй пять клеток и стену</span>
+  Нарисуй таблицу 4×3. В пяти клетках сверху слева пиши <span class="end">-e</span>, во всех остальных <span class="end">-en</span>.
   <span class="big">Nominativ (все три рода) + Akkusativ (die / das) = -e<br>ВСЁ остальное = -en</span>
-  Больше в слабом склонении знать нечего.
+  Это всё слабое склонение.
 </div>
 
 <div class="scrollx">
@@ -155,40 +155,40 @@ window.L18 = {
   <div class="cell f"><b>-en</b>Dativ</div>
   <div class="cell p"><b>-en</b>всегда</div>
 </div>
-<p class="muted">Подсвечена клетка, на которой спотыкаются все: мужской род в Akkusativ.</p>
+<p class="muted">Подсвечена клетка, где ошибаются чаще всего: мужской род в Akkusativ.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 7 · мужчина снова тонет в «-n»</span>
+  <span class="lbl">Хак № 7 · снова дай мужчине три «-n»</span>
   <div class="rhyme">de<span>n</span> kleine<span>n</span> Man<span>n</span></div>
-  <span class="de">Der klein<b>e</b> Mann sieht den Lehrer.</span> — кто? Nominativ, <span class="end">-e</span>.<br>
-  <span class="de">Ich sehe den klein<b>en</b> Mann.</span> — кого? Akkusativ, <span class="end">-en</span>.
-  <b>Это главная ошибка урока:</b> «Ich sehe der kleine Mann» — так говорить нельзя.
+  <span class="de">Der klein<b>e</b> Mann sieht den Lehrer.</span> Кто? Nominativ, <span class="end">-e</span>.<br>
+  <span class="de">Ich sehe den klein<b>en</b> Mann.</span> Кого? Akkusativ, <span class="end">-en</span>.
+  <b>Это главная ошибка урока.</b> Так говорить нельзя: «Ich sehe der kleine Mann».
 </div>
 
-<h3>Один корень — два разных окончания подряд</h3>
+<h3>Один корень, два разных окончания подряд</h3>
 <div class="ex"><span class="de">Das ist <b>ein altes</b> Haus. <b>Das alte</b> Haus steht in der Stadt.</span>
 <span class="ru">Это старый дом. Этот старый дом стоит в городе.</span></div>
-<p>В первом предложении артикль <span class="de">ein</span> промолчал — прилагательное взяло хвост <span class="end">-es</span>. Во втором <span class="de">das</span> уже всё сказало — прилагательному хватило <span class="end">-e</span>. Хак № 2 работает в обе стороны.</p>
+<p>В первом предложении у артикля <span class="de">ein</span> нет сигнала, поэтому прилагательное берёт хвост <span class="end">-es</span>. Во втором сигнал даёт <span class="de">das</span>, и прилагательному хватает <span class="end">-e</span>. Хак № 2 работает в обе стороны.</p>
 `
     },
     {
       title: "Dativ и слова совсем без артикля",
       html: `
-<h3>Dativ: одна буква на все случаи</h3>
-<p>Как только появляется Dativ и перед прилагательным стоит хоть какой-то артикль — окончание <span class="end">-en</span>. Всегда. Без исключений, без родов.</p>
+<h3>Dativ: одно окончание на все случаи</h3>
+<p>Если падеж Dativ и перед прилагательным стоит любой артикль, окончание всегда <span class="end">-en</span>. Род не важен.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 8 · Dativ всё выравнивает</span>
+  <span class="lbl">Хак № 8 · в Dativ не думай о роде</span>
   <span class="big">dem / der / einem / einer / meinen … + прилагательное → <span class="end">-en</span></span>
   <span class="de">mit dem neu<b>en</b> Lehrer · mit einer alt<b>en</b> Frau · aus einem klein<b>en</b> Dorf · mit meinen gut<b>en</b> Freunden</span>
-  Мужской, женский, средний, множественное — одинаково. Dativ — самый лёгкий падеж в этой теме.
+  Мужской, женский, средний род и множественное число склоняются одинаково. В этой теме Dativ самый лёгкий падеж.
 </div>
 
 <div class="ex"><span class="de">Ich helfe <b>einem alten Mann</b>. Das Buch gehört <b>einem kleinen Kind</b>. Er wohnt in <b>einer kleinen Stadt</b>. Wir helfen <b>kleinen Menschen</b>.</span>
 <span class="ru">Я помогаю пожилому мужчине. Книга принадлежит маленькому ребёнку. Он живёт в маленьком городе. Мы помогаем маленьким людям.</span></div>
 
-<h3>Артикля нет вообще — прилагательное работает за двоих</h3>
-<p>Вещество, абстракция, множественное число: <span class="de">Kaffee, Wasser, Milch, Kinder</span>. Артикля нет — сигнала нет — прилагательное берет сильное окончание. Сверяйся с таблицей; Genitiv мужского и среднего рода имеет отдельное правило.</p>
+<h3>Артикля нет: прилагательное работает за двоих</h3>
+<p>Так бывает с веществами, абстрактными понятиями и множественным числом: <span class="de">Kaffee, Wasser, Milch, Kinder</span>. Нет артикля, значит нет сигнала, и прилагательное берёт сильное окончание. Сверяйся с таблицей. Для Genitiv мужского и среднего рода есть отдельное правило.</p>
 
 <div class="cut">
   de<span class="tail">R</span> Kaffee <span class="arrow">→</span> kalte<span class="tail">r</span> Kaffee
@@ -196,7 +196,7 @@ window.L18 = {
   de<span class="tail">M</span> Wasser <span class="arrow">→</span> mit kalte<span class="tail">m</span> Wasser
   <small>Dativ</small>
   de<span class="tail">R</span> Milch <span class="arrow">→</span> mit kalte<span class="tail">r</span> Milch
-  <small>Dativ фем.</small>
+  <small>Dativ, женский род</small>
 </div>
 
 <div class="scrollx">
@@ -221,10 +221,10 @@ window.L18 = {
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 9 · множественное число и «все эти» слова</span>
-  <span class="de">viele, wenige, einige, mehrere</span> сами не считаются артиклем — после них прилагательное продолжает сигналить:
+  <span class="lbl">Хак № 9 · реши, считается ли слово артиклем</span>
+  <span class="de">viele, wenige, einige, mehrere</span> не считаются артиклем. После них прилагательное даёт сигнал само:
   <span class="big">viele klein<span class="end">e</span> Kinder · mit vielen klein<span class="end">en</span> Kindern</span>
-  А <span class="de">die beiden, die anderen, alle, diese</span> — считаются, после них всегда <span class="end">-en</span>:
+  <span class="de">die beiden, die anderen, alle, diese</span> считаются артиклем. После них всегда <span class="end">-en</span>:
   <span class="de">die beid<b>en</b> Diebe · in den ander<b>en</b> Nächten · alle klein<b>en</b> Tiere</span>
 </div>
 
@@ -232,23 +232,23 @@ window.L18 = {
   <span class="lbl">Ловушка</span>
   В Dativ Plural <b>-n</b> появляется дважды: у прилагательного и у самого существительного.
   <span class="de">mit klein<b>en</b> Kinder<b>n</b> · mit gut<b>en</b> Freund<b>en</b></span>
-  Забыть <span class="end">-n</span> на существительном — типичная ошибка.
+  Часто забывают <span class="end">-n</span> у существительного.
 </div>
 `
     },
     {
-      title: "Welcher? или Was für ein? — два разных вопроса",
+      title: "Welcher? и Was für ein? спрашивают о разном",
       html: `
-<p>Оба переводятся «какой», но спрашивают о разном. Перепутать — значит получить не тот ответ.</p>
+<p>Оба вопроса переводятся «какой», но спрашивают о разном. Если их перепутать, ответ получится не тот.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 10 · выбор из полки против описания</span>
-  <span class="big"><b>Welcher?</b> — который из известных → ответ с <b>определённым</b> артиклем<br><b>Was für ein?</b> — какой по свойству → ответ с <b>неопределённым</b></span>
+  <span class="lbl">Хак № 10 · выбирай с полки или описывай</span>
+  <span class="big"><b>Welcher?</b> = который из известных → ответ с <b>определённым</b> артиклем<br><b>Was für ein?</b> = какой по свойству → ответ с <b>неопределённым</b></span>
   <span class="de">Welch<b>er</b> Schüler stört? — <b>Der</b> freche Schüler.</span><br>
   <span class="de">Was für <b>ein</b> Tag war gestern? — <b>Ein</b> schöner Tag.</span>
 </div>
 
-<h3>welch- склоняется ровно как der</h3>
+<h3>welch- склоняется как der</h3>
 <div class="cut">
   de<span class="tail">R</span> Tag <span class="arrow">→</span> welche<span class="tail">r</span> Tag
   <small>Nominativ</small>
@@ -258,65 +258,65 @@ window.L18 = {
   <small>Dativ</small>
 </div>
 <div class="ex"><span class="de">An <b>welchem</b> Tag hast du Geburtstag? · Mit <b>welcher</b> Hand schreibst du? · <b>Welches</b> Auge ist groß? · In <b>welchem</b> Schrank hängt die Hose?</span>
-<span class="ru">В какой день у тебя день рождения? · Какой рукой ты пишешь? · Какой глаз большой? · В каком шкафу висит брюки?</span></div>
+<span class="ru">В какой день у тебя день рождения? · Какой рукой ты пишешь? · Какой глаз большой? · В каком шкафу висят брюки?</span></div>
 
 <div class="hack">
-  <span class="lbl">Хак № 11 · «für» здесь не предлог</span>
-  В <span class="de">was für ein</span> предлог <span class="de">für</span> ничем не управляет — это застывшая формула. Падеж у <span class="de">ein</span> задаёт глагол или настоящий предлог:
+  <span class="lbl">Хак № 11 · не смотри на «für»</span>
+  В <span class="de">was für ein</span> слово <span class="de">für</span> ничем не управляет. Это застывшая формула. Падеж у <span class="de">ein</span> задаёт глагол или настоящий предлог:
   <span class="big">Was für ein<span class="end">en</span> Mantel hast du gekauft? <span class="muted">→ kaufen = Akkusativ</span><br>In was für ein<span class="end">er</span> Stadt wohnst du? <span class="muted">→ in + wo = Dativ</span></span>
-  <b>Главная ошибка:</b> ставить Akkusativ из-за «für». Смотри на глагол, а не на für.
+  <b>Главная ошибка.</b> Akkusativ ставят из-за «für». Смотри на глагол, а не на für.
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 12 · множественное число теряет ein</span>
-  У <span class="de">ein</span> нет множественного — значит и в вопросе его нет:
+  <span class="lbl">Хак № 12 · во множественном числе убери ein</span>
+  У <span class="de">ein</span> нет формы множественного числа, поэтому в вопросе его тоже нет:
   <span class="big">Was für Haare hat sie? — Schwarze Haare.<br>Was für Diebe klettern ins Haus? — Böse Diebe.</span>
 </div>
 `
     },
     {
-      title: "Stolpersteine: слова, которые ломаются при склонении",
+      title: "Stolpersteine: слова с подвохом при склонении",
       html: `
-<p>Шесть подвохов, на которых сыпется даже тот, кто знает все три таблицы наизусть.</p>
+<p>Шесть подвохов, на которых ошибаются даже те, кто знает все три таблицы наизусть.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 13 · hoch теряет -c-</span>
+  <span class="lbl">Хак № 13 · у hoch убери -c-</span>
   <span class="big">hoch → <b>hoh</b>-</span>
   <span class="de">Das Haus ist <b>hoch</b>. → ein <b>hohes</b> Haus · die <b>hohe</b> Leiter</span>
-  Без окончания — <span class="de">hoch</span>, с окончанием — <span class="de">hoh-</span>. «Hoches Haus» не существует.
+  Без окончания пиши <span class="de">hoch</span>, с окончанием <span class="de">hoh-</span>. Формы «Hoches Haus» нет.
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 14 · -el и -er выбрасывают -e-</span>
+  <span class="lbl">Хак № 14 · у -el и -er выбрось -e-</span>
   <span class="big">dunkel → dunkl- · teuer → teur- · sauer → saur- · edel → edl-</span>
   <span class="de">die <b>dunkle</b> Straße · in dem <b>dunklen</b> Zimmer · ein <b>teures</b> Handy · <b>saure</b> Milch</span>
-  Причина простая: два безударных «e» подряд немцу не выговорить.
+  Так немецкий избегает двух безударных «e» подряд.
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 15 · rechts и links — это наречия</span>
-  Перед существительным они превращаются в прилагательные <span class="de">recht-</span> и <span class="de">link-</span>, буква <b>s</b> отваливается.
+  <span class="lbl">Хак № 15 · превращай rechts и links в прилагательные</span>
+  Это наречия. Перед существительным они становятся прилагательными <span class="de">recht-</span> и <span class="de">link-</span>, и буква <b>s</b> пропадает.
   <span class="big">rechts <span class="arrow">→</span> auf der recht<span class="end">en</span> Seite · im link<span class="end">en</span> Schrank</span>
-  <span class="de">Er hat im <b>rechten</b> Ohr einen Ohrring.</span> — не «rechtsen».
+  <span class="de">Er hat im <b>rechten</b> Ohr einen Ohrring.</span> Не «rechtsen».
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 16 · порядковые числительные — обычные прилагательные</span>
+  <span class="lbl">Хак № 16 · склоняй порядковые числительные как прилагательные</span>
   <span class="de">der <b>erste</b> Dieb · der <b>zweite</b> Polizist · am <b>zwölften</b> Februar · das <b>nächste</b> Zimmer</span>
-  Склоняются по тем же таблицам, никакой отдельной логики нет.
+  Они склоняются по тем же таблицам, без отдельных правил.
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 17 · причастия работают как прилагательные</span>
+  <span class="lbl">Хак № 17 · склоняй причастия как прилагательные</span>
   <span class="de">ein <b>kariertes</b> Hemd · eine <b>gestreifte</b> Hose · ein <b>aufgeschlagenes</b> Buch · <b>gegelte</b> Haare</span>
-  Берёшь Partizip II и склоняешь, как любое прилагательное.
+  Возьми Partizip II и склоняй его, как любое прилагательное.
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 18 · слова с особым склонением</span>
+  <span class="lbl">Хак № 18 · запомни слова без окончаний</span>
   <span class="big">rosa · lila · prima · super</span>
   <span class="de">eine <b>rosa</b> Jacke · ein <b>lila</b> Hemd · die <b>orange</b> Mütze</span>
-  В стандартной форме этого урока окончания не добавляем. У <span class="de">orange</span> возможны два варианта: <span class="de">ein orange Kleid / ein oranges Kleid</span>. Поэтому «orange никогда не склоняется» - неверное правило.
+  В стандартной форме этого урока окончание к ним не добавляй. У <span class="de">orange</span> возможны два варианта: <span class="de">ein orange Kleid / ein oranges Kleid</span>. Поэтому правило «orange никогда не склоняется» неверно.
 </div>
 
 <div class="ex"><span class="de">Sie klettern schnell die <b>hohe</b> Leiter hinauf und sehen die <b>beiden</b> Diebe in dem <b>dunklen</b> Zimmer. Der <b>erste</b> Polizist hält einen <b>großen</b> Säbel in seiner <b>rechten</b> Hand.</span>
@@ -335,13 +335,13 @@ window.L18 = {
           q: "Das Wetter ist heute sehr ___ .",
           opts: ["schön", "schöner", "schönes"], a: 0,
           ru: "Погода сегодня очень хорошая.",
-          why: "После sein прилагательное стоит без окончания — оно не перед существительным." },
+          why: "После sein прилагательное стоит без окончания, потому что оно не стоит перед существительным." },
 
         { type: "choice",
           q: "Heute haben wir ___ Wetter.",
           opts: ["schön", "schönes", "schöner"], a: 1,
           ru: "Сегодня у нас хорошая погода.",
-          why: "das Wetter, средний род, а артикля нет вовсе — прилагательное берёт хвост от das: schönes." },
+          why: "das Wetter, средний род. Артикля нет, поэтому прилагательное берёт хвост от das: schönes." },
 
         { type: "choice",
           q: "Herr Rot ist ein ___ Lehrer.",
@@ -357,12 +357,12 @@ window.L18 = {
         { type: "fill",
           q: "Das ist eine {schön} Jacke.", a: ["schöne"],
           ru: "Это красивая куртка.",
-          why: "die Jacke — «eine» уже сигналит женский род, прилагательному хватает -e." },
+          why: "die Jacke: «eine» уже даёт сигнал женского рода, поэтому прилагательному хватает -e." },
 
         { type: "fill",
           q: "Das ist ein {schön} Hemd.", a: ["schönes"],
           ru: "Это красивая рубашка.",
-          why: "das Hemd — прилагательное берёт хвост от das: schönes." },
+          why: "das Hemd среднего рода, поэтому прилагательное берёт хвост от das: schönes." },
 
         { type: "choice",
           q: "Sie ist ___ Frau.",
@@ -374,19 +374,19 @@ window.L18 = {
           q: "Unser Lehrer ist ein {streng} Mann, aber er ist auch ein {nett} Mensch.",
           a: ["strenger", "netter"],
           ru: "Наш учитель — строгий человек, но при этом приятный.",
-          why: "der Mann, der Mensch — оба Nominativ после sein, оба получают -er." },
+          why: "der Mann и der Mensch стоят в Nominativ после sein. Оба прилагательных получают -er." },
 
         { type: "fill",
           q: "Das ist ein {alt} Auto, aber es ist ein {gut} Auto.",
           a: ["altes", "gutes"],
           ru: "Это старая машина, но хорошая машина.",
-          why: "das Auto — оба раза -es." },
+          why: "das Auto среднего рода: оба раза -es." },
 
         { type: "choice",
           q: "Meine Schwester hat ___ Haare.",
           opts: ["lang", "lange", "langes"], a: 1,
           ru: "У моей сестры длинные волосы.",
-          why: "die Haare — множественное число, перед ним нет ein-слова, но окончание нужно: lange Haare. Множественное подробно разберём позже." },
+          why: "die Haare во множественном числе. Перед ним нет ein-слова, но окончание нужно: lange Haare. Множественное число подробно разберём позже." },
 
         { type: "translate",
           articleHint: "компьютер: e",
@@ -398,7 +398,7 @@ window.L18 = {
           articleHint: "девушка: e",
           ru: "Она красивая девушка.",
           a: ["Sie ist ein schönes Mädchen.", "Sie ist ein schönes Mädchen", "Sie ist ein hübsches Mädchen.", "Sie ist ein hübsches Mädchen"],
-          why: "das Mädchen — средний род, несмотря на смысл: ein schönes Mädchen." },
+          why: "das Mädchen среднего рода, хотя речь о девушке: ein schönes Mädchen." },
 
         { type: "pairs",
           prompt: "Соедини прилагательное с его противоположностью.",
@@ -408,7 +408,7 @@ window.L18 = {
           q: "Der Bus ist nicht leer, sondern {}. Die Schnecke ist nicht schnell, sondern {}.",
           a: [["voll"], ["langsam"]],
           ru: "Автобус не пустой, а полный. Улитка не быстрая, а медленная.",
-          why: "После sondern прилагательное снова стоит после глагола — окончания нет." }
+          why: "После sondern прилагательное снова стоит после глагола, поэтому окончания нет." }
       ]
     },
     {
@@ -420,19 +420,19 @@ window.L18 = {
           q: "Ich brauche ___ neuen Pullover.",
           opts: ["einen", "ein", "einer"], a: 0,
           ru: "Мне нужен новый свитер.",
-          why: "brauchen требует Akkusativ, der Pullover — мужской род: einen neuen Pullover." },
+          why: "brauchen требует Akkusativ. der Pullover мужского рода: einen neuen Pullover." },
 
         { type: "choice",
           q: "Homer Simpson hat einen ___ Bauch.",
           opts: ["dicken", "dicker", "dickes"], a: 0,
           ru: "У Гомера Симпсона толстый живот.",
-          why: "der Bauch, haben → Akkusativ. Мужской род в Akkusativ: einen dicken Bauch, всё на -n." },
+          why: "der Bauch, haben требует Akkusativ. Мужской род в Akkusativ: einen dicken Bauch, всё на -n." },
 
         { type: "fill",
           q: "Asterix ist ein {klein} Mann. Er hat {blond} Haare und einen {blond} Schnurrbart.",
           a: ["kleiner", "blonde", "blonden"],
           ru: "Астерикс — маленький мужчина. У него светлые волосы и светлые усы.",
-          why: "Nominativ м. р. после sein → -er. Haare — множественное без артикля → -e. der Schnurrbart в Akkusativ → einen blonden." },
+          why: "Мужской род в Nominativ после sein: -er. Haare во множественном числе без артикля: -e. der Schnurrbart в Akkusativ: einen blonden." },
 
         { type: "fill",
           q: "Er trägt ein {schwarz} Hemd und eine {rot} Hose.",
@@ -444,61 +444,61 @@ window.L18 = {
           q: "Homer hat {schmal} Schultern, aber einen {dick} Bauch.",
           a: ["schmale", "dicken"],
           ru: "У Гомера узкие плечи, но толстый живот.",
-          why: "Schultern — множественное без артикля, Akkusativ → -e. Мужской род в Akkusativ → -en." },
+          why: "Schultern во множественном числе без артикля, Akkusativ: -e. Мужской род в Akkusativ: -en." },
 
         { type: "choice",
           q: "Mickey Maus ist ziemlich ___ .",
           opts: ["klein", "kleiner", "kleines"], a: 0,
           ru: "Микки-Маус довольно маленький.",
-          why: "После sein справа нет существительного — прилагательное голое. Классическая ловушка на автопилоте." },
+          why: "После sein справа нет существительного, поэтому прилагательное стоит без окончания. Здесь легко поставить окончание по привычке." },
 
         { type: "fill",
           q: "Supermann ist ein {stark} Mann. Er hat {viel} Muskeln und sehr {breit} Schultern.",
           a: ["starker", "viele", "breite"],
           ru: "Супермен — сильный мужчина. У него много мышц и очень широкие плечи.",
-          why: "Nominativ после sein → starker. viele и breite — множественное в Akkusativ без артикля, оба на -e." },
+          why: "Nominativ после sein: starker. viele и breite стоят во множественном числе в Akkusativ без артикля, оба на -e." },
 
         { type: "fill",
           q: "Seine Haare sind {schwarz} und {lockig}.",
           a: ["schwarz", "lockig"],
           ru: "Его волосы чёрные и кудрявые.",
-          why: "sind — значит прилагательные стоят после глагола. Окончания нет, хотя подлежащее во множественном числе." },
+          why: "Прилагательные стоят после глагола sind. Окончания нет, хотя подлежащее во множественном числе." },
 
         { type: "choice",
           q: "Er trägt einen blauen Anzug, außerdem noch ___ Stiefel.",
           opts: ["rote", "roten", "roter"], a: 0,
           ru: "Он носит синий костюм, а к нему ещё красные сапоги.",
-          why: "die Stiefel — множественное, артикля нет, Akkusativ. Хвост от die → rote Stiefel." },
+          why: "die Stiefel: множественное число, Akkusativ, артикля нет. Хвост от die: rote Stiefel." },
 
         { type: "fill",
           q: "Der Babyschlumpf hat einen {blau} Körper. In seinem Mund hält er einen {grün} Schnuller.",
           a: ["blauen", "grünen"],
           ru: "Малыш-смурф синего цвета. Во рту он держит зелёную соску.",
-          why: "Оба существительных мужского рода в Akkusativ — оба прилагательных на -en." },
+          why: "Оба существительных мужского рода стоят в Akkusativ, поэтому оба прилагательных на -en." },
 
         { type: "fill",
           q: "Das ist kein {gut} Test, das ist ein {schlecht} Test.",
           a: ["guter", "schlechter"],
           ru: "Это не хороший тест, это плохой тест.",
-          why: "kein склоняется точно как ein. Nominativ после sein → -er оба раза." },
+          why: "kein склоняется как ein. Nominativ после sein, поэтому оба раза -er." },
 
         { type: "translate",
           articleHint: "куртка: e",
           ru: "Я покупаю новую куртку.",
           a: ["Ich kaufe eine neue Jacke.", "Ich kaufe eine neue Jacke"],
-          why: "kaufen → Akkusativ, женский род в Akkusativ не меняется: eine neue Jacke." },
+          why: "kaufen требует Akkusativ. Женский род в Akkusativ не меняется: eine neue Jacke." },
 
         { type: "translate",
           articleHint: "нос: e",
           ru: "У него длинный нос.",
           a: ["Er hat eine lange Nase.", "Er hat eine lange Nase"],
-          why: "die Nase — женский род, несмотря на русский мужской. Akkusativ: eine lange Nase." },
+          why: "die Nase женского рода, хотя русское «нос» мужского. Akkusativ: eine lange Nase." },
 
         { type: "translate",
           articleHint: "ребёнок: e",
           ru: "У них маленький ребёнок.",
           a: ["Sie haben ein kleines Kind.", "Sie haben ein kleines Kind"],
-          why: "das Kind — средний род, в Akkusativ форма та же, что в Nominativ: ein kleines Kind." },
+          why: "das Kind среднего рода. В Akkusativ форма та же, что в Nominativ: ein kleines Kind." },
 
         { type: "pairs",
           prompt: "Соедини немецкое слово с переводом.",
@@ -507,68 +507,68 @@ window.L18 = {
     },
     {
       title: "der / die / das + прилагательное",
-      sub: "Слабое склонение и главная ловушка — Akkusativ мужского рода",
+      sub: "Слабое склонение и главная ловушка: Akkusativ мужского рода",
       grammar: [2],
       ex: [
         { type: "choice",
           q: "Der ___ Schüler stört immer.",
           opts: ["freche", "frecher", "frechen"], a: 0,
           ru: "Наглый ученик вечно мешает.",
-          why: "der уже сказал всё: род и Nominativ. Прилагательному остаётся слабое -e." },
+          why: "der уже показал род и Nominativ. Прилагательному остаётся слабое -e." },
 
         { type: "choice",
           q: "Der Lehrer fragt den ___ Schüler.",
           opts: ["gute", "guten", "guter"], a: 1,
           ru: "Учитель спрашивает хорошего ученика.",
-          why: "den — мужской род в Akkusativ, за ним всегда -en. Это подсвеченная клетка таблицы." },
+          why: "den показывает мужской род в Akkusativ. После него всегда -en. Это подсвеченная клетка таблицы." },
 
         { type: "fill",
           q: "Ich lese den {neu} Text und lerne die {lang} Sätze.",
           a: ["neuen", "langen"],
           ru: "Я читаю новый текст и учу длинные предложения.",
-          why: "den + м. р. Akkusativ → -en. die Sätze — множественное, там -en всегда." },
+          why: "den и мужской род в Akkusativ дают -en. die Sätze во множественном числе, там всегда -en." },
 
         { type: "fill",
           q: "Das {klein} Kind spielt draußen. Die {alt} Frau öffnet das Fenster.",
           a: ["kleine", "alte"],
           ru: "Маленький ребёнок играет на улице. Пожилая женщина открывает окно.",
-          why: "Оба Nominativ — верхний ряд таблицы, там везде -e." },
+          why: "Оба слова в Nominativ. Это верхний ряд таблицы, там везде -e." },
 
         { type: "fill",
           q: "Das ist ein {alt} Haus. Das {alt} Haus steht in der Stadt.",
           a: ["altes", "alte"],
           ru: "Это старый дом. Этот старый дом стоит в городе.",
-          why: "Первый раз артикль ein промолчал — прилагательное берёт хвост от das. Второй раз das всё сказало — хватает -e. Одно слово, два окончания." },
+          why: "В первый раз у артикля ein нет сигнала, поэтому прилагательное берёт хвост от das. Во второй раз сигнал даёт das, и хватает -e. Одно слово получает два разных окончания." },
 
         { type: "fill",
           q: "Ein {jung} Mann kommt. Der {jung} Mann fragt den {alt} Lehrer.",
           a: ["junger", "junge", "alten"],
           ru: "Приходит молодой мужчина. Молодой мужчина спрашивает старого учителя.",
-          why: "ein → -er (сигнала нет), der → -e (сигнал есть), den → -en (Akkusativ мужского рода)." },
+          why: "После ein окончание -er, сигнала нет. После der окончание -e, сигнал есть. После den окончание -en, это Akkusativ мужского рода." },
 
         { type: "choice",
           q: "___ Dieb sieht die Polizistin.",
           opts: ["Der junge", "Den jungen", "Der jungen"], a: 0,
           ru: "Молодой вор видит полицейскую.",
-          why: "Подлежащее стоит в Nominativ: der junge Dieb. Кто видит — тот в Nominativ." },
+          why: "Подлежащее стоит в Nominativ: der junge Dieb. Тот, кто видит, стоит в Nominativ." },
 
         { type: "choice",
           q: "Die Polizistin sieht ___ Dieb.",
           opts: ["der junge", "den jungen", "den junge"], a: 1,
           ru: "Полицейская видит молодого вора.",
-          why: "Здесь вор — дополнение: кого видит? Akkusativ мужского рода → den jungen Dieb." },
+          why: "Здесь вор стал дополнением и отвечает на вопрос «кого видит?». Akkusativ мужского рода: den jungen Dieb." },
 
         { type: "fill",
           q: "Der {erst} Dieb ist schlank, der {zweit} Dieb ist dick.",
           a: ["erste", "zweite"],
           ru: "Первый вор стройный, второй вор толстый.",
-          why: "Порядковые числительные склоняются как обычные прилагательные: der erste, der zweite. А schlank и dick после sein остаются голыми." },
+          why: "Порядковые числительные склоняются как обычные прилагательные: der erste, der zweite. А schlank и dick после sein остаются без окончания." },
 
         { type: "choice",
           q: "In welchem Schrank hängt die Hose? — Im ___ Schrank.",
           opts: ["linke", "linken", "linkem"], a: 1,
           ru: "В каком шкафу висят брюки? — В левом шкафу.",
-          why: "im = in dem, Dativ. После определённого артикля в Dativ всегда -en. И links теряет -s: link-." },
+          why: "im значит in dem, это Dativ. После определённого артикля в Dativ всегда -en. А links теряет -s: link-." },
 
         { type: "choice",
           q: "___ Diebe klettern durch das Fenster.",
@@ -586,7 +586,7 @@ window.L18 = {
           articleHint: "учитель: d; ученик: d",
           ru: "Учитель спрашивает наглого ученика.",
           a: ["Der Lehrer fragt den frechen Schüler.", "Der Lehrer fragt den frechen Schüler"],
-          why: "den frechen Schüler — мужской род в Akkusativ, обе формы на -n." },
+          why: "den frechen Schüler: мужской род в Akkusativ, обе формы на -n." },
 
         { type: "pairs",
           prompt: "Соедини форму с падежом.",
@@ -608,37 +608,37 @@ window.L18 = {
           q: "Das Buch gehört ___ Kind.",
           opts: ["einem kleinen", "ein kleines", "einer kleinen"], a: 0,
           ru: "Книга принадлежит маленькому ребёнку.",
-          why: "gehören + Dativ, das Kind → einem kleinen Kind." },
+          why: "gehören требует Dativ, поэтому das Kind становится einem kleinen Kind." },
 
         { type: "fill",
           q: "Er wohnt in einer {klein} Stadt und arbeitet mit einem {nett} Kollegen.",
           a: ["kleinen", "netten"],
           ru: "Он живёт в маленьком городе и работает с приятным коллегой.",
-          why: "in + wo? → Dativ, mit → всегда Dativ. Оба раза -en, род роли не играет." },
+          why: "in на вопрос wo? требует Dativ, mit всегда требует Dativ. Оба раза -en, род не важен." },
 
         { type: "fill",
           q: "Das gehört einem {klein} Kind. Wir helfen {klein} Menschen.",
           a: ["kleinen", "kleinen"],
           ru: "Это принадлежит маленькому ребёнку. Мы помогаем маленьким людям.",
-          why: "Dativ единственного с артиклем → -en. Dativ множественного вообще без артикля → тоже -en." },
+          why: "Dativ единственного числа с артиклем даёт -en. Dativ множественного числа без артикля тоже даёт -en." },
 
         { type: "choice",
           q: "Donald trägt eine Mütze mit ___ Band.",
           opts: ["einem schwarzen", "einen schwarzen", "ein schwarzes"], a: 0,
           ru: "Дональд носит шапку с чёрной лентой.",
-          why: "mit — предлог Dativ, всегда. das Band → einem schwarzen Band. Ловушка: соблазн поставить Akkusativ после trägt." },
+          why: "mit всегда требует Dativ, поэтому das Band становится einem schwarzen Band. Ловушка: хочется поставить Akkusativ после trägt." },
 
         { type: "fill",
           q: "Ich trinke Kaffee mit {kalt} Milch und esse Brot mit {frisch} Butter.",
           a: ["kalter", "frischer"],
           ru: "Я пью кофе с холодным молоком и ем хлеб со свежим маслом.",
-          why: "Артикля нет вовсе. Прилагательное берёт хвост от der Milch / der Butter в Dativ → -er." },
+          why: "Артикля нет. Прилагательное берёт хвост от der Milch / der Butter в Dativ: -er." },
 
         { type: "choice",
           q: "Ich wasche mich mit ___ Wasser.",
           opts: ["kaltem", "kaltes", "kalter"], a: 0,
           ru: "Я умываюсь холодной водой.",
-          why: "das Wasser в Dativ — dem. Артикля нет, прилагательное берёт хвост -m: kaltem Wasser." },
+          why: "У das Wasser в Dativ артикль dem. Артикля нет, поэтому прилагательное берёт хвост -m: kaltem Wasser." },
 
         { type: "fill",
           q: "{Kalt} Kaffee schmeckt nicht. {Frisch} Brot schmeckt gut.",
@@ -650,85 +650,85 @@ window.L18 = {
           q: "Hier sind viele ___ Kinder.",
           opts: ["kleine", "kleinen", "kleiner"], a: 0,
           ru: "Здесь много маленьких детей.",
-          why: "viele не артикль — сигнала нет, прилагательное сигналит само: viele kleine Kinder." },
+          why: "viele не артикль. Сигнала нет, поэтому прилагательное даёт сигнал само: viele kleine Kinder." },
 
         { type: "choice",
           q: "In den ___ Nächten ist es ruhig.",
           opts: ["andere", "anderen", "anderer"], a: 1,
           ru: "В другие ночи тихо.",
-          why: "den — артикль в Dativ Plural, после него -en. И у существительного тоже -n: Nächten." },
+          why: "den здесь артикль в Dativ Plural, после него -en. У существительного тоже -n: Nächten." },
 
         { type: "fill",
           q: "Alle lieben {klein} Tiere. Wir spielen mit {klein} Kindern.",
           a: ["kleine", "kleinen"],
           ru: "Все любят маленьких животных. Мы играем с маленькими детьми.",
-          why: "Akkusativ Plural без артикля → -e. Dativ Plural без артикля → -en, плюс -n у существительного." },
+          why: "Akkusativ Plural без артикля: -e. Dativ Plural без артикля: -en, плюс -n у существительного." },
 
         { type: "fill",
           q: "In dieser {gefährlich} Situation haben die zwei {bös} Diebe eine {gut} Idee.",
           a: ["gefährlichen", "bösen", "gute"],
           ru: "В этой опасной ситуации у двух злых воров появляется хорошая идея.",
-          why: "dieser = Dativ ж. р. → -en. die zwei bösen — множественное после артикля → -en. eine gute Idee — Akkusativ ж. р. → -e." },
+          why: "dieser здесь Dativ женского рода, поэтому -en. die zwei bösen: множественное число после артикля, поэтому -en. eine gute Idee: Akkusativ женского рода, поэтому -e." },
 
         { type: "translate",
           articleHint: "учитель: d",
           ru: "Я говорю с новым учителем.",
           a: ["Ich spreche mit dem neuen Lehrer.", "Ich spreche mit dem neuen Lehrer", "Ich rede mit dem neuen Lehrer.", "Ich rede mit dem neuen Lehrer"],
-          why: "mit dem neuen Lehrer — Dativ, окончание -en." },
+          why: "mit dem neuen Lehrer: Dativ, окончание -en." },
 
         { type: "translate",
           articleHint: "город: e",
           ru: "Он живёт в маленьком городе.",
           a: ["Er wohnt in einer kleinen Stadt.", "Er wohnt in einer kleinen Stadt"],
-          why: "in + wo? → Dativ: in einer kleinen Stadt." },
+          why: "in на вопрос wo? требует Dativ: in einer kleinen Stadt." },
 
         { type: "translate",
           articleHint: "кофе: ∅; молоко: ∅",
           ru: "Я пью кофе с холодным молоком.",
           a: ["Ich trinke Kaffee mit kalter Milch.", "Ich trinke Kaffee mit kalter Milch"],
-          why: "Артикля нет — прилагательное берёт хвост der (Dativ женского рода): kalter Milch." }
+          why: "Артикля нет, поэтому прилагательное берёт хвост der, как в Dativ женского рода: kalter Milch." }
       ]
     },
     {
       title: "Welcher? Was für ein? и подвохи",
-      sub: "Вопросы к прилагательному плюс hoch, dunkel, teuer, rechts",
+      sub: "Вопросы к прилагательному и слова hoch, dunkel, teuer, rechts",
       grammar: [4, 5],
       ex: [
         { type: "choice",
           q: "___ Schüler stört immer? — Der freche Schüler.",
           opts: ["Welcher", "Was für ein", "Welchen"], a: 0,
           ru: "Который ученик вечно мешает? — Наглый ученик.",
-          why: "Ответ с определённым артиклем — значит спрашивали welcher: выбор из известных." },
+          why: "В ответе определённый артикль, значит спрашивали welcher: выбор из известных." },
 
         { type: "choice",
           q: "___ Tag war gestern? — Ein schöner Tag.",
           opts: ["Was für ein", "Welcher", "Was für einen"], a: 0,
           ru: "Что за день был вчера? — Хороший день.",
-          why: "Ответ с неопределённым артиклем — спрашивали о свойстве: was für ein. Nominativ, поэтому ein, не einen." },
+          why: "В ответе неопределённый артикль, значит спрашивали о свойстве: was für ein. Это Nominativ, поэтому ein, а не einen." },
 
         { type: "fill",
           q: "An {welch} Tag hast du Geburtstag? — Am ersten April.",
           a: ["welchem"],
           ru: "В какой день у тебя день рождения? — Первого апреля.",
-          why: "an + wann? → Dativ. welch- склоняется как der: an welchem Tag." },
+          why: "an на вопрос wann? требует Dativ. welch- склоняется как der: an welchem Tag." },
 
         { type: "fill",
           q: "Was für {ein} Mantel hast du gekauft? — Einen warmen Mantel.",
           a: ["einen"],
           ru: "Какое пальто ты купил? — Тёплое пальто.",
-          why: "Падеж задаёт kaufen, а не für: Akkusativ мужского рода → einen." },
+          why: "Падеж задаёт kaufen, а не für. Akkusativ мужского рода: einen." },
 
         { type: "fill",
           q: "In was für {ein} Stadt wohnst du? — In einer kleinen Stadt.",
           a: ["einer"],
           ru: "В каком городе ты живёшь? — В маленьком городе.",
-          why: "Работает предлог in + wo? → Dativ женского рода: einer. für здесь ничем не управляет." },
+          why: "Падеж задаёт предлог in на вопрос «wo?», это Dativ женского рода: einer. für здесь ничем не управляет." },
 
         { type: "choice",
           q: "Mit ___ Hand schreibst du?",
           opts: ["welcher", "welche", "welchem"], a: 0,
           ru: "Какой рукой ты пишешь?",
-          why: "mit + Dativ, die Hand → der Hand → welcher Hand." },
+          why: "mit требует Dativ. die Hand → der Hand → welcher Hand." },
 
         { type: "choice",
           q: "___ Haare hat sie? — Schwarze Haare.",
@@ -740,13 +740,13 @@ window.L18 = {
           q: "Das Haus ist hoch. Es ist ein {hoch} Haus mit einer {hoch} Mauer.",
           a: ["hohes", "hohen"],
           ru: "Дом высокий. Это высокий дом с высокой стеной.",
-          why: "hoch перед существительным теряет -c-: hoh-. das Haus → hohes, mit einer → Dativ → hohen." },
+          why: "hoch перед существительным теряет -c-: hoh-. У das Haus будет hohes. После mit einer стоит Dativ: hohen." },
 
         { type: "fill",
           q: "Das Zimmer ist dunkel. Sie stehen in dem {dunkel} Zimmer an der {dunkel} Straße.",
           a: ["dunklen", "dunklen"],
           ru: "Комната тёмная. Они стоят в тёмной комнате на тёмной улице.",
-          why: "dunkel выбрасывает -e- перед окончанием: dunkl-. Оба раза Dativ → -en." },
+          why: "dunkel выбрасывает -e- перед окончанием: dunkl-. Оба раза Dativ, поэтому -en." },
 
         { type: "choice",
           q: "Das Handy ist teuer. Ich kaufe kein ___ Handy.",
@@ -758,25 +758,25 @@ window.L18 = {
           q: "Er hat im {recht} Ohr einen Ohrring und trägt eine {kariert} Mütze.",
           a: ["rechten", "karierte"],
           ru: "У него в правом ухе серьга, и он носит шапку в клетку.",
-          why: "rechts теряет -s и становится прилагательным: im rechten Ohr (Dativ). kariert — причастие, склоняется как обычное прилагательное." },
+          why: "rechts теряет -s и становится прилагательным: im rechten Ohr, это Dativ. kariert, причастие, склоняется как обычное прилагательное." },
 
         { type: "fill",
           q: "Zwei {stark} Polizisten haben das {laut} Schreien der {alt} Frau gehört.",
           a: ["starke", "laute", "alten"],
           ru: "Два сильных полицейских услышали громкий крик пожилой женщины.",
-          why: "zwei не артикль → starke. das + Akkusativ ср. р. → laute. der Frau — здесь Genitiv женского рода, там тоже -en." },
+          why: "zwei не артикль, поэтому starke. das и Akkusativ среднего рода дают laute. der Frau здесь Genitiv женского рода, там тоже -en." },
 
         { type: "choice",
           q: "Sie trägt eine ___ Jacke.",
           opts: ["rosa", "rosae", "rosaen"], a: 0,
           ru: "Она носит розовую куртку.",
-          why: "В этом стандартном варианте rosa остается без окончания: eine rosa Jacke. Для orange допускаются формы с окончанием; это другое слово." },
+          why: "В стандартном варианте rosa остаётся без окончания: eine rosa Jacke. У orange бывают формы с окончанием, но это другое слово." },
 
         { type: "translate",
           articleHint: "куртка: e",
           ru: "Что за куртку он носит?",
           a: ["Was für eine Jacke trägt er?", "Was für eine Jacke trägt er"],
-          why: "tragen → Akkusativ, женский род: eine Jacke. Форма ein здесь не меняется относительно Nominativ." },
+          why: "tragen требует Akkusativ, женский род: eine Jacke. Форма ein здесь та же, что в Nominativ." },
 
         { type: "translate",
           articleHint: "сумка: e",
@@ -791,7 +791,7 @@ window.L18 = {
     },
     {
       title: "Повторение: все четыре падежа разом",
-      sub: "Смешанные окончания + слова, на которых урок ломался",
+      sub: "Смешанные окончания и слова, на которых чаще всего ошибаются",
       grammar: [1, 2, 3, 5],
       ex: [
         { type: "choice",
@@ -804,58 +804,58 @@ window.L18 = {
           q: "Wir suchen einen ___ Mitarbeiter.",
           opts: ["zuverlässigen", "zuverlässiger", "zuverlässige"], a: 0,
           ru: "Мы ищем надёжного сотрудника.",
-          why: "suchen → Akkusativ. У мужского рода в Akkusativ всё на -n: einen zuverlässigen Mitarbeiter." },
+          why: "suchen требует Akkusativ. У мужского рода в Akkusativ всё на -n: einen zuverlässigen Mitarbeiter." },
 
         { type: "choice",
           q: "Mit ___ Kollegen kann man über alles reden.",
           opts: ["einem zuverlässigen", "einen zuverlässigen", "ein zuverlässiger"], a: 0,
           ru: "С надёжным коллегой можно говорить обо всём.",
-          why: "mit → Dativ: einem zuverlässigen. И сам der Kollege в Dativ получает -n — это n-Deklination." },
+          why: "mit требует Dativ: einem zuverlässigen. Сам der Kollege в Dativ тоже получает -n: это n-Deklination." },
 
         { type: "choice",
           q: "___ Umgebung ist sehr ruhig.",
           opts: ["Die ganze", "Der ganze", "Das ganze"], a: 0,
           ru: "Вся округа очень тихая.",
-          why: "die Umgebung — женский род. Артикль die уже сигналит, прилагательному хватает слабого -e." },
+          why: "die Umgebung женского рода. Артикль die уже даёт сигнал, поэтому прилагательному хватает слабого -e." },
 
         { type: "choice",
           q: "Nur ___ Menschen sagen immer die Wahrheit.",
           opts: ["ehrliche", "ehrlicher", "ehrlichen"], a: 0,
           ru: "Только честные люди всегда говорят правду.",
-          why: "Plural Nominativ без артикля: прилагательное берёт хвост от die → -e." },
+          why: "Plural Nominativ без артикля. Прилагательное берёт хвост от die: -e." },
 
         { type: "fill",
           q: "Das ist eine {wichtig} Bedingung.", a: ["wichtige"],
           ru: "Это важное условие.",
-          why: "die Bedingung, Nominativ: «eine» уже сказала род, прилагательное молчит на -e." },
+          why: "die Bedingung, Nominativ. «eine» уже показала род, поэтому у прилагательного слабое -e." },
 
         { type: "fill",
           q: "Unter einer {wichtig} Bedingung helfe ich dir.", a: ["wichtigen"],
           ru: "При одном важном условии я тебе помогу.",
-          why: "unter → Dativ. В Dativ после einer окончание -en: unter einer wichtigen Bedingung. Без артикля: unter wichtiger Bedingung." },
+          why: "unter требует Dativ. В Dativ после einer окончание -en: unter einer wichtigen Bedingung. Без артикля: unter wichtiger Bedingung." },
 
         { type: "fill",
           q: "Ich nehme an {ein} {interessant} Projekt teil.",
           a: [["einem"], ["interessanten"]],
           ru: "Я участвую в интересном проекте.",
-          why: "teilnehmen an + Dativ. das Projekt → einem, прилагательное в Dativ → -en." },
+          why: "teilnehmen an + Dativ. У das Projekt будет einem, прилагательное в Dativ получает -en." },
 
         { type: "fill",
           q: "Wir verzichten auf {der} {neu} Fernseher.",
           a: [["den"], ["neuen"]],
           ru: "Мы отказываемся от нового телевизора.",
-          why: "verzichten auf + Akkusativ. der Fernseher → den neuen: мужской род в Akkusativ весь на -n." },
+          why: "verzichten auf + Akkusativ. У der Fernseher будет den neuen: мужской род в Akkusativ весь на -n." },
 
         { type: "fill",
           q: "In der {ruhig} Umgebung schlafe ich viel besser.", a: ["ruhigen"],
           ru: "В тихой местности я сплю намного лучше.",
-          why: "in + Dativ (место): der Umgebung. Dativ — стена из -en." },
+          why: "in на вопрос о месте требует Dativ: der Umgebung. В Dativ стена из -en." },
 
         { type: "fill",
           q: "Eigentlich wollte ich nur {ein} {ruhig} Abend zu Hause.",
           a: [["einen"], ["ruhigen"]],
           ru: "Вообще-то я хотел просто тихий вечер дома.",
-          why: "der Abend, прямое дополнение → Akkusativ: einen ruhigen Abend." },
+          why: "der Abend здесь прямое дополнение, поэтому Akkusativ: einen ruhigen Abend." },
 
         { type: "pairs",
           prompt: "Соедини слово с переводом.",
@@ -871,25 +871,25 @@ window.L18 = {
           articleHint: "условие: e",
           ru: "Я помогу тебе при одном условии.",
           a: ["Ich helfe dir unter einer Bedingung.", "Ich helfe dir unter einer Bedingung"],
-          why: "unter + Dativ: unter einer Bedingung. helfen требует Dativ — поэтому dir, а не dich." },
+          why: "unter + Dativ: unter einer Bedingung. helfen требует Dativ, поэтому dir, а не dich." },
 
         { type: "translate",
           articleHint: "проект: e",
           ru: "Мы участвуем в интересном проекте.",
           a: ["Wir nehmen an einem interessanten Projekt teil.", "Wir nehmen an einem interessanten Projekt teil"],
-          why: "teilnehmen отделяемый: teil улетает в конец. an + Dativ → an einem interessanten Projekt." }
+          why: "teilnehmen отделяемый: teil уходит в конец. an + Dativ: an einem interessanten Projekt." }
       ]
     },
     {
       title: "Описание человека: окончания в потоке",
-      sub: "Внешность, одежда, характер — все три склонения в связном тексте",
+      sub: "Внешность, одежда, характер: все три склонения в связном тексте",
       grammar: [2, 3],
       ex: [
         { type: "choice",
           q: "Der Polizist trägt eine ___ Uniform.",
           opts: ["blaue", "blauen", "blauer"], a: 0,
           ru: "Полицейский носит синюю форму.",
-          why: "die Uniform, tragen → Akkusativ. Женский род в Akkusativ не меняется: eine blaue." },
+          why: "die Uniform, tragen требует Akkusativ. Женский род в Akkusativ не меняется: eine blaue." },
 
         { type: "choice",
           q: "Er schaut mit einem ___ Blick nach vorn.",
@@ -901,61 +901,61 @@ window.L18 = {
           q: "Dieser Dieb ist ein {jung} Mann. Er hat einen {schlank} Körper und {dünn} Beine.",
           a: ["junger", "schlanken", "dünne"],
           ru: "Этот вор — молодой мужчина. У него стройное тело и тонкие ноги.",
-          why: "ein + Nominativ м. р. → -er. einen + Akkusativ м. р. → -en. Beine без артикля во множественном → -e." },
+          why: "ein и Nominativ мужского рода: -er. einen и Akkusativ мужского рода: -en. Beine во множественном числе без артикля: -e." },
 
         { type: "fill",
           q: "Er trägt eine {kariert} Mütze und eine {schwarz} Maske.",
           a: ["karierte", "schwarze"],
           ru: "Он носит клетчатую кепку и чёрную маску.",
-          why: "Обе die, Akkusativ: у женского рода форма та же, что в Nominativ, → -e." },
+          why: "Оба раза die, Akkusativ. У женского рода форма та же, что в Nominativ: -e." },
 
         { type: "choice",
           q: "An seiner Hose hängt ein ___ Gürtel.",
           opts: ["schwarzer", "schwarzen", "schwarzes"], a: 0,
           ru: "На его брюках висит чёрный ремень.",
-          why: "Ремень здесь подлежащее: что висит? Nominativ, der Gürtel после ein → -er. Предлог an относится к Hose, не к ремню." },
+          why: "Ремень здесь подлежащее и отвечает на вопрос «что висит?». Это Nominativ: der Gürtel после ein получает -er. Предлог an относится к Hose, а не к ремню." },
 
         { type: "fill",
           q: "Man soll seine {grün} Augen nicht sehen.",
           a: ["grünen"],
           ru: "Его зелёные глаза не должны быть видны.",
-          why: "seine — артикль во множественном, после любого артикля во множественном -en." },
+          why: "seine здесь артикль во множественном числе. После любого артикля во множественном числе -en." },
 
         { type: "fill",
           q: "Außerdem trägt er ein {grau} Hemd mit einer {braun} Weste.",
           a: ["graues", "braunen"],
           ru: "Кроме того, на нём серая рубашка с коричневым жилетом.",
-          why: "das Hemd после ein → хвост от das: -es. mit einer — Dativ → -en." },
+          why: "У das Hemd после ein прилагательное берёт хвост от das: -es. mit einer требует Dativ: -en." },
 
         { type: "choice",
           q: "Die Hose ist blau-weiß ___.",
           opts: ["gestreift", "gestreifte", "gestreiften"], a: 0,
           ru: "Брюки в сине-белую полоску.",
-          why: "После sein справа нет существительного — окончания нет, даже у причастия." },
+          why: "После sein справа нет существительного, поэтому окончания нет, даже у причастия." },
 
         { type: "fill",
           q: "An der {recht} Seite hängen zwei {alt} Schlüssel.",
           a: ["rechten", "alte"],
           ru: "С правой стороны висят два старых ключа.",
-          why: "an der + wo? → Dativ, после артикля -en. zwei — не артикль, сигнала нет → -e." },
+          why: "an der отвечает на вопрос wo?, это Dativ: после артикля -en. zwei не артикль, сигнала нет, поэтому -e." },
 
         { type: "fill",
           q: "Obelix hat immer {gut} Laune, aber er ist oft {hungrig}.",
           a: ["gute", "hungrig"],
           ru: "У Обеликса всегда хорошее настроение, но он часто голоден.",
-          why: "die Laune без артикля в Akkusativ → -e. hungrig стоит после ist — окончания нет, поле остаётся пустым." },
+          why: "die Laune без артикля в Akkusativ: -e. hungrig стоит после ist, поэтому окончания нет и поле остаётся пустым." },
 
         { type: "choice",
           q: "Er wohnt in einem ___ Haus.",
           opts: ["hohen", "hohem", "hochen"], a: 0,
           ru: "Он живёт в высоком доме.",
-          why: "hoch теряет -c- перед окончанием: hoh-. in + wo? → Dativ, после einem → -en." },
+          why: "hoch теряет -c- перед окончанием: hoh-. in на вопрос wo? требует Dativ, после einem будет -en." },
 
         { type: "fill",
           q: "Frau Kümmel ist eine {alt} Nachbarin mit {weiß} Haaren.",
           a: ["alte", "weißen"],
           ru: "Госпожа Кюммель — пожилая соседка с седыми волосами.",
-          why: "eine + Nominativ ж. р. → -e. mit + Dativ множественного без артикля → -en, и у существительного тоже -n." },
+          why: "eine и Nominativ женского рода: -e. mit требует Dativ. Во множественном числе без артикля это -en, и у существительного тоже -n." },
 
         { type: "pairs",
           prompt: "Соедини слово внешности с переводом.",
@@ -965,19 +965,19 @@ window.L18 = {
           articleHint: "волосы: ∅",
           ru: "У него короткие светлые волосы.",
           a: ["Er hat kurze blonde Haare.", "Er hat kurze blonde Haare", "Er hat kurze, blonde Haare."],
-          why: "Haare без артикля во множественном, оба прилагательных сигналят сами: kurze blonde." },
+          why: "Haare во множественном числе без артикля, поэтому оба прилагательных дают сигнал сами: kurze blonde." },
 
         { type: "translate",
           articleHint: "платье: e",
           ru: "Она носит длинное красное платье.",
           a: ["Sie trägt ein langes rotes Kleid.", "Sie trägt ein langes rotes Kleid", "Sie trägt ein langes, rotes Kleid."],
-          why: "das Kleid после ein → хвост от das: langes rotes." },
+          why: "У das Kleid после ein прилагательные берут хвост от das: langes rotes." },
 
         { type: "translate",
           articleHint: "полицейский: d; вор: d",
           ru: "Полицейский смотрит на молодого вора.",
           a: ["Der Polizist schaut den jungen Dieb an.", "Der Polizist sieht den jungen Dieb an.", "Der Polizist schaut den jungen Dieb an", "Der Polizist sieht den jungen Dieb an", "Der Polizist betrachtet den jungen Dieb."],
-          why: "ansehen / anschauen + Akkusativ: den jungen Dieb. Мужской род в Akkusativ — главная ловушка урока." }
+          why: "ansehen / anschauen + Akkusativ: den jungen Dieb. Мужской род в Akkusativ остаётся главной ловушкой урока." }
       ]
     }
   ],

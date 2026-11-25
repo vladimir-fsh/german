@@ -3,38 +3,38 @@
 window.L19 = {
   n: 19,
   title: "Nebensätze 1: weil, dass",
-  ru: "Придаточные с weil и dass: глагол уезжает в конец",
+  ru: "Придаточные с weil и dass: глагол уходит в конец",
 
   grammar: [
     {
-      title: "Придаточное: глагол уезжает в конец",
+      title: "Придаточное: глагол уходит в конец",
       html: `
-<p>До этого урока все предложения были простыми: глагол стоял на втором месте и никуда не двигался. Придаточное предложение (<span class="de">Nebensatz</span>) ломает эту привычку ровно в одном месте — <b>спрягаемый глагол уходит в самый конец</b>.</p>
+<p>До этого урока глагол всегда стоял на втором месте. В придаточном предложении (<span class="de">Nebensatz</span>) меняется одно: <b>спрягаемый глагол уходит в самый конец</b>.</p>
 
 <div class="ex"><span class="de">Ich bleibe zu Hause. <b>→</b> Ich bleibe zu Hause, weil ich krank <b>bin</b>.</span>
 <span class="ru">Я остаюсь дома. → Я остаюсь дома, потому что я болен.</span></div>
 
 <div class="hack">
-  <span class="lbl">Хак № 1 · глагол — последний вагон</span>
-  Увидел <span class="de">weil</span> или <span class="de">dass</span> — сразу возьми спрягаемый глагол и прицепи его в самый хвост.
+  <span class="lbl">Хак № 1 · прицепи глагол последним вагоном</span>
+  Видишь <span class="de">weil</span> или <span class="de">dass</span>? Перенеси спрягаемый глагол в самый конец.
   <span class="big">weil · ich · krank · <u>bin</u></span>
-  Запятая перед союзом обязательна: в немецком она не «по интонации», а по грамматике.
+  Перед союзом всегда ставь запятую. В немецком её требует грамматика, а не интонация.
 </div>
 
 <div class="flow">
   <div class="step"><div class="txt">Скажи мысль простым предложением.<i>Ich bin krank.</i></div></div>
   <div class="step"><div class="txt">Поставь запятую и союз.<i>…, weil ich bin krank</i></div></div>
-  <div class="step"><div class="txt">Возьми спрягаемый глагол и отправь в конец.<i>…, weil ich krank <span class="end">bin</span>.</i></div></div>
+  <div class="step"><div class="txt">Перенеси спрягаемый глагол в конец.<i>…, weil ich krank <span class="end">bin</span>.</i></div></div>
 </div>
 
-<div class="note"><b>Это главная ошибка урока.</b> <span class="de">weil ich <b>bin</b> krank</span> — так говорить нельзя, хотя по-русски порядок именно такой. Правильно только <span class="de">weil ich krank <b>bin</b></span>.</div>
+<div class="note"><b>Это главная ошибка урока.</b> <span class="de">weil ich <b>bin</b> krank</span> повторяет русский порядок слов. Так говорить нельзя. Правильно только <span class="de">weil ich krank <b>bin</b></span>.</div>
 `
     },
 
     {
-      title: "weil или denn — один смысл, разный порядок слов",
+      title: "weil или denn: один смысл, разный порядок слов",
       html: `
-<p>Оба переводятся «потому что». Разница не в значении, а в том, трогают ли они порядок слов.</p>
+<p>Оба союза значат «потому что». Разница только в порядке слов после них.</p>
 
 <div class="matrix" style="grid-template-columns: repeat(4, 1fr)">
   <div class="cell head">союз</div><div class="cell head">подлежащее</div><div class="cell head">…</div><div class="cell head">глагол</div>
@@ -42,31 +42,31 @@ window.L19 = {
   <div class="cell n"><b>weil</b>союз</div><div class="cell">ich</div><div class="cell">krank</div><div class="cell hl"><b>bin</b>глагол здесь</div>
 </div>
 
-<p>Подвижна ровно одна клетка — место глагола. Всё остальное в двух строчках одинаково.</p>
+<p>Меняется одна клетка: место глагола. Остальное в двух строках совпадает.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 2 · denn ничего не двигает</span>
-  <span class="de">denn</span> — это просто «и вот почему», после него предложение остаётся как было.
+  <span class="lbl">Хак № 2 · после denn ничего не двигай</span>
+  <span class="de">denn</span> значит «и вот почему». После него оставь обычный порядок слов.
   <span class="big">denn → всё на местах<br>weil → глагол в хвост</span>
 </div>
 
-<div class="rhyme">denn — <span>как есть</span>, weil — <span>глагол в хвост</span></div>
+<div class="rhyme">denn: <span>как есть</span>, weil: <span>глагол в хвост</span></div>
 
 <div class="ex"><span class="de">Ich gehe nicht schwimmen, <b>denn</b> das Wasser <b>ist</b> zu kalt.<br>Ich gehe nicht schwimmen, <b>weil</b> das Wasser zu kalt <b>ist</b>.</span>
 <span class="ru">Я не пойду купаться, потому что вода слишком холодная.</span></div>
 
-<div class="note">На вопрос <span class="de">Warum?</span> в разговоре чаще отвечают через <span class="de">weil</span>, а коротким ответом — просто придаточным: <span class="de">Warum bleibst du zu Hause? — Weil ich krank bin.</span></div>
+<div class="note">На вопрос <span class="de">Warum?</span> в разговоре чаще отвечают с <span class="de">weil</span>. Короткий ответ состоит из одного придаточного: <span class="de">Warum bleibst du zu Hause? — Weil ich krank bin.</span></div>
 `
     },
 
     {
-      title: "dass — упаковка целого предложения",
+      title: "dass упаковывает целое предложение",
       html: `
-<p><span class="de">dass</span> превращает целое предложение в одно дополнение — «то, что …». Глагол при этом ведёт себя так же: уезжает в конец.</p>
+<p><span class="de">dass</span> превращает целое предложение в одно дополнение со смыслом «то, что …». Глагол и здесь уходит в конец.</p>
 
 <div class="cut">
   Er <span class="tail">kommt</span> morgen. <span class="arrow">→</span> Ich weiß, dass er morgen <span class="tail">kommt</span>.
-  <small>глагол переехал в хвост</small>
+  <small>глагол ушёл в конец</small>
 </div>
 
 <p>Глаголы, после которых обычно идёт <span class="de">dass</span>: <span class="de">sagen, wissen, glauben, hoffen, denken, finden, meinen, versprechen</span>.</p>
@@ -76,29 +76,29 @@ window.L19 = {
 
 <div class="hack">
   <span class="lbl">Хак № 3 · сначала скажи без dass</span>
-  Составь простую фразу, потом упакуй её: поставь <span class="de">dass</span> и пни глагол в конец.
+  Составь простую фразу. Потом поставь перед ней <span class="de">dass</span> и перенеси глагол в конец.
   <span class="big">Er hat recht. → Ich glaube, dass er recht <u>hat</u>.</span>
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 4 · проверка на «это»</span>
-  <span class="de">das</span> с одной <b>s</b> — артикль или «это/которое», его можно заменить на <span class="de">dieses</span> или <span class="de">welches</span>.
-  <span class="de">dass</span> с двумя — союз «что», заменить нельзя ничем.
+  <span class="lbl">Хак № 4 · подставь «это»</span>
+  <span class="de">das</span> с одной <b>s</b> бывает артиклем, словом «это» или словом «которое». Его можно заменить на <span class="de">dieses</span> или <span class="de">welches</span>.
+  Союз «что» пишется <span class="de">dass</span>, с двумя буквами. Его заменить нечем.
   <span class="big">Das Auto, <u>das</u> dort steht … · Ich weiß, <u>dass</u> es teuer ist.</span>
 </div>
 
-<div class="note"><b>Ловушка.</b> <span class="de">Ich weiß, das er kommt</span> — ошибка в одной букве, но предложение разваливается. Если по-русски стоит «что» и дальше идёт целое предложение — пиши <span class="de">dass</span>.</div>
+<div class="note"><b>Ловушка.</b> В <span class="de">Ich weiß, das er kommt</span> ошибка всего в одной букве, но предложение уже неправильное. Если по-русски стоит «что», а за ним целое предложение, пиши <span class="de">dass</span>.</div>
 `
     },
 
     {
       title: "Когда глаголов в конце несколько",
       html: `
-<p>Сложность не в самом правиле, а в случаях, где глагольных форм две. Порядок всегда один и тот же.</p>
+<p>Труднее всего, когда глагольных форм две. Порядок у них всегда один.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 5 · хозяин заходит последним</span>
-  Спрягаемая форма (та, что согласуется с подлежащим) стоит <b>в самом конце</b>, остальные глаголы — перед ней.
+  <span class="lbl">Хак № 5 · пропусти хозяина последним</span>
+  Хозяином назовём спрягаемую форму, которая согласуется с подлежащим. Ставь её <b>в самый конец</b>, остальные глаголы перед ней.
   <span class="big">… arbeiten <u>muss</u> · … gekommen <u>ist</u> · … gemacht <u>haben</u></span>
 </div>
 
@@ -111,14 +111,14 @@ window.L19 = {
 
 <div class="note"><b>Ловушка с отделяемой приставкой.</b> В придаточном <span class="de">ab</span> возвращается к глаголу и пишется слитно: <span class="de">weil der Zug um sechs <b>abfährt</b></span>, а не <span class="de">ab fährt</span> и не <span class="de">fährt ab</span>.</div>
 
-<div class="note"><b>Ловушка с местоимением.</b> Возвратное <span class="de">sich</span> остаётся сразу после подлежащего, а не уезжает с глаголом: <span class="de">weil ich <b>mich</b> bei der Küchenarbeit nicht schmutzig machen möchte</span>.</div>
+<div class="note"><b>Ловушка с местоимением.</b> Возвратное <span class="de">sich</span> остаётся сразу после подлежащего и не уходит в конец вместе с глаголом: <span class="de">weil ich <b>mich</b> bei der Küchenarbeit nicht schmutzig machen möchte</span>.</div>
 `
     },
 
     {
-      title: "Придаточное впереди: запятая — это место № 1",
+      title: "Придаточное впереди занимает место № 1",
       html: `
-<p>Придаточное можно поставить первым. Тогда оно целиком занимает первое место в главном предложении, а сразу после запятой идёт глагол главного — как в любом предложении с чем-то на первом месте.</p>
+<p>Придаточное можно поставить первым. Тогда оно целиком занимает место № 1 в главном предложении. Сразу после запятой идёт глагол главного предложения: глагол, как всегда, стоит на втором месте.</p>
 
 <div class="cut">
   Ich gehe ins Bett, <span class="tail">weil ich müde bin</span>. <span class="arrow">→</span> <span class="tail">Weil ich müde bin</span>, <b>gehe</b> ich ins Bett.
@@ -126,15 +126,15 @@ window.L19 = {
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 6 · запятая = место № 2</span>
-  Придаточное впереди считается за одно слово. Значит следующая позиция — вторая, а на второй позиции всегда глагол.
+  <span class="lbl">Хак № 6 · после запятой ставь глагол</span>
+  Считай придаточное впереди одним словом. Тогда следующая позиция вторая, а на второй позиции всегда стоит глагол.
   <span class="big">[Weil ich müde bin], <u>gehe</u> ich ins Bett.</span>
 </div>
 
 <div class="ex"><span class="de">Weil es regnet, <b>bleiben</b> wir zu Hause. · Weil er kein Geld hat, <b>kann</b> er nicht mitkommen.</span>
 <span class="ru">Так как идёт дождь, мы остаёмся дома. · Так как у него нет денег, он не может пойти с нами.</span></div>
 
-<div class="note"><b>Ловушка.</b> <span class="de">Weil es regnet, wir bleiben zu Hause</span> — самая частая ошибка при вынесенном придаточном. Подлежащее и глагол меняются местами: сначала <span class="de">bleiben</span>, потом <span class="de">wir</span>.</div>
+<div class="note"><b>Ловушка.</b> Самая частая ошибка с придаточным впереди: <span class="de">Weil es regnet, wir bleiben zu Hause</span>. Поменяй местами подлежащее и глагол: сначала <span class="de">bleiben</span>, потом <span class="de">wir</span>.</div>
 
 <div class="note">С <span class="de">denn</span> так нельзя: <span class="de">denn</span> никогда не стоит в начале предложения.</div>
 `
@@ -144,20 +144,20 @@ window.L19 = {
   days: [
     {
       title: "weil: причина и глагол в конце",
-      sub: "weil против denn, несколько глаголов, вынесенное придаточное",
+      sub: "weil против denn, несколько глаголов, придаточное впереди",
       grammar: [0, 1, 3, 4],
       ex: [
         { type: "choice",
           prompt: "Какой вариант правильный?",
           q: "Я остаюсь дома, потому что я болен.",
           opts: ["Ich bleibe zu Hause, weil ich krank bin.", "Ich bleibe zu Hause, weil ich bin krank.", "Ich bleibe zu Hause, weil bin ich krank."], a: 0,
-          why: "После weil спрягаемый глагол уходит в самый конец: weil ich krank bin. Русский порядок здесь сбивает — это главная ошибка урока." },
+          why: "После weil спрягаемый глагол уходит в самый конец: weil ich krank bin. Русский порядок слов здесь сбивает. Это главная ошибка урока." },
 
         { type: "choice",
           prompt: "Какой вариант правильный?",
           q: "Я не пойду купаться, потому что вода слишком холодная.",
           opts: ["Ich gehe nicht schwimmen, denn das Wasser ist zu kalt.", "Ich gehe nicht schwimmen, denn das Wasser zu kalt ist.", "Ich gehe nicht schwimmen, denn ist das Wasser zu kalt."], a: 0,
-          why: "denn порядок слов не трогает: после него обычное предложение, глагол на втором месте. Двигает только weil." },
+          why: "denn не меняет порядок слов: после него идёт обычное предложение с глаголом на втором месте. Глагол в конец уходит только после weil." },
 
         { type: "choice",
           q: "Er kann heute nicht kommen, weil er ___ .",
@@ -169,25 +169,25 @@ window.L19 = {
           q: "Die Schüler lachen, weil sie ihre Hausaufgaben nicht gemacht {}.",
           a: ["haben"],
           ru: "Ученики смеются, потому что не сделали домашнее задание.",
-          why: "Perfekt в придаточном: Partizip gemacht, а спрягаемое haben — в самом конце." },
+          why: "Perfekt в придаточном: сначала Partizip gemacht, потом спрягаемое haben в самом конце." },
 
         { type: "fill",
           q: "Ich trage eine Schürze, weil ich mich bei der Küchenarbeit nicht schmutzig machen {}.",
           a: [["möchte", "will"]],
           ru: "Я ношу фартук, потому что не хочу испачкаться во время готовки.",
-          why: "Модальный глагол — спрягаемый, поэтому он последний, после machen. Возвратное mich при этом остаётся сразу после ich." },
+          why: "Модальный глагол здесь спрягаемый, поэтому он стоит последним, после machen. Возвратное mich остаётся сразу после ich." },
 
         { type: "choice",
           q: "Sie ist müde, weil sie zu spät ___ .",
           opts: ["ins Bett gegangen ist", "ist ins Bett gegangen", "gegangen ins Bett ist"], a: 0,
           ru: "Она устала, потому что поздно легла спать.",
-          why: "В Perfekt вспомогательный глагол ist уезжает за Partizip: … gegangen ist." },
+          why: "В Perfekt вспомогательный глагол ist уходит в конец, за Partizip: … gegangen ist." },
 
         { type: "fill",
           q: "Der Junge schämt sich, weil alle über ihn {}.",
           a: ["lachen"],
           ru: "Мальчику стыдно, потому что все над ним смеются.",
-          why: "Подлежащее alle — глагол во множественном числе и в конце: lachen." },
+          why: "Подлежащее alle требует глагол во множественном числе. Глагол стоит в конце: lachen." },
 
         { type: "fill",
           q: "Ich komme später. Mein Bus hat Verspätung. → Ich komme später, {weil} mein Bus Verspätung {}.",
@@ -205,13 +205,13 @@ window.L19 = {
           q: "Warum trägst du eine Schürze? — {Weil} ich nicht schmutzig werden {}.",
           a: [["weil"], ["will", "möchte"]],
           ru: "Почему ты в фартуке? — Потому что не хочу испачкаться.",
-          why: "Короткий ответ на Warum — это одно придаточное. Порядок в нём тот же: спрягаемое will последнее." },
+          why: "Короткий ответ на Warum состоит из одного придаточного. Порядок в нём тот же: спрягаемое will стоит последним." },
 
         { type: "fill",
           q: "Sie ist glücklich, weil ihr Sohn die Prüfung {} hat.",
           a: ["bestanden"],
           ru: "Она счастлива, потому что её сын сдал экзамен.",
-          why: "Partizip bestanden стоит перед hat: в придаточном спрягаемый глагол закрывает предложение." },
+          why: "Partizip bestanden стоит перед hat, потому что в придаточном спрягаемый глагол стоит последним." },
 
         { type: "pairs",
           prompt: "Соедини слово урока с переводом.",
@@ -227,13 +227,13 @@ window.L19 = {
           articleHint: "",
           ru: "Мы остаёмся дома, потому что идёт дождь.",
           a: ["Wir bleiben zu Hause, weil es regnet.", "Wir bleiben zu Hause, weil es regnet"],
-          why: "«Идёт дождь» — es regnet. В придаточном regnet встаёт в конец." },
+          why: "«Идёт дождь» по-немецки es regnet. В придаточном regnet стоит в конце." },
 
         { type: "translate",
           articleHint: "деньги: kein- (отрицание)",
           ru: "Так как у него нет денег, он не может пойти с нами.",
           a: ["Weil er kein Geld hat, kann er nicht mitkommen.", "Weil er kein Geld hat, kann er nicht mitkommen"],
-          why: "Придаточное впереди занимает место № 1, поэтому сразу после запятой идёт глагол главного: kann er, а не er kann." }
+          why: "Придаточное впереди занимает место № 1, поэтому сразу после запятой идёт глагол главного предложения: kann er, а не er kann." }
       ]
     }
   ],
