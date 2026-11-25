@@ -44,14 +44,11 @@ window.PhraseView = (function () {
       section.appendChild(top);
       section.appendChild(el("div", "muted phrase-interval", window.VocabTraining.interval(current.schedule)));
       var card = el("div", "card phrase-card");
-      card.appendChild(el("h2", null, esc(w.title)));
-      card.appendChild(el("p", "muted", esc(w.context)));
       var prompt = el("p", "phrase-prompt", esc(reverse ? w.de : w.ru));
       prompt.lang = reverse ? "de" : "ru"; card.appendChild(prompt);
       if (revealed) {
         var answer = el("div", "phrase-answer");
         answer.setAttribute("aria-live", "polite");
-        answer.appendChild(el("div", "muted", "Возможный вариант"));
         var text = el("p", "phrase-sample", esc(reverse ? w.ru : w.de));
         text.lang = reverse ? "ru" : "de"; answer.appendChild(text);
         card.appendChild(answer);
