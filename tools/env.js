@@ -33,6 +33,7 @@ function load(files, opts) {
     hidden: false,
     addEventListener: on,
     getElementById: function () { return null; },
+    querySelector: function () { return null; },
     createElement: function () { return { style: {}, dataset: {}, classList: { add: function () {}, remove: function () {} } }; }
   };
   win.addEventListener = on;
