@@ -527,26 +527,6 @@ test("удаление задания переживает перезагруз�
   assert.throws(() => a.Store.mutate("exerciseDelete", { id: "L18D0-0", ex, reason: "" }));
 });
 
-test("пропуск сохраняется только в сессии и не меняет отметку уже пройденного дня", () => {
-  const w = env.load(SYNC.concat(["js/practice.js"]));
-  const ex = [{ type: "fill", q: "{}", a: ["a"] }, { type: "fill", q: "{}", a: ["b"] }];
-  const run = w.Practice.create(18, 0, ex);
-  run.records = [{ omitted: "skipped", draft: { values: ["черновик"] } }, { result: { ok: true } }];
-  run.i = 2; w.Practice.save(run);
-  const reload = env.load(SYNC.concat(["js/practice.js"]), { storage: w.localStorage._dump() });
-  const restored = reload.Practice.load(18, 0, ex), stats = reload.Practice.stats(restored);
-  assert.equal(stats.skipped, 1); assert.equal(stats.answered, 1); assert.equal(stats.correct, 1);
-  reload.Store.mutate("practiceDone", { n: 18, di: 0, score: 1, of: 1, records: run.records, attemptId: "partial" });
-  assert.equal(reload.Store.state().done.L18D0, undefined);
-  assert.equal(reload.Store.state().totalTried, 0);
-  reload.Store.mutate("dayDone", { n: 18, di: 0, score: 2, of: 2 });
-  reload.Store.mutate("practiceDone", { n: 18, di: 0, score: 1, of: 1, records: run.records, attemptId: "partial2" });
-  assert.equal(reload.Store.state().done.L18D0.score, 2);
-  assert.equal(reload.Store.state().attempts.at(-1).partial, true);
-  reload.Practice.remove(18, 0);
-  assert.equal(reload.Practice.create(18, 0, ex).records.length, 0);
-});
-
 test("удалённый пример не используется вариантом другого задания", () => {
   const w = env.load(SYNC.concat(["js/review.js"]));
   const ex = { type: "fill", q: "a {}", a: ["a"], skill: "test" };

@@ -68,7 +68,7 @@ node --test tools/test-updates.js
 node --test tools/test-tutor.js
 node --test tools/test-tutor-session.js
 node --test tools/test-vocab-training.js tools/test-vocab-gestures.js
-node --test tools/test-exercise-attempt.js
+node --test tools/test-exercise-attempt.js tools/test-exercise-run.js
 node --test tools/test-tutor-request.js
 node --test tools/test-tutor-gateway.js
 node --test tools/test-word-explanations.js

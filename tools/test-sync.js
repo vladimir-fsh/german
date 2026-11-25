@@ -78,22 +78,6 @@ async function testReadyFromDisk() {
   ok("диск поднял состояние", win.Store.ready() === true);
 }
 
-/* ---------- 8б. день, засчитанный кнопкой ---------- */
-async function testManualDay() {
-  console.log("\nдень засчитан кнопкой: результат только по сохранённым ответам");
-  var win = env.load(SYNC, {});
-  var S = win.Store.mutate("dayDone", { n: 19, di: 0, score: 1, of: 2, manual: true, attemptId: "run-a", records: [] });
-  eq("день готов", !!S.done.L19D0, true);
-  eq("в отметке дня пометка ручного", S.done.L19D0.manual, true);
-  eq("результат из сохранённых ответов", S.done.L19D0.score + "/" + S.done.L19D0.of, "1/2");
-  eq("в истории пометка ручного", S.attempts[S.attempts.length - 1].manual, true);
-  S = win.Store.mutate("dayDone", { n: 19, di: 1, score: 0, of: 0, manual: true });
-  eq("без ответов — день готов", !!S.done.L19D1, true);
-  eq("без ответов — истории не добавилось", S.attempts.length, 1);
-  S = win.Store.mutate("dayDone", { n: 19, di: 2, score: 5, of: 5, attemptId: "run-b", records: [] });
-  eq("обычный день без пометки", S.done.L19D2.manual, undefined);
-}
-
 /* ---------- 9. возврат к приложению перерисовывает интерфейс ---------- */
 async function testResumeRedraws() {
   console.log("\nвозврат видимости будит интерфейс");
@@ -123,7 +107,6 @@ async function testResumeRedraws() {
   await testLocalMutationSurvives();
   await testReadyFresh();
   await testReadyFromDisk();
-  await testManualDay();
   await testResumeRedraws();
   console.log("\n" + pass + " ok, " + fail + " fail");
   process.exit(fail ? 1 : 0);
