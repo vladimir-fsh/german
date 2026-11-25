@@ -631,3 +631,15 @@ test('повторить не выбирает ошибку до 12 часов; 
   h.saved({...saved,first:{}}); run = h.training.open('repeat');
   assert.equal(run.current().card.key, 'V:Test|ru');
 });
+
+test("правка объяснения задания не сбрасывает начатый день, а правка ответа сбрасывает", () => {
+  const w = env.load(SYNC.concat(["js/practice.js"]));
+  const ex = [{ type: "fill", q: "{}", a: ["a"], why: "старое объяснение" }, { type: "fill", q: "{}", a: ["b"] }];
+  const run = w.Practice.create(18, 0, ex);
+  run.records = [{ result: { ok: true } }]; run.i = 1; w.Practice.save(run);
+  const reload = env.load(SYNC.concat(["js/practice.js"]), { storage: w.localStorage._dump() });
+  const reworded = [Object.assign({}, ex[0], { why: "новое объяснение" }), ex[1]];
+  assert.equal(reload.Practice.load(18, 0, reworded).i, 1);
+  const changed = [Object.assign({}, ex[0], { a: ["c"] }), ex[1]];
+  assert.equal(reload.Practice.load(18, 0, changed), null);
+});

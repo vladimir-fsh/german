@@ -4,7 +4,7 @@ window.Practice = (function () {
   var KEY = "de-b1-days-v2", LEGACY = "de-b1-day-v1", memory = {}, dirty = false, blockedDrafts = false;
   function stamp() { return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10); }
   function fingerprint(exercises) {
-    return JSON.stringify(exercises.map(function (ex) { var copy = JSON.parse(JSON.stringify(ex)); delete copy.skill; delete copy.articleHint; return copy; }));
+    return JSON.stringify(exercises.map(function (ex) { var copy = JSON.parse(JSON.stringify(ex)); delete copy.skill; delete copy.articleHint; delete copy.why; return copy; }));
   }
   function read() {
     if (dirty) return memory;
