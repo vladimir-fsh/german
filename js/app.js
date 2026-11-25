@@ -123,8 +123,6 @@
     hero.innerHTML =
       '<div class="kicker">' + esc(C.pace) + "</div>" +
       "<h1>" + esc(C.title) + "</h1>" +
-      '<div class="muted">Курс собран на базе упражнений lehrerlenz.de, Lektionen 18–32. ' +
-      "Доступны " + ready.length + " из " + C.lessons.length + " уроков. Процент показывает выполнение доступных заданий, а не готовность к B1.</div>" +
       '<div class="bar"><i style="width:' + (loading ? 0 : pct) + '%"></i></div>' +
       '<div class="stats">' +
       '<div class="stat"><b>' + (loading ? "—" : doneDays + " / " + totalDays) + "</b><span>доступных дней выполнено</span></div>" +
@@ -150,16 +148,7 @@
 
     var ws = vocab;
     var vcard = el("div", "card");
-    vcard.innerHTML = "<h2>Словарь</h2>" +
-      '<div class="muted">Закрытые слова включают прежнее расписание и вашу самооценку. ' +
-      "Это не подтверждение знания. Новые карточки продолжают повторяться.</div>" + vocabBar(ws, loading);
-    if (!loading && !S.calibrated) {
-      vcard.appendChild(el("div", "note",
-        "Слова пока берутся с самой ходовой ступени, поэтому попадается лёгкое. " +
-        "Калибровка проходит по четыре слова с каждой ступени: знакомое закрывается сразу, " +
-        "а стартовая группа слов выбирается по самооценке. Это не тест уровня языка."));
-    }
-
+    vcard.innerHTML = "<h2>Словарь</h2>" + vocabBar(ws, loading);
     var vrow = el("div", "btnrow");
     if (!loading && !S.calibrated) {
       var vbc = el("button", "btn", "Подобрать слова");
@@ -196,7 +185,6 @@
     pr.disabled = loading || (!!phraseSession && !phraseRepeat) || (!phraseRepeat && !phrases.repeat);
     pr.onclick = function () { go("/phrases/repeat"); };
     prow.appendChild(pr);
-    if (phraseSession && !loading) pc.appendChild(el("p", "muted", phraseRepeat ? "Продолжить повторение" : "Продолжить обучение"));
     pc.appendChild(prow); app.appendChild(pc);
 
     var list = el("div", "card");
