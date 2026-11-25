@@ -2,6 +2,8 @@
    Учебный день и повтор ошибок сохраняют разные правила записи прогресса. */
 window.ExerciseAttempt = (function () {
   "use strict";
+  /* Задание уже проверено: результат в записи или в сохранённом черновике. */
+  function checked(record) { return !!(record && (record.result || (record.draft && record.draft.result))); }
   function create(options) {
     var store = options.store, engine = options.engine;
     function mount(run, index, ex, host, view, policy) {
@@ -64,5 +66,5 @@ window.ExerciseAttempt = (function () {
     }
     return { day: day, review: review };
   }
-  return { create: create };
+  return { create: create, checked: checked };
 })();

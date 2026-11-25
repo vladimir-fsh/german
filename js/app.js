@@ -9,7 +9,7 @@
      чтение состояния и вызов мутаций — прямых присваиваний в S больше нет. */
   var Store = window.Store;
   var S = Store.state();
-  var attempts = window.ExerciseAttempt.create({ store: Store, engine: E,
+  var runs = window.ExerciseRun.create({ store: Store, engine: E,
     practice: window.Practice, sessions: window.Sessions, review: window.ReviewPlan });
   var working = false, routeId = 0, disposeCloud = null, disposeUpdates = null, disposeVocab = null;
 
@@ -50,11 +50,6 @@
     var total = L.days.length, k = 0;
     for (var i = 0; i < total; i++) if (isDayDone(n, i)) k++;
     return Math.round((k / total) * 100);
-  }
-  function touchStreak() {
-    var today = window.ProgressData.day(new Date());
-    if (S.lastDay === today) return;
-    S = Store.mutate("touchDay", { day: today });
   }
 
   /* очередь повторения: id -> {box, due, ex, lesson} */
@@ -346,12 +341,8 @@
     if (!day) return go("/l" + n);
     if (Store.blocked()) return viewMore();
     working = true;
-    var list = day.ex.slice(), run = window.Practice.load(n, di, list) || window.Practice.create(n, di, list);
-    var i = run.i, api = null, answered = false, finished = false;
-    function exerciseId(index) { return dayKey(n, di) + "-" + index; }
-    function deleted(index) { return !!(S.deletedExercises || {})[exerciseId(index)]; }
-    var view = routeId, theoryDetails = [];
-    window.Practice.save(run);
+    var view = routeId, theoryDetails = [], answered = false, item = null;
+    var run = runs.day(n, di, day.ex.slice(), function () { return view === routeId; });
     app.innerHTML = "";
     var head = el("div", "card");
     head.innerHTML = '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + "</div><h2>" + esc(day.title) + "</h2>" +
@@ -361,7 +352,7 @@
       var det = document.createElement("details"); det.className = "theory";
       det.innerHTML = "<summary>Теория: " + esc(g.title) + '</summary><div class="gram">' + g.html + "</div>";
       det.addEventListener("toggle", function () {
-        if (det.open && api) api.hint();
+        if (det.open && item) run.hint();
       }); head.appendChild(det); theoryDetails.push({ node: det, grammar: g });
     });
     head.appendChild(el("div", "muted", "Ответы сохраняются. Результат относится к первой попытке; открытая теория отмечается как подсказка."));
@@ -371,7 +362,7 @@
       var mrow = el("div", "btnrow"), mark = el("button", "btn sec", "Засчитать день"), armed = false;
       mark.onclick = function () {
         if (!armed) { armed = true; mark.textContent = "Точно засчитать? Нажми ещё раз"; return; }
-        done(true);
+        done(run.finish(true));
       };
       mrow.appendChild(mark); head.appendChild(mrow);
     }
@@ -398,79 +389,51 @@
     var row = el("div", "btnrow sticky exercise-actions"), check = el("button", "btn primary-action", "Проверить"), next = el("button", "btn primary-action", "Дальше →");
     var skip = el("button", "btn sec", "Пропустить"), remove = el("button", "btn sec", "Удалить");
     row.appendChild(check); row.appendChild(next); row.appendChild(skip); row.appendChild(remove); card.appendChild(row); app.appendChild(card);
-    function syncBar() { skip.style.display = answered ? "none" : ""; }
-    function advance(omitted) {
-      if (finished || view !== routeId || i >= list.length) return;
-      var record = run.records[i] || (run.records[i] = {});
-      if (!record.result) record.omitted = omitted;
-      run.i = ++i; window.Practice.save(run); step();
+    function toolbar(isAnswered, canCheck) {
+      answered = isAnswered;
+      check.style.display = !answered && canCheck ? "" : "none";
+      next.style.display = answered ? "" : "none";
+      skip.style.display = answered ? "none" : "";
     }
-    skip.onclick = function () { if (!answered) advance("skipped"); };
+    skip.onclick = function () { if (run.skip()) step(); };
     remove.onclick = function () {
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       removePanel.hidden = false; reason.value = ""; removalNote.value = ""; confirmRemove.disabled = true;
       removePanel.scrollIntoView({ block: "nearest" });
     };
     confirmRemove.onclick = function () {
-      if (!reason.value || finished || view !== routeId || i >= list.length) return;
-      S = Store.mutate("exerciseDelete", { id: exerciseId(i), ex: list[i], reason: reason.value + (removalNote.value.trim() ? ": " + removalNote.value.trim() : "") });
-      if (deleted(i)) advance("deleted");
+      var note = removalNote.value.trim();
+      if (run.remove(reason.value && reason.value + (note ? ": " + note : ""))) step();
     };
     function step() {
       removePanel.hidden = true;
-      while (i < list.length && (deleted(i) || (run.records[i] && run.records[i].omitted))) {
-        var omitted = run.records[i] || (run.records[i] = {});
-        if (!omitted.result && deleted(i)) omitted.omitted = "deleted";
-        run.i = ++i;
-      }
-      window.Practice.save(run);
-      if (i >= list.length) return done();
-      var record = run.records[i] || (run.records[i] = {});
-      answered = !!record.result;
-      tutorContext("exercise:" + exerciseId(i), function () {
-        var data = window.TutorContext.exercise(list[i], api ? api.state().draft : record.draft, record.result, day.title);
+      item = run.show(host, function () { toolbar(true, false); });
+      if (!item) return done(run.outcome);
+      tutorContext("exercise:" + item.id, function () {
+        var state = run.state(), data = window.TutorContext.exercise(item.ex, state.draft, state.result, day.title);
         data.lesson = n; data.day = di + 1;
         data.openTheory = [];
-        theoryDetails.forEach(function (item) {
-          if (item.node.open) data.openTheory.push(window.TutorContext.theory(item.grammar));
+        theoryDetails.forEach(function (detail) {
+          if (detail.node.open) data.openTheory.push(window.TutorContext.theory(detail.grammar));
         });
         return data;
-      }, function () { if (api) api.hint(); });
-      var visible = list.map(function (ex, index) { return index; }).filter(function (index) { return !deleted(index); });
-      var position = visible.indexOf(i);
-      pl.querySelector(".cnt").textContent = (position + 1) + " / " + visible.length;
-      pl.querySelector("i").style.width = Math.round(position / visible.length * 100) + "%";
-      api = attempts.day(run, i, list[i], host, {
-        active: function () { return !finished && view === routeId && record === run.records[i] && !deleted(i); },
-        onResult: function () { answered = true; check.style.display = "none"; next.style.display = ""; syncBar(); }
-      });
-      if (head.querySelector("details[open]")) api.hint();
-      answered = !!api.state().result;
-      check.style.display = !answered && api.state().canCheck ? "" : "none";
-      next.style.display = answered ? "" : "none"; syncBar();
+      }, function () { run.hint(); });
+      pl.querySelector(".cnt").textContent = (item.position + 1) + " / " + item.count;
+      pl.querySelector("i").style.width = Math.round(item.position / item.count * 100) + "%";
+      if (head.querySelector("details[open]")) run.hint();
+      var state = run.state();
+      toolbar(state.answered, state.canCheck);
     }
-    check.onclick = function () { if (api && !answered) api.check(); };
-    next.onclick = function () { if (!answered || finished || view !== routeId) return; run.i = ++i; window.Practice.save(run); step(); };
+    check.onclick = function () { run.check(); };
+    next.onclick = function () { if (run.next()) step(); };
     document.onkeydown = function (event) { if (event.key === "Enter" && answered) { event.preventDefault(); next.click(); } };
-    /* manual — день засчитан кнопкой: результат считается только по сохранённым
-       ответам, задания без ответа не идут в «не совпали» */
-    function done(manual) {
-      if (finished) return; finished = true; working = false; document.onkeydown = null;
-      var stats = window.Practice.stats(run), of = stats.answered;
+    function done(outcome) {
+      if (!outcome) return;
+      working = false; document.onkeydown = null;
+      var stats = outcome.stats, of = outcome.of, manual = outcome.manual;
       tutorContext("day-result:" + run.id, function () {
         return { type: "result", title: "Итог дня: " + day.title, answered: stats.answered, correct: stats.correct, hints: stats.hints };
       });
-      if (manual) {
-        of = 0;
-        run.records.forEach(function (record) { if (record && record.result) of++; });
-        of = Math.max(of, stats.correct);
-      }
-      var op = { n: n, di: di, score: stats.correct, of: of, uncertain: stats.uncertain, hints: stats.hints, attemptId: run.id, records: run.records };
-      if (manual) op.manual = true;
-      /* ответов не было — в истории нечего показывать, остаётся только отметка дня */
-      if (manual && !of) { delete op.attemptId; delete op.records; }
-      if (manual || of) S = Store.mutate(!manual && stats.skipped ? "practiceDone" : "dayDone", op);
-      if (of) touchStreak(); window.Practice.remove(n, di);
       app.innerHTML = "";
       showResultLayout();
       var c = el("div", "card hero result-card");
@@ -489,7 +452,7 @@
         (stats.hints ? '<div class="note">Попыток с открытой теорией: ' + stats.hints + ". Проверьте навык позже без подсказки.</div>" : "");
       var buttons = el("div", "btnrow"), nx = findNext();
       if (nx) { var b1 = el("button", "btn", "Следующий день"); b1.onclick = function () { go("/l" + nx.n + "/d" + nx.d); }; buttons.appendChild(b1); }
-      var b2 = el("button", "btn sec", "Пройти день заново"); b2.onclick = function () { window.Practice.remove(n, di); route(); };
+      var b2 = el("button", "btn sec", "Пройти день заново"); b2.onclick = function () { route(); };
       var b3 = el("button", "btn sec", "К программе"); b3.onclick = function () { go("/"); };
       buttons.appendChild(b2); buttons.appendChild(b3); c.appendChild(buttons); app.appendChild(c);
     }
@@ -508,52 +471,42 @@
   function viewReview() {
     if (Store.blocked()) return viewMore();
     working = true;
-    var saved = window.Sessions.load("review");
-    var run = saved || window.ReviewPlan.create(E.shuffle(srsDue()), S);
-    var i = run.i, view = routeId;
+    var view = routeId;
+    var run = runs.review(function () { return E.shuffle(srsDue()); }, function () { return view === routeId; });
     app.innerHTML = "";
-    if (!run.items.length) {
+    if (run.empty) {
       var c0 = el("div", "card hero");
       c0.innerHTML = '<h1>Нечего повторять</h1><div class="muted">Сейчас срок повторения не подошел ни одной ошибке. Уже назначенные повторы остаются в очереди.</div>';
       var r0 = el("div", "btnrow"), bb = el("button", "btn", "К программе");
       bb.onclick = function () { go("/"); }; r0.appendChild(bb); c0.appendChild(r0); app.appendChild(c0);
       return;
     }
-    function stash() { run.i = i; run.at = Date.now(); window.Sessions.save("review", run); }
-    stash();
     var card = el("div", "card");
     card.innerHTML = '<div class="kicker">Повторение ошибок</div><div class="muted">Ввод сохраняется. Поздний повтор использует другое задание только при совпадении учебного правила.</div>';
     var pl = el("div", "progline"); pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>'; card.appendChild(pl);
     var host = el("div", null); card.appendChild(host);
     var row = el("div", "btnrow sticky"), check = el("button", "btn", "Проверить"), next = el("button", "btn sec", "Дальше →");
     row.appendChild(check); row.appendChild(next); card.appendChild(row); app.appendChild(card);
-    var api = null, answered = false;
-    function syncBar() { row.className = "btnrow sticky" + (check.style.display === "none" && next.style.display === "none" ? " empty" : ""); }
-    function step() {
-      if (view !== routeId) return;
-      while (i < run.items.length) {
-        var rec = run.records[i], checked = rec && (rec.result || (rec.draft && rec.draft.result));
-        if (!window.ReviewPlan.deleted(run.items[i], S) && (checked || window.ReviewPlan.pending(run.items[i], S))) break;
-        i++;
-      }
-      if (i >= run.items.length) { window.Sessions.clear("review"); return go("/"); }
-      stash();
-      var record = run.records[i] || (run.records[i] = {});
-      answered = !!record.result;
-      tutorContext("review:" + run.items[i].id, function () {
-        return window.TutorContext.exercise(run.items[i].ex, api ? api.state().draft : record.draft, record.result, "Повторение ошибок");
-      });
-      pl.querySelector(".cnt").textContent = (i + 1) + " / " + run.items.length;
-      pl.querySelector("i").style.width = Math.round(i / run.items.length * 100) + "%";
-      api = attempts.review(run, i, host, {
-        active: function () { return view === routeId && record === run.records[i]; },
-        onResult: function () { answered = true; check.style.display = "none"; next.style.display = ""; syncBar(); }
-      });
-      answered = !!api.state().result;
-      check.style.display = !answered && api.state().canCheck ? "" : "none"; next.style.display = answered ? "" : "none"; syncBar();
+    var answered = false;
+    function toolbar(isAnswered, canCheck) {
+      answered = isAnswered;
+      check.style.display = !answered && canCheck ? "" : "none"; next.style.display = answered ? "" : "none";
+      row.className = "btnrow sticky" + (check.style.display === "none" && next.style.display === "none" ? " empty" : "");
     }
-    check.onclick = function () { if (api && !answered) api.check(); };
-    next.onclick = function () { if (!answered || view !== routeId) return; i++; stash(); step(); };
+    function step() {
+      var item = run.show(host, function () { toolbar(true, false); });
+      if (!item) { if (run.finished) go("/"); return; }
+      tutorContext("review:" + item.id, function () {
+        var state = run.state();
+        return window.TutorContext.exercise(item.ex, state.draft, state.result, "Повторение ошибок");
+      });
+      pl.querySelector(".cnt").textContent = (item.position + 1) + " / " + item.count;
+      pl.querySelector("i").style.width = Math.round(item.position / item.count * 100) + "%";
+      var state = run.state();
+      toolbar(state.answered, state.canCheck);
+    }
+    check.onclick = function () { run.check(); };
+    next.onclick = function () { if (run.next()) step(); };
     document.onkeydown = function (event) { if (event.key === "Enter" && answered) { event.preventDefault(); next.click(); } };
     step();
   }
