@@ -2,8 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const env = require('./env');
 const files = ['js/progress-data.js', 'js/srs-config.js', 'js/sync.js', 'js/sessions.js', 'data/phrases.js', 'js/vocab-training.js', 'js/phrase-training.js'];
-function fixture(storage) {
-  const clock = { skew: 0 }, w = env.load(files, { storage, clock });
+function fixture(storage, extra = []) {
+  const clock = { skew: 0 }, w = env.load(files.concat(extra), { storage, clock });
   const options = { store: w.Store, sessions: w.Sessions, day: () => '2026-11-10', now: () => Date.now() + clock.skew };
   const training = w.PhraseTraining.create(options);
   const words = w.VocabTraining.create({ ...options, course: { lessons: [] }, words: [{ de: 'Test', ru: 'тест' }], nextLesson: () => null, shuffle: a => a });
@@ -79,6 +79,31 @@ test('ошибка другого устройства препятствует 
   assert.equal(h.w.Store.state().vocab['P:s01-1|ru'].pairRu, false);
   h.w.Store.mutate('vocabKnown', { key: 'P:s01-1' });
   assert.equal(run.undo().conflict, true);
+});
+
+test('конфликт отмены виден на экране фраз и не блокирует обновление приложения', () => {
+  const h = fixture(undefined, ['js/phrase-view.js', 'js/updates.js']);
+  function el(tag, cls = '', html = '') {
+    return { tag, cls, html, children: [], style: {}, classList: { add() {}, remove() {} },
+      setAttribute() {}, appendChild(child) { this.children.push(child); },
+      set innerHTML(value) { this.html = value; this.children = []; }, get innerHTML() { return this.html; } };
+  }
+  const text = node => [node.html].concat(...node.children.map(text)).join(' ');
+  const find = (node, label) => node.html === label ? node : node.children.map(child => find(child, label)).find(Boolean);
+  const host = el('main'), navigations = [];
+  const press = label => { const button = find(host, label); assert.ok(button, label); button.onclick(); };
+  Object.assign(h.w, { URL, Engine: { el, esc: x => x }, SwipeBack: { mount: () => () => {} },
+    location: { href: 'https://example.com/german/#/phrases', replace: url => navigations.push(url) } });
+  h.w.PhraseView.mount(host, '', { training: h.training, go() {}, showResult() {}, context() {} });
+  press('Показать ответ'); press('Знаю');
+  h.w.Store.mutate('vocabKnown', { key: 'P:s01-1' });
+  press('Отменить последний ответ');
+  assert.match(text(host), /Фраза уже изменена на другом устройстве/);
+  assert.equal(h.w.Store.storageError(), '');
+  assert.equal(h.w.AppUpdates.reload(), true);
+  assert.equal(navigations.length, 1);
+  press('Показать ответ');
+  assert.doesNotMatch(text(host), /Фраза уже изменена/);
 });
 
 test('несколько десяток новых фраз в тот же день; повторение ограничено двадцатью', () => {
