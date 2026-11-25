@@ -3,7 +3,7 @@ window.PhraseView = (function () {
   "use strict";
   function mount(host, mode, options) {
     var E = window.Engine, el = E.el, esc = E.esc, training = options.training;
-    var run = null, canUndo = false, disposed = false, release = null;
+    var run = null, canUndo = false, disposed = false, release = null, notice = "";
     function button(parent, label, action, secondary) {
       var b = el("button", "btn" + (secondary ? " sec" : ""), label);
       b.type = "button"; b.onclick = function () { if (!disposed) action(); };
@@ -16,8 +16,12 @@ window.PhraseView = (function () {
     }
     function undo() {
       var result = run.undo(); canUndo = false;
-      if (result.conflict) window.Store.warn("Фраза уже изменена на другом устройстве. Отмена не применена.", "phrase-undo");
+      if (result.conflict) notice = "Фраза уже изменена на другом устройстве. Отмена не применена.";
       render();
+    }
+    function showNotice(parent) {
+      if (notice) parent.appendChild(el("p", "note", notice));
+      notice = "";
     }
     function render() {
       reset();
@@ -27,6 +31,7 @@ window.PhraseView = (function () {
         var result = el("section", "card result-card phrase-result");
         result.appendChild(el("h1", null, current.empty ? "Пока всё" : "Тренировка завершена"));
         result.appendChild(el("p", "muted", current.empty ? "Повторы появятся, когда подойдёт срок." : "Готово. Повторы запланированы."));
+        showNotice(result);
         button(result, "На главную", function () { options.go("/"); });
         if (canUndo) button(result, "Отменить последний ответ", undo, true);
         host.appendChild(result); return;
@@ -56,6 +61,7 @@ window.PhraseView = (function () {
       }
       section.appendChild(card);
       var actions = el("div", "phrase-actions");
+      showNotice(actions);
       if (!revealed) button(actions, "Показать ответ", function () { run.peek(); render(); });
       else {
         var row = el("div", "phrase-grades");
