@@ -184,7 +184,7 @@ main.wrap.tight { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
 button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
 /* Долгое нажатие на карточке не должно выделять слово и звать меню iOS.
-   Теория и примеры остаются выделяемыми — оттуда удобно копировать немецкий. */
+   Теория и примеры выделяются, чтобы копировать немецкий. */
 .vdeck, .vlegend, .tabbar, .progline, .btn, .opt, .chip, .pair, .day, .lesson, .row {
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
 }
@@ -428,7 +428,7 @@ details.theory .gram { padding: 0 14px 14px; }
 
 /* ---------- телефон ---------- */
 
-/* на тачскрине hover залипает после тапа — гасим его */
+/* на тачскрине hover остаётся после тапа, поэтому он отключён */
 @media (hover: none) {
   .ghost:hover { background: var(--surface); }
   .btn:hover { filter: none; }
@@ -469,7 +469,7 @@ details.theory .gram { padding: 0 14px 14px; }
   .linklist a { padding: 12px 13px; }
   details.theory > summary { padding: 13px 14px; }
 
-  /* узкие таблицы нечитаемы — пусть лучше прокручиваются целиком */
+  /* узкие таблицы нечитаемы, поэтому они прокручиваются целиком */
   .scrollx table.tbl { min-width: 470px; }
   .scrollx::after {
     content: "← таблица прокручивается вбок →";
@@ -552,7 +552,7 @@ html.word-notes-open, .word-notes-open body { overflow: hidden; }
 .vinner { display: flex; flex-direction: column; justify-content: center; gap: 12px; }
 .vback { transform: rotateY(180deg); }
 
-/* поднятая карточка отбрасывает тень сильнее — будто её оторвали от стола */
+/* у поднятой карточки тень сильнее */
 .vdrag.held .vface { box-shadow: 0 18px 40px rgba(0,0,0,.22), 0 2px 6px rgba(0,0,0,.12); }
 
 .vword { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25; }

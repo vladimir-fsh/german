@@ -1,4 +1,4 @@
-/* Движок упражнений: рендер + проверка. Никаких зависимостей. */
+/* Движок упражнений: рендер и проверка, без зависимостей. */
 (function (global) {
   "use strict";
 
@@ -43,7 +43,7 @@
   }
 
   /* ---------- Exercise ---------- */
-  /* ex — объект задания, onDone(correct) — колбэк после проверки */
+  /* onDone(ok, result) вызывается после проверки */
   function render(ex, host, onDone, options) {
     options = options || {};
     host.innerHTML = "";
@@ -57,7 +57,7 @@
       fb.className = "feedback show " + (ok ? "good" : "wrong");
       var why = ex.why ? '<span class="why">' + esc(ex.why) + "</span>" : "";
       verdict = verdict || (ok ? "correct" : "incorrect");
-      var label = ok ? "<b>Richtig!</b> " : verdict === "needs-review" ? "<b>Нужна проверка смысла.</b> Такой вариант может быть верным; совпадение с образцом не решает это. " : verdict === "capitalization" ? "<b>Проверьте заглавные буквы.</b> " : verdict === "orthography" ? "<b>Проверьте умлауты и ß.</b> " : "<b>Пока неверно.</b> ";
+      var label = ok ? "<b>Richtig!</b> " : verdict === "needs-review" ? "<b>Нужна проверка смысла.</b> Ответ не совпал с образцом, но может быть верным. " : verdict === "capitalization" ? "<b>Проверьте заглавные буквы.</b> " : verdict === "orthography" ? "<b>Проверьте умлауты и ß.</b> " : "<b>Пока неверно.</b> ";
       fb.innerHTML = label + (extra ? '<div class="sample">' + extra + "</div>" : "") + why;
       var result = { ok: ok, verdict: verdict, usedHint: !!(options.usedHint || (options.isHinted && options.isHinted())) };
       api.result = result;
@@ -77,9 +77,8 @@
   var BUILD = {};
 
   /* ---- fill: текст с пропусками {подсказка} ----
-     Если задание проверяет только окончание — ответ это подсказка плюс хвост
-     (klein → kleiner, ein → einen), — основа печатается текстом, а вводится
-     только окончание. Нулевое окончание (сказуемое: «ist hoch») вводится
+     Если ответ равен подсказке плюс хвост (klein → kleiner, ein → einen),
+     основа печатается текстом, а вводится только окончание. Нулевое окончание (сказуемое: «ist hoch») вводится
      пустым полем: форма поля не должна подсказывать, есть окончание или нет.
      Если ответ меняет основу (hoch → hohes), остаётся ввод слова целиком.
      Флаг ex.full отключает режим окончаний для всего задания. */
@@ -159,7 +158,7 @@
       slots.forEach(function (sl) {
         var good;
         if (sl.ends) {
-          /* пустое поле или прочерк — нулевое окончание */
+          /* пустое поле или прочерк означают нулевое окончание */
           var typed = String(sl.inp.value).replace(/[-–—]/g, "");
           var endingVerdict = compare(typed, sl.ends); good = endingVerdict === "correct";
           if (!good) verdict = endingVerdict;

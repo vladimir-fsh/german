@@ -58,7 +58,7 @@ photoSource.entries.forEach(function (entry) {
 
 win.COURSE.lessons.forEach(function (meta) {
   var L = win["L" + meta.n];
-  if (meta.status !== "ready") { ok("урок " + meta.n + " ещё не готов — файла и не ждём", !L || !!L.days); return; }
+  if (meta.status !== "ready") { ok("урок " + meta.n + " ещё не готов, файл не обязателен", !L || !!L.days); return; }
   ok("урок " + meta.n + ": файл загружен", !!L);
   if (!L) return;
   ok("урок " + meta.n + ": число доступных дней совпадает с планом", meta.days === L.days.length);
@@ -67,7 +67,7 @@ win.COURSE.lessons.forEach(function (meta) {
 
   L.days.forEach(function (day, di) {
     var where = "урок " + meta.n + ", день " + (di + 1);
-    ok(where + ": заданий 14–18", day.ex.length >= 14 && day.ex.length <= 18, "их " + day.ex.length);
+    ok(where + ": заданий 14-18", day.ex.length >= 14 && day.ex.length <= 18, "их " + day.ex.length);
     (day.grammar ? [].concat(day.grammar) : []).forEach(function (gi) {
       ok(where + ": блок теории " + gi + " существует", !!L.grammar[gi]);
     });
@@ -76,7 +76,7 @@ win.COURSE.lessons.forEach(function (meta) {
     day.ex.forEach(function (ex, i) {
       var id = where + ", задание " + (i + 1);
       ok(id + ": тип известен", !!TYPES[ex.type], ex.type);
-      /* сборка предложения из плашек тратит время и не тренирует правило — в уроках её нет */
+      /* сборка предложения из плашек не тренирует правило, в уроках её нет */
       ok(id + ": без order", ex.type !== "order");
       kinds[ex.type] = (kinds[ex.type] || 0) + 1;
 
@@ -118,7 +118,7 @@ win.COURSE.lessons.forEach(function (meta) {
   ok("урок " + meta.n + ": ссылки на оригинал", !!L.links && L.links.length > 0);
 });
 
-/* слова те же и в том же наборе — порядок задаёт ученик, пунктуацию не сверяем */
+/* набор слов тот же; порядок задаёт ученик, пунктуация не сверяется */
 function sameWords(a, b) {
   var norm = function (s) { return String(s).toLowerCase().replace(/[.,!?;:]/g, "").split(/\s+/).filter(Boolean).sort().join(" "); };
   return norm(a) === norm(b);

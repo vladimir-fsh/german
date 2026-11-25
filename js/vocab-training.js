@@ -7,10 +7,10 @@ window.VocabTraining = (function () {
     { id: "new", label: "Не начато" },
     { id: "learning", label: "Старый шаг" },
     { id: "retry", label: "После ошибки" },
-    { id: "days1", label: "1–2 дня" },
-    { id: "days3", label: "3–6 дней" },
-    { id: "days7", label: "7–29 дней" },
-    { id: "days30", label: "30–99 дней" },
+    { id: "days1", label: "1-2 дня" },
+    { id: "days3", label: "3-6 дней" },
+    { id: "days7", label: "7-29 дней" },
+    { id: "days30", label: "30-99 дней" },
     { id: "days100", label: "100+ дней" },
     { id: "closed", label: "Закрыто" }
   ];
@@ -41,7 +41,7 @@ window.VocabTraining = (function () {
 
     var V_LEVELS = 5;
 
-    /* слова уроков (f = 0, идут первыми) плюс общий словарь A2–B1 со группами словаря */
+    /* слова уроков (f = 0, идут первыми) плюс общий словарь A2-B1 с группами словаря */
     function vocabPool() {
       var out = [];
       (options.course.lessons || []).forEach(function (l) {

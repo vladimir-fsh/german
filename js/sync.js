@@ -1,13 +1,13 @@
 /* Хранилище прогресса: журнал операций вместо перезаписи состояния.
 
-   Любое изменение — это операция (мутация) с меткой логических часов, она
+   Любое изменение - операция (мутация) с меткой логических часов, она
    применяется сразу и ложится в журнал в localStorage.
    Состояние = детерминированная свёртка снапшота и всех журналов.
    Порядок задают часы Лампорта, ничья разрешается по идентификатору автора.
 
    Каждый экземпляр страницы пишет собственный ключ localStorage, поэтому
    вкладки одного браузера не заменяют записи друг друга, а видят их через
-   событие storage. Материализованное состояние является только кешем.
+   событие storage. Материализованное состояние - только кеш.
    Снапшот с курсором «какие операции в него уже вошли» остался от прежних
    версий и из резервных копий; новые операции поверх него сворачиваются. */
 window.Store = (function () {
@@ -25,8 +25,8 @@ window.Store = (function () {
   var storageError = "", blocked = false, externalWarnings = {};
   function warning() { return storageError || Object.keys(externalWarnings).map(function (key) { return externalWarnings[key]; }).join(" "); }
 
-  /* Все числа расписания живут в js/srs-config.js — правятся там.
-     Значения ниже служат запасными, если конфиг почему-то не загрузился. */
+  /* Числа расписания задаются в js/srs-config.js.
+     Значения ниже нужны, если конфиг не загрузился. */
   var CFG = window.SRS_CONFIG || {};
   function cfg(name, fallback) { return CFG[name] != null ? CFG[name] : fallback; }
 
@@ -128,7 +128,7 @@ window.Store = (function () {
 
   /* ---------- редьюсер ----------
      Чистая функция: (состояние, операция) → состояние.
-     Время берётся из самой операции (op.t), а не из часов — иначе повтор
+     Время берётся из самой операции (op.t), а не из часов. Иначе повтор
      свёртки на другом устройстве дал бы другие сроки повторения. */
   function apply(s, op) {
     var v, r, y;
@@ -162,7 +162,7 @@ window.Store = (function () {
       case "dayDone":
         if (op.attemptId && s.attempts.some(function (a) { return a.id === op.attemptId; })) return s;
         if (op.type === "dayDone") s.done["L" + op.n + "D" + op.di] = { at: op.t, score: op.score, of: op.of };
-        /* засчитан руками: of — сколько ответов сохранилось, а не длина дня */
+        /* засчитан вручную: of - число сохранённых ответов, а не длина дня */
         if (op.manual && op.type === "dayDone") s.done["L" + op.n + "D" + op.di].manual = true;
         if (op.attemptId) {
           s.attempts.push({ id: op.attemptId, n: op.n, di: op.di, at: op.t, score: op.score, of: op.of, uncertain: op.uncertain || 0, hints: op.hints || 0, records: op.records || [] });
@@ -211,10 +211,9 @@ window.Store = (function () {
         }
         return s;
 
-      /* Карточка слова по SM-2.
-         «знаю»      → интервал × лёгкость, быстрый ответ ещё × 1.3 и лёгкость вверх
-         «не знаю»   → лёгкость вниз, интервал сбрасывается в сутки
-         Новая карточка выпускается на сутки, при быстром ответе сразу на четыре. */
+      /* Исторический vocabGrade по SM-2. При «знаю» интервал умножается на лёгкость,
+         быстрый ответ даёт ещё × 1.3 и поднимает лёгкость. Новая карточка выходит
+         на сутки, при быстром ответе на четыре дня. */
       case "vocabGrade":
         v = s.vocab[op.key] || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false };
         if (v.box != null && v.iv == null) v = fromBox(v);   /* запись старого формата */
@@ -228,12 +227,10 @@ window.Store = (function () {
           if (v.iv >= IV_LEARNED) { v.learned = true; v.due = 0; }
           else v.due = op.t + v.iv * 864e5;
         } else {
-          /* лёгкость роняем только у карточек, уже вышедших из изучения:
-             новая карточка ещё не заслужила штрафа, как и в Anki */
+          /* лёгкость падает только у карточек, вышедших из изучения, как в Anki */
           if (v.reps) {
             v.ease = Math.max(EASE_MIN, v.ease - EASE_LAPSE);
-            /* срыв не отбрасывает в самое начало: остаётся треть прежнего
-               интервала, но не меньше второго — трёх суток */
+            /* после срыва остаётся 0,3 прежнего интервала, но не меньше трёх суток */
             v.iv = Math.max(IV_LAPSE, Math.round(v.iv * LAPSE_KEEP));
           } else {
             v.iv = IV_MIN;
@@ -373,7 +370,7 @@ window.Store = (function () {
     return s;
   }
 
-  /* порядок: логические часы, при ничьей — устройство, затем номер операции */
+  /* порядок: логические часы, при ничьей устройство, затем номер операции */
   function cmp(a, b) {
     if (a.lc !== b.lc) return a.lc - b.lc;
     if (a.device !== b.device) return a.device < b.device ? -1 : 1;
@@ -396,7 +393,7 @@ window.Store = (function () {
       return raw ? JSON.parse(raw) : fallback;
     } catch (e) { blocked = true; storageError = "Сохраненные данные повреждены. Исходные записи не изменены. Экспортируйте их в разделе «Ещё» и восстановите резервную копию."; return fallback; }
   }
-  function lsSet(k, v) { if (blocked) return false; try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { storageError = "Изменения пока только в памяти: браузер не смог сохранить прогресс. Не закрывайте страницу; скачайте резервную копию или повторите сохранение в разделе «Ещё»."; return false; } }
+  function lsSet(k, v) { if (blocked) return false; try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { storageError = "Браузер не смог сохранить прогресс, изменения пока только в памяти. Не закрывайте страницу. Скачайте резервную копию или повторите сохранение в разделе «Ещё»."; return false; } }
 
   function deviceId() {
     var d = null;
@@ -462,8 +459,8 @@ window.Store = (function () {
 
   function notify() {
     listeners.forEach(function (fn) {
-      /* падение одного слушателя не должно ронять остальных, но и молча
-         съедать его нельзя: именно так теряются неотрисованные экраны */
+      /* Ошибка одного слушателя не останавливает остальных, но пишется в консоль,
+         иначе экран молча останется неперерисованным. */
       try { fn(state); } catch (e) { if (window.console) console.error("listener failed", e); }
     });
   }
@@ -610,7 +607,7 @@ window.Store = (function () {
     var covered = cloudOperations().filter(function (op) { return op.seq <= (seed.cursor[op.device] || 0); });
     var original = reduce(snapshot.state, covered);
     if (!empty && stableJSON(original) !== stableJSON(upgrade(seed.state))) {
-      throw new Error("На устройстве и в облаке разный начальный прогресс. Экспортируйте местную копию. Первый вход лучше выполнить на телефоне с основным прогрессом; автоматическая замена отключена.");
+      throw new Error("На устройстве и в облаке разный начальный прогресс, автоматической замены не будет. Экспортируйте местную копию. Первый вход делайте на телефоне с основным прогрессом.");
     }
     var previousAt = snapshot.at || 0;
     snapshot = clone(seed); snapshot.at = Math.max(Date.now(), previousAt + 1);

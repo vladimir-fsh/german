@@ -1,6 +1,6 @@
 /* Окружение для тестов: минимальный браузер поверх node.
    Файлы js/ грузятся как обычные скрипты, поэтому им нужны window,
-   localStorage и document — здесь они поддельные, но с тем же поведением. */
+   localStorage и document. Здесь они поддельные, но с тем же поведением. */
 var fs = require("fs");
 var path = require("path");
 var vm = require("vm");

@@ -5,8 +5,8 @@
   var app = document.getElementById("app");
 
   /* ---------- состояние ----------
-     Живёт в js/sync.js: локальный журнал операций плюс свёртка. Здесь только
-     чтение состояния и вызов мутаций — прямых присваиваний в S больше нет. */
+     Состояние ведёт js/sync.js. Здесь только чтение и вызов мутаций,
+     без прямых присваиваний в S. */
   var Store = window.Store;
   var S = Store.state();
   var runs = window.ExerciseRun.create({ store: Store, engine: E,
@@ -24,16 +24,15 @@
     syncTabs();
   });
 
-  /* Перерисовывать можно там, где нет незавершённого прохода: экран задания
-     или карточки пересобирать нельзя, иначе ответ пропадёт на полуслове.
-     Списки и главная перерисовываются всегда — именно на них видно прогресс. */
-  /* Текущий маршрут. Всё, что не похоже на наш маршрут, считается главной. */
+  /* Неизвестный маршрут считается главной. */
   var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|phrases(\/(train|repeat))?|review|more(\/cloud)?|l\d+(\/(g|d)\d+)?)?$/;
   function curPath() {
     var h = location.hash.replace(/^#/, "");
     return ROUTE_RE.test(h) ? h : "/";
   }
 
+  /* Экран задания или карточки не пересобирается, иначе пропадёт ввод.
+     Главная и списки перерисовываются всегда, на них виден прогресс. */
   function redrawable() {
     var h = curPath();
     if (h === "/more") return !working;
@@ -114,9 +113,9 @@
     var vocab = training.summary(), words = vocab.pending;
     var acc = S.totalTried ? Math.round((S.totalCorrect / S.totalTried) * 100) : 0;
 
-    /* Поврежденное хранилище: нули были бы враньем, показываем прочерки. */
+    /* Хранилище повреждено: прочерки вместо ложных нулей. */
     var loading = !Store.ready();
-    function val(x) { return loading ? "—" : x; }
+    function val(x) { return loading ? "-" : x; }
 
     app.innerHTML = "";
     var hero = el("div", "card hero");
@@ -125,15 +124,15 @@
       "<h1>" + esc(C.title) + "</h1>" +
       '<div class="bar"><i style="width:' + (loading ? 0 : pct) + '%"></i></div>' +
       '<div class="stats">' +
-      '<div class="stat"><b>' + (loading ? "—" : doneDays + " / " + totalDays) + "</b><span>доступных дней выполнено</span></div>" +
+      '<div class="stat"><b>' + (loading ? "-" : doneDays + " / " + totalDays) + "</b><span>дней пройдено</span></div>" +
       '<div class="stat"><b>' + val(window.ProgressData.currentStreak(S, window.ProgressData.day(new Date()))) + "</b><span>учебных дней подряд</span></div>" +
-      '<div class="stat"><b>' + (loading ? "—" : acc + "%") + "</b><span>верных ответов</span></div>" +
+      '<div class="stat"><b>' + (loading ? "-" : acc + "%") + "</b><span>верных ответов</span></div>" +
       '<div class="stat"><b>' + val(due) + "</b><span>на повторение</span></div>" +
       '<div class="stat"><b>' + val(words) + "</b><span>карточек на сегодня</span></div>" +
       "</div>";
     var row = el("div", "btnrow");
     var next = findNext();
-    var b1 = el("button", "btn", loading ? "Подтягиваю прогресс…"
+    var b1 = el("button", "btn", loading ? "Загружаю прогресс…"
       : next ? "Продолжить: урок " + next.n + ", день " + (next.d + 1) : "Все готовые уроки пройдены");
     b1.disabled = loading || !next;
     b1.onclick = function () { go("/l" + next.n + "/d" + next.d); };
@@ -157,7 +156,7 @@
     }
     var canStartNew = vocab.canStartNew;
     var vb = el("button", "btn" + (words && S.calibrated ? "" : " sec"),
-      loading ? "Подтягиваю прогресс…" : words ? "Учить слова (" + words + ")" : canStartNew ? "Начать новые карточки" : "Повторы будут позже");
+      loading ? "Загружаю прогресс…" : words ? "Учить слова (" + words + ")" : canStartNew ? "Начать новые карточки" : "Повторы будут позже");
     vb.disabled = loading || (!words && !canStartNew);
     vb.onclick = function () { go(words ? "/vocab" : "/vocab/new"); };
     vrow.appendChild(vb);
@@ -249,7 +248,7 @@
         '<div class="tag">' + (open ? "продолжить" : isDayDone(n, i) ? "готово" : "день " + (i + 1)) + "</div>" +
         "<div><div style=\"font-weight:600\">" + esc(day.title) + "</div>" +
         '<div class="s muted">' + esc(day.sub || "") + " · " +
-        (open ? "есть незавершённая сессия · " + available + " заданий" : available + " заданий") +
+        (open ? "не закончен · " + available + " заданий" : available + " заданий") +
         "</div></div>";
       row.onclick = function () { go("/l" + n + "/d" + i); };
       d.appendChild(row);
@@ -265,10 +264,10 @@
         if (v && v.learned) learnedN++;
       });
       wc.appendChild(el("div", "muted", L.words.length + " слов · закрыто " + learnedN +
-        " · карточки идут общей очередью со всем курсом"));
+        " · карточки в общей очереди курса"));
       var wl = el("div", "wordlist");
       L.words.forEach(function (w) {
-        var line = el("div", null, "<b>" + esc(w.de) + "</b> — <span>" + esc(w.ru) +
+        var line = el("div", null, "<b>" + esc(w.de) + "</b> - <span>" + esc(w.ru) +
           "</span><i>повторение: " + esc(vocabWhen("L" + n + ":" + w.de + "|ru")) + "</i>");
         wl.appendChild(line);
       });
@@ -284,7 +283,7 @@
     if (L.links && L.links.length) {
       var lk = el("div", "card");
       lk.appendChild(el("h2", null, "Оригинальные упражнения"));
-      lk.appendChild(el("div", "muted", "Интерактивные задания на lehrerlenz.de — открываются в новой вкладке."));
+      lk.appendChild(el("div", "muted", "Интерактивные задания на lehrerlenz.de, открываются в новой вкладке."));
       var box = el("div", "linklist");
       box.style.marginTop = "12px";
       L.links.forEach(function (x) {
@@ -344,9 +343,9 @@
         if (det.open && item) run.hint();
       }); head.appendChild(det); theoryDetails.push({ node: det, grammar: g });
     });
-    head.appendChild(el("div", "muted", "Ответы сохраняются. Результат относится к первой попытке; открытая теория отмечается как подсказка."));
-    /* день пройден, а отметка не легла (сбой, перезагрузка) — засчитать руками
-       с уже сохранёнными ответами; второе нажатие подтверждает */
+    head.appendChild(el("div", "muted", "Ответы сохраняются. В результат идёт первая попытка. Открытая теория считается подсказкой."));
+    /* Если отметка дня потерялась после сбоя, день засчитывается вручную
+       по сохранённым ответам. Второе нажатие подтверждает. */
     if (!isDayDone(n, di)) {
       var mrow = el("div", "btnrow"), mark = el("button", "btn sec", "Засчитать день"), armed = false;
       mark.onclick = function () {
@@ -360,7 +359,7 @@
     pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>'; card.appendChild(pl);
     var host = el("div", null); card.appendChild(host);
     var removePanel = el("div", "exercise-remove"); removePanel.hidden = true;
-    removePanel.appendChild(el("div", "muted", "Удалить из курса и повторений без возможности возврата. Почему это задание не подходит?"));
+    removePanel.appendChild(el("div", "muted", "Задание удалится из курса и повторений навсегда. Почему оно не подходит?"));
     var reason = document.createElement("select"); reason.className = "big";
     reason.setAttribute("aria-label", "Причина удаления задания");
     ["Выбери причину", "Механическая работа", "Неоднозначное условие", "Слишком очевидно", "Не тренирует нужный навык", "Ошибка в задании", "Другая причина"].forEach(function (text, index) {
@@ -368,7 +367,7 @@
     });
     removePanel.appendChild(reason);
     var removalNote = document.createElement("textarea"); removalNote.className = "backup-text";
-    removalNote.placeholder = "Что именно не так? Необязательно"; removalNote.maxLength = 600;
+    removalNote.placeholder = "Что не так? Необязательно"; removalNote.maxLength = 600;
     removalNote.setAttribute("aria-label", "Замечание к заданию"); removePanel.appendChild(removalNote);
     var removeButtons = el("div", "btnrow"), confirmRemove = el("button", "btn", "Удалить навсегда"), cancelRemove = el("button", "btn sec", "Отмена");
     confirmRemove.disabled = true;
@@ -429,16 +428,16 @@
       c.innerHTML = manual
         ? '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " засчитан</div><h1>День засчитан вручную</h1>" +
           '<div class="muted">' + (of
-            ? "Сохранилось ответов: " + of + ", из них совпали с ответами: " + stats.correct + ". Задания без ответа в результат не входят." +
-              (stats.correct < of ? " Ошибки из этих ответов назначены на повторение." : "")
-            : "Сохранённых ответов не было, поэтому результат не записан. День отмечен как пройденный.") + "</div>"
+            ? "Сохранено ответов: " + of + ", из них совпали: " + stats.correct + ". Задания без ответа не считаются." +
+              (stats.correct < of ? " Ошибки назначены на повторение." : "")
+            : "Сохранённых ответов нет, результат не записан. День отмечен как пройденный.") + "</div>"
         : '<div class="kicker">Lektion ' + n + " · День " + (di + 1) + " · сессия завершена</div><h1>" + (of ? stats.correct + " из " + of + " совпали с ответами" : "Нет проверенных ответов") + "</h1>" +
-        '<div class="muted">Это выполненная практика, не подтверждение уровня B1. Ошибки назначены на повторение спустя время.</div>';
+        '<div class="muted">Это практика, а не подтверждение уровня B1. Ошибки назначены на повторение.</div>';
       c.innerHTML +=
-        (stats.skipped ? '<div class="note">Пропущено: ' + stats.skipped + '. Они не считаются ошибками и снова появятся в следующем прохождении. День с пропусками не получает новую отметку о завершении.</div>' : "") +
+        (stats.skipped ? '<div class="note">Пропущено: ' + stats.skipped + '. Это не ошибки, они вернутся в следующем прохождении. Прохождение с пропусками не засчитывает день.</div>' : "") +
         (stats.deleted ? '<div class="note">Удалено из курса: ' + stats.deleted + ".</div>" : "") +
-        (stats.uncertain ? '<div class="note">Переводов без подтвержденной оценки: ' + stats.uncertain + ". Другой вариант может быть верным.</div>" : "") +
-        (stats.hints ? '<div class="note">Попыток с открытой теорией: ' + stats.hints + ". Проверьте навык позже без подсказки.</div>" : "");
+        (stats.uncertain ? '<div class="note">Переводов без точного совпадения: ' + stats.uncertain + ". Они могут быть верными.</div>" : "") +
+        (stats.hints ? '<div class="note">Попыток с открытой теорией: ' + stats.hints + ". Проверьте их позже без подсказки.</div>" : "");
       var buttons = el("div", "btnrow"), nx = findNext();
       if (nx) { var b1 = el("button", "btn", "Следующий день"); b1.onclick = function () { go("/l" + nx.n + "/d" + nx.d); }; buttons.appendChild(b1); }
       var b2 = el("button", "btn sec", "Пройти день заново"); b2.onclick = function () { route(); };
@@ -465,13 +464,13 @@
     app.innerHTML = "";
     if (run.empty) {
       var c0 = el("div", "card hero");
-      c0.innerHTML = '<h1>Нечего повторять</h1><div class="muted">Сейчас срок повторения не подошел ни одной ошибке. Уже назначенные повторы остаются в очереди.</div>';
+      c0.innerHTML = '<h1>Нечего повторять</h1><div class="muted">Срок повторения ошибок ещё не подошёл.</div>';
       var r0 = el("div", "btnrow"), bb = el("button", "btn", "К программе");
       bb.onclick = function () { go("/"); }; r0.appendChild(bb); c0.appendChild(r0); app.appendChild(c0);
       return;
     }
     var card = el("div", "card");
-    card.innerHTML = '<div class="kicker">Повторение ошибок</div><div class="muted">Ввод сохраняется. Поздний повтор использует другое задание только при совпадении учебного правила.</div>';
+    card.innerHTML = '<div class="kicker">Повторение ошибок</div><div class="muted">Ввод сохраняется. Позже может прийти другое задание на то же правило.</div>';
     var pl = el("div", "progline"); pl.innerHTML = '<span class="cnt"></span><span class="bar"><i></i></span>'; card.appendChild(pl);
     var host = el("div", null); card.appendChild(host);
     var row = el("div", "btnrow sticky"), check = el("button", "btn", "Проверить"), next = el("button", "btn sec", "Дальше →");
@@ -508,7 +507,7 @@
     b.onclick = function () { go(b.getAttribute("data-go")); };
   });
 
-  /* Чат открывается поверх текущего экрана, сохраняя его контекст. */
+  /* У вкладки чата нет маршрута, чат открывается поверх текущего экрана. */
   function syncTabs() {
     var h = curPath();
     var root = h.indexOf("/more") === 0 ? "/more" : "/";
@@ -554,7 +553,7 @@
 
     var resetRow = el("button", "row danger", "Сбросить весь прогресс");
     resetRow.onclick = function () {
-      if (!confirm("Сбросить весь прогресс? Действие необратимо.")) return;
+      if (!confirm("Сбросить весь прогресс? Отменить это нельзя.")) return;
       window.Sessions.clear(); dayClear();
       S = Store.mutate("reset", {});
       viewMore(); syncTabs();
@@ -563,7 +562,7 @@
 
     c.appendChild(rows);
     c.appendChild(el("h2", null, "Резервные копии"));
-    c.appendChild(el("div", "muted", "JSON переносит прогресс, черновики занятий и незавершенные сессии слов и ошибок. Импорт заменяет текущий прогресс после проверки. Исходное хранилище можно скачать для восстановления поврежденных данных."));
+    c.appendChild(el("div", "muted", "Копия содержит прогресс, черновики и незавершённые сессии. Импорт заменяет текущий прогресс после проверки. Исходное хранилище нужно для восстановления повреждённых данных."));
     var copies = el("div", "btnrow");
     var showButton = el("button", "btn", "Показать прогресс текстом"); showButton.onclick = function () { showBackup(Store.exportBackup()); };
     var exportButton = el("button", "btn sec", "Скачать резервную копию"); exportButton.onclick = function () { var text = Store.exportBackup(); showBackup(text); download(text, "deutsch-progress.json"); };
@@ -580,7 +579,7 @@
         }) };
         var text = JSON.stringify(report, null, 2);
         showBackup(text); outputLabel.textContent = "Замечания к заданиям";
-        copyMessage.textContent = "Передай этот файл в чат для чистки исходных уроков и обновления правил новых заданий. Это не резервная копия прогресса.";
+        copyMessage.textContent = "Передай файл в чат, чтобы почистить уроки и правила заданий. Это не резервная копия.";
         download(text, "deutsch-exercise-feedback.json");
       };
       copies.appendChild(reportButton);
@@ -593,17 +592,17 @@
     function showBackup(text) {
       outputLabel.textContent = "Текст резервной копии";
       exportText.value = text; output.hidden = false;
-      copyMessage.textContent = "Если скачивание недоступно, скопируйте весь текст и сохраните в заметках. Для переноса вставьте его в поле импорта на другом устройстве.";
+      copyMessage.textContent = "Если скачивание не работает, сохраните текст в заметках. Для переноса вставьте его в поле импорта на другом устройстве.";
     }
     function selectBackup() {
       exportText.focus(); exportText.select(); exportText.setSelectionRange(0, exportText.value.length);
-      copyMessage.textContent = "Текст выделен. Нажмите на него и выберите «Скопировать» в меню телефона.";
+      copyMessage.textContent = "Текст выделен. Нажмите на него и выберите «Скопировать».";
     }
     copyButton.onclick = function () {
       if (!navigator.clipboard || !navigator.clipboard.writeText) { selectBackup(); return; }
       try {
         navigator.clipboard.writeText(exportText.value).then(function () {
-          copyMessage.textContent = "Резервная копия скопирована. Сохраните её в заметках или вставьте в поле импорта на другом устройстве.";
+          copyMessage.textContent = "Скопировано. Сохраните текст в заметках или вставьте в поле импорта на другом устройстве.";
         }, selectBackup);
       } catch (error) { selectBackup(); }
     };
@@ -618,9 +617,9 @@
         window.ProgressData.state(parsed.kind === "de-b1-backup" ? parsed.state : parsed);
         if (parsed.drafts) window.Practice.validateImport(parsed.drafts);
         window.Sessions.validateImport(parsed.sessions || {});
-        if (!confirm("Заменить текущий прогресс резервной копией? Сначала сохраните текущий JSON файлом или текстом.")) return;
+        if (!confirm("Заменить текущий прогресс резервной копией? Сначала сохраните текущий прогресс файлом или текстом.")) return;
         S = Store.importBackup(textarea.value); message.textContent = "Резервная копия восстановлена.";
-      } catch (error) { message.textContent = "Файл не прошел проверку. Текущий прогресс не изменен."; }
+      } catch (error) { message.textContent = "Файл не прошёл проверку. Текущий прогресс не изменён."; }
       message.hidden = false;
     }; c.appendChild(importButton);
     var attempts = (S.attempts || []).slice(-20).reverse();
@@ -629,11 +628,11 @@
       attempts.forEach(function (attempt) {
         var details = document.createElement("details");
         details.appendChild(el("summary", null, "Урок " + attempt.n + ", день " + (attempt.di + 1) + ": " + attempt.score + "/" + attempt.of + (attempt.manual ? ", засчитан вручную" : attempt.partial ? ", с пропусками" : "")));
-        details.appendChild(el("div", "muted", new Date(attempt.at).toLocaleString("ru") + ". С теорией: " + (attempt.hints || 0) + ". Без подтвержденной оценки: " + (attempt.uncertain || 0) + "."));
+        details.appendChild(el("div", "muted", new Date(attempt.at).toLocaleString("ru") + ". С теорией: " + (attempt.hints || 0) + ". Без точного совпадения: " + (attempt.uncertain || 0) + "."));
         (attempt.records || []).forEach(function (record, index) {
           if (!record || !record.result || (S.deletedExercises || {})[dayKey(attempt.n, attempt.di) + "-" + index]) return;
           var draft = record.draft || {}, values = draft.values || draft.words;
-          var input = values ? values.map(function (value) { return value || "∅"; }).join(" / ") : draft.choice != null ? "вариант " + (draft.choice + 1) : draft.solved ? "соединено пар: " + draft.solved.length : "ответ не записан в старом формате";
+          var input = values ? values.map(function (value) { return value || "∅"; }).join(" / ") : draft.choice != null ? "вариант " + (draft.choice + 1) : draft.solved ? "соединено пар: " + draft.solved.length : "ответ не сохранён";
           var result = record.result.ok ? "верно" : record.result.verdict === "needs-review" ? "нужна проверка смысла" : "ошибка";
           details.appendChild(el("div", "muted", esc((index + 1) + ". " + input + " - " + result + (record.result.usedHint ? ", с теорией" : ""))));
         });
