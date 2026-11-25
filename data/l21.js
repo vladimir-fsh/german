@@ -1,4 +1,4 @@
-/* Lektion 21 — Komparation (alt, älter, am ältesten).
+/* Lektion 21 - Komparation (alt, älter, am ältesten).
    Источник тем и лексики: lehrerlenz.de/lektion_21_komparation_alt_lter_am_ltesten.html */
 window.L21 = {
   n: 21,
@@ -9,7 +9,7 @@ window.L21 = {
     {
       title: "Три ступени: так же, больше, больше всех",
       html: `
-<p>У большинства прилагательных три формы. <b>Positiv</b> — обычная, <b>Komparativ</b> — сравнение двух, <b>Superlativ</b> — рекорд в группе.</p>
+<p>У большинства прилагательных три формы. Positiv - обычная форма, Komparativ сравнивает двоих, Superlativ называет рекорд в группе.</p>
 
 <div class="matrix" style="grid-template-columns: repeat(3, 1fr)">
   <div class="cell head">Positiv</div><div class="cell head">Komparativ</div><div class="cell head">Superlativ</div>
@@ -22,18 +22,18 @@ window.L21 = {
 <span class="ru">Мой дом такой же большой, как твой. Мой дом меньше, чем твой. В городе мой дом самый маленький.</span></div>
 
 <div class="hack">
-  <span class="lbl">Хак № 1 · als — разница, wie — равенство</span>
+  <span class="lbl">Хак № 1 · при разнице ставь als, при равенстве wie</span>
   <div class="rhyme">anders → <span>als</span> · gleich → <span>wie</span></div>
-  Есть <b>-er</b> — ставь <span class="de">als</span>. Есть <b>so … wie</b> — ставь <span class="de">wie</span>. Третьего нет.
+  Есть <b>-er</b>, ставь <span class="de">als</span>. Есть <b>so … wie</b>, ставь <span class="de">wie</span>. Третьего варианта нет.
   <span class="big">größer <u>als</u> · so groß <u>wie</u></span>
 </div>
 
-<div class="note"><b>Это главная ошибка урока.</b> <span class="de">Er ist größer <b>wie</b> ich.</span> — так иногда говорят в разговоре, но это ошибка. Правильно: <span class="de">Er ist größer <b>als</b> ich.</span></div>
+<div class="note"><b>Это главная ошибка урока.</b> <span class="de">Er ist größer <b>wie</b> ich.</span> Так иногда говорят в разговоре, но это ошибка. Правильно: <span class="de">Er ist größer <b>als</b> ich.</span></div>
 
 <div class="hack">
-  <span class="lbl">Хак № 2 · am — только без существительного</span>
-  <span class="de">am schnellsten</span> стоит, когда справа ничего нет: <span class="de">Der Gepard läuft <b>am schnellsten</b>.</span>
-  Если после рекорда идёт существительное — нужен артикль: <span class="de"><b>der schnellste</b> Läufer</span>.
+  <span class="lbl">Хак № 2 · ставь am, только если нет существительного</span>
+  <span class="de">am schnellsten</span> ставь, когда после формы нет существительного: <span class="de">Der Gepard läuft <b>am schnellsten</b>.</span>
+  Если после рекорда идёт существительное, нужен артикль: <span class="de"><b>der schnellste</b> Läufer</span>.
 </div>
 `
     },
@@ -41,14 +41,14 @@ window.L21 = {
     {
       title: "Умлаут и лишняя -e-",
       html: `
-<p>Два правила меняют форму, и оба видны на слух.</p>
+<p>Два правила меняют форму слова. Оба слышны при произношении.</p>
 
 <div class="hack">
-  <span class="lbl">Хак № 3 · умлаут запоминаем вместе со словом</span>
+  <span class="lbl">Хак № 3 · запоминай умлаут вместе со словом</span>
   Некоторые частые односложные прилагательные с <b>a, o, u</b> получают умлаут. По одной гласной предсказать это нельзя:
   <span class="big">alt → <u>ä</u>lter · jung → j<u>ü</u>nger · groß → gr<u>ö</u>ßer</span>
   <span class="de">kalt → kälter, warm → wärmer, arm → ärmer, klug → klüger, lang → länger, kurz → kürzer, dumm → dümmer</span>
-  Без a, o, u умлаута нет вовсе: <span class="de">schnell → schneller, leicht → leichter</span>. Без умлаута, например: <span class="de">voll → voller, klar → klarer, froh → froher, bunt → bunter, schlau → schlauer</span>.
+  Без a, o, u умлаута не бывает: <span class="de">schnell → schneller, leicht → leichter</span>. Но и с этими гласными умлаут бывает не всегда, например: <span class="de">voll → voller, klar → klarer, froh → froher, bunt → bunter, schlau → schlauer</span>.
 </div>
 
 <div class="cut">
@@ -59,19 +59,19 @@ window.L21 = {
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 4 · проверка языком</span>
-  Скажи вслух «am altsten» — язык спотыкается. Где спотыкается, туда и вставь <b>-e-</b>: <span class="de">am ältesten</span>.
+  <span class="lbl">Хак № 4 · проверь языком</span>
+  Скажи вслух «am altsten». Язык спотыкается. Там, где он спотыкается, вставь <b>-e-</b>: <span class="de">am ältesten</span>.
   В Komparativ вставка не нужна: <span class="de">älter, heißer, kürzer</span>.
 </div>
 
-<div class="note"><b>Ловушка:</b> <span class="de">teuer → teurer</span>, <span class="de">dunkel → dunkler</span> — лишняя <b>-e-</b> наоборот выпадает, как в склонении из урока 18. «teuerer» — ошибка.</div>
+<div class="note"><b>Ловушка:</b> в <span class="de">teuer → teurer</span>, <span class="de">dunkel → dunkler</span> лишняя <b>-e-</b>, наоборот, выпадает, как в склонении из урока 18. Форма «teuerer» неверна.</div>
 `
     },
 
     {
-      title: "Особые формы — пять слов наизусть",
+      title: "Пять особых форм наизусть",
       html: `
-<p>Эти формы не выводятся из правил, их надо просто знать. Зато их всего пять, и они самые частые.</p>
+<p>Эти формы не выводятся из правил, их нужно выучить. Их всего пять, и это самые частые слова.</p>
 
 <div class="scrollx">
 <table class="tbl">
@@ -85,20 +85,20 @@ window.L21 = {
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 5 · как по-русски</span>
-  Первые три ломаются так же, как в русском: хороший → <b>лучше</b>, много → <b>больше</b>, охотно → <b>охотнее</b>. Не ищи в них правила — их там нет ни на одном языке.
-  <span class="big">gut – besser · viel – mehr · gern – lieber</span>
+  <span class="lbl">Хак № 5 · сравни с русским</span>
+  Первые три образуются не по правилу, как и в русском: хороший → <b>лучше</b>, много → <b>больше</b>, охотно → <b>охотнее</b>. Не ищи для них правило, его нет ни в одном языке.
+  <span class="big">gut - besser · viel - mehr · gern - lieber</span>
 </div>
 
 <div class="ex"><span class="de">Anna lernt <b>besser</b> als Peter. Ich habe <b>mehr</b> Fehler gemacht. Was isst du <b>am liebsten</b>?</span>
 <span class="ru">Анна учится лучше Петера. Я сделал больше ошибок. Что ты любишь есть больше всего?</span></div>
 
-<div class="note"><b>Ловушка:</b> <span class="de">gern</span> в сравнении — это «больше нравится»: <span class="de">Ich trinke <b>lieber</b> Tee als Kaffee.</span> — я больше люблю чай. «mehr gern» не бывает.</div>
+<div class="note"><b>Ловушка:</b> <span class="de">gern</span> в сравнении значит «больше нравится»: <span class="de">Ich trinke <b>lieber</b> Tee als Kaffee.</span> - я больше люблю чай. Формы «mehr gern» нет.</div>
 `
     },
 
     {
-      title: "Сравнение перед существительным — склоняется как обычно",
+      title: "Сравнение перед существительным склоняется как обычно",
       html: `
 <p>Если форма стоит перед существительным, она получает окончание по тем же таблицам, что в уроке 18. Сначала суффикс степени, потом окончание.</p>
 
@@ -127,16 +127,16 @@ window.L21 = {
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 6 · рекорд бывает только один</span>
-  Рекорд один, его уже знают, поэтому Superlativ перед существительным не бывает с <span class="de">ein</span> — только с <span class="de">der/die/das</span> или притяжательным.
+  <span class="lbl">Хак № 6 · помни, что рекорд только один</span>
+  Рекорд один, и он уже известен. Поэтому Superlativ перед существительным не ставят после <span class="de">ein</span>, только после <span class="de">der/die/das</span> или притяжательного местоимения.
   <span class="big">der beste Test · das höchste Haus · mein bester Freund</span>
   «ein bester» не бывает.
 </div>
 
 <div class="hack">
-  <span class="lbl">Хак № 7 · mehr и weniger не склоняются</span>
+  <span class="lbl">Хак № 7 · не склоняй mehr и weniger</span>
   <span class="de">Ich habe <b>mehr</b> Zeit. Wir haben <b>mehr</b> Probleme. Er macht <b>weniger</b> Fehler.</span>
-  Никаких «mehre», «mehrer». (<span class="de">mehrere</span> — другое слово: «несколько».)
+  Форм «mehre» и «mehrer» нет. <span class="de">mehrere</span> - другое слово, оно значит «несколько».
 </div>
 `
     }
@@ -152,7 +152,7 @@ window.L21 = {
           q: "Mein Bruder ist zwei Jahre ___ als ich.",
           opts: ["jünger", "junger", "jüngerer"], a: 0,
           ru: "Мой брат на два года младше меня.",
-          why: "Короткое слово с u получает умлаут: jung → jünger. После ist существительного нет — окончания тоже нет." },
+          why: "Короткое слово с u получает умлаут: jung → jünger. После ist нет существительного, поэтому нет и окончания." },
 
         { type: "choice",
           q: "Im Winter ist es ___ als im Sommer.",
@@ -164,7 +164,7 @@ window.L21 = {
           q: "Anna läuft {schnell} als Peter.",
           a: ["schneller"],
           ru: "Анна бегает быстрее Петера.",
-          why: "Komparativ: -er. Умлаута нет — в schnell нет a, o, u." },
+          why: "Komparativ: -er. Умлаута нет, потому что в schnell нет a, o, u." },
 
         { type: "fill", full: true,
           q: "Der Gepard läuft am {schnell}.",
@@ -176,7 +176,7 @@ window.L21 = {
           q: "Das Kleid ist {teuer} als die Hose.",
           a: ["teurer"],
           ru: "Платье дороже брюк.",
-          why: "teuer теряет -e- в основе: teurer. «teuerer» — ошибка." },
+          why: "teuer теряет -e- в основе: teurer. Форма «teuerer» неверна." },
 
         { type: "choice",
           q: "Heute ist der ___ Tag des Jahres.",
@@ -200,7 +200,7 @@ window.L21 = {
           prompt: "Какое из слов НЕ получает умлаут в сравнении?",
           q: "schnell · alt · jung",
           opts: ["schnell", "alt", "jung"], a: 0,
-          why: "Умлаут бывает только у a, o, u. В schnell гласная e — schneller без точек." },
+          why: "Умлаут бывает только у a, o, u. В schnell гласная e, поэтому schneller без точек." },
 
         { type: "fill", full: true,
           q: "Das war der {dumm} Fehler von allen.",
@@ -228,32 +228,32 @@ window.L21 = {
           articleHint: "брат: mein- (мой)",
           ru: "Мой брат старше меня.",
           a: ["Mein Bruder ist älter als ich."],
-          why: "Разница — als. alt → älter." },
+          why: "Разницу передаёт als. alt → älter." },
 
         { type: "translate",
           articleHint: "лето: d; дни: d; зима: d",
           ru: "Летом дни длиннее, чем зимой.",
           a: ["Im Sommer sind die Tage länger als im Winter.", "Die Tage sind im Sommer länger als im Winter."],
-          why: "lang → länger, разница — als." }
+          why: "lang → länger, для разницы нужен als." }
       ]
     },
 
     {
       title: "als, wie, am и особые формы",
-      sub: "besser, mehr, lieber — и где als, а где wie",
+      sub: "besser, mehr, lieber; где als, а где wie",
       grammar: [0, 2],
       ex: [
         { type: "choice",
           q: "Ich esse lieber zu Hause ___ im Restaurant.",
           opts: ["als", "wie", "am"], a: 0,
           ru: "Я больше люблю есть дома, чем в ресторане.",
-          why: "lieber — сравнительная форма, значит разница: als." },
+          why: "lieber стоит в сравнительной форме, значит речь о разнице: als." },
 
         { type: "choice",
           q: "Das Essen schmeckt nirgends so gut ___ zu Hause.",
           opts: ["wie", "als", "am"], a: 0,
           ru: "Нигде еда не такая вкусная, как дома.",
-          why: "so gut … wie — равенство, значит wie." },
+          why: "so gut … wie выражает равенство, значит wie." },
 
         { type: "choice",
           q: "Zu Hause schmeckt das Essen ___ besten.",
@@ -265,13 +265,13 @@ window.L21 = {
           q: "Was isst du am {gern}?",
           a: ["liebsten"],
           ru: "Что ты любишь есть больше всего?",
-          why: "gern — особая форма: lieber, am liebsten." },
+          why: "У gern особые формы: lieber, am liebsten." },
 
         { type: "fill",
           q: "Anna lernt {gut} als Peter.",
           a: ["besser"],
           ru: "Анна учится лучше Петера.",
-          why: "gut → besser → am besten. Выучить, правилом не выводится." },
+          why: "gut → besser → am besten. Эти формы нужно выучить, правилом они не выводятся." },
 
         { type: "fill",
           q: "Ich habe {viel} Fehler als mein Freund gemacht.",
@@ -283,13 +283,13 @@ window.L21 = {
           q: "Peter ist größer ___ Anna.",
           opts: ["als", "wie"], a: 0,
           ru: "Петер выше Анны.",
-          why: "Главная ловушка урока: после -er только als. «größer wie» — разговорная ошибка." },
+          why: "Это главная ловушка урока: после -er ставят только als. «größer wie» говорят в разговоре, но это ошибка." },
 
         { type: "fill",
           q: "Das Ulmer Münster hat den {hoch} Kirchturm der Welt.",
           a: ["höchsten"],
           ru: "У Ульмского собора самая высокая колокольня в мире.",
-          why: "hoch → höher → der höchste; den Kirchturm — Akkusativ мужского рода, окончание -en." },
+          why: "hoch → höher → der höchste. den Kirchturm стоит в Akkusativ мужского рода, окончание -en." },
 
         { type: "fill",
           q: "Wir wohnen jetzt {nah} am Zentrum als früher.",
@@ -301,20 +301,20 @@ window.L21 = {
           q: "Vertrauen ist gut, aber Kontrolle ist ___ .",
           opts: ["besser", "am besten", "gut"], a: 0,
           ru: "Доверие — хорошо, а контроль — лучше.",
-          why: "Сравниваются двое — доверие и контроль: besser." },
+          why: "Сравниваются двое, доверие и контроль, поэтому besser." },
 
         { type: "fill",
           q: "Das Restaurant ist doppelt so teuer {} die Pizzeria.",
           a: ["wie"],
           ru: "Ресторан вдвое дороже пиццерии.",
-          why: "doppelt so … wie — конструкция с so, значит wie, хотя по смыслу это разница." },
+          why: "В doppelt so … wie есть so, значит wie, хотя по смыслу это разница." },
 
         { type: "choice",
           prompt: "Что значит то же самое?",
           q: "Ich bezahle höchstens 2000 Euro.",
           opts: ["Ich bezahle nicht mehr als 2000 Euro.", "Ich bezahle nicht weniger als 2000 Euro.", "Ich bezahle mehr als 2000 Euro."], a: 0,
           ru: "Я заплачу максимум 2000 евро.",
-          why: "höchstens — «самое большее», то есть не больше чем." },
+          why: "höchstens значит «самое большее», то есть не больше чем." },
 
         { type: "pairs",
           prompt: "Соедини обычную форму со сравнительной.",
@@ -336,7 +336,7 @@ window.L21 = {
           articleHint: "",
           ru: "Лучше всего учиться утром.",
           a: ["Man lernt am besten morgens.", "Am besten lernt man morgens.", "Morgens lernt man am besten.", "Am besten lernt man am Morgen."],
-          why: "gut → am besten, без существительного — с am." }
+          why: "gut → am besten. Без существительного нужен am." }
       ]
     },
 
@@ -349,85 +349,85 @@ window.L21 = {
           q: "Ali ist ___ Schüler in der Klasse.",
           opts: ["der größte", "der größter", "am größten"], a: 0,
           ru: "Али — самый высокий ученик в классе.",
-          why: "После рекорда стоит существительное — нужен артикль: der größte. am größten — только без существительного." },
+          why: "После рекорда стоит существительное, поэтому нужен артикль: der größte. am größten ставят только без существительного." },
 
         { type: "choice",
           q: "Ich habe ___ Haus als du.",
           opts: ["ein größeres", "ein größer", "einen größeren"], a: 0,
           ru: "У меня дом больше, чем у тебя.",
-          why: "das Haus после ein — хвост от das: größer + es." },
+          why: "das Haus после ein, хвост от das: größer + es." },
 
         { type: "choice",
           q: "Otto hat einen ___ Bauch als Bernd.",
           opts: ["größeren", "größerer", "größere"], a: 0,
           ru: "У Отто живот больше, чем у Бернда.",
-          why: "der Bauch в Akkusativ после einen → -en: größeren." },
+          why: "der Bauch в Akkusativ после einen получает -en: größeren." },
 
         { type: "fill",
           q: "Bernd hat {größer} Füße als Otto.",
           a: ["größere"],
           ru: "У Бернда ноги больше, чем у Отто.",
-          why: "Füße — множественное без артикля, Akkusativ → -e." },
+          why: "Füße во множественном числе без артикля, Akkusativ, поэтому -e." },
 
         { type: "fill",
           q: "Tamerlan hat die {schlechtest} Schrift in der Klasse.",
           a: ["schlechteste"],
           ru: "У Тамерлана самый плохой почерк в классе.",
-          why: "die Schrift, после die → -e: die schlechteste." },
+          why: "die Schrift, после die окончание -e: die schlechteste." },
 
         { type: "fill",
           q: "Er macht die {meist} Fehler.",
           a: ["meisten"],
           ru: "Он делает больше всех ошибок.",
-          why: "die Fehler — множественное, после артикля -en: die meisten." },
+          why: "die Fehler во множественном числе, после артикля окончание -en: die meisten." },
 
         { type: "choice",
           q: "Ich habe ___ Zeit als du.",
           opts: ["mehr", "mehre", "mehrere"], a: 0,
           ru: "У меня больше времени, чем у тебя.",
-          why: "mehr не склоняется никогда. mehrere — другое слово: «несколько»." },
+          why: "mehr не склоняется никогда. mehrere значит «несколько», это другое слово." },
 
         { type: "fill",
           q: "Mädchen haben meistens {länger} Haare als Jungen.",
           a: ["längere"],
           ru: "У девочек обычно волосы длиннее, чем у мальчиков.",
-          why: "Haare без артикля во множественном → -e." },
+          why: "Haare во множественном числе без артикля, поэтому -e." },
 
         { type: "fill",
           q: "Ich habe einen {schöner} Garten als du.",
           a: ["schöneren"],
           ru: "У меня сад красивее, чем у тебя.",
-          why: "der Garten, Akkusativ после einen → -en: schöner + en." },
+          why: "der Garten в Akkusativ после einen получает -en: schöner + en." },
 
         { type: "choice",
           q: "Das ist ___ Test von allen.",
           opts: ["der beste", "am besten", "der besten"], a: 0,
           ru: "Это лучший тест из всех.",
-          why: "Существительное Test стоит рядом — der beste, Nominativ мужского рода → -e." },
+          why: "Существительное Test стоит рядом, поэтому der beste: Nominativ мужского рода, окончание -e." },
 
         { type: "fill",
           q: "Anna schreibt immer den {best} Test.",
           a: ["besten"],
           ru: "Анна всегда пишет тест лучше всех.",
-          why: "den Test — Akkusativ мужского рода, после den → -en." },
+          why: "den Test в Akkusativ мужского рода, после den окончание -en." },
 
         { type: "fill",
           q: "Der 21. Juni ist der {lang} Tag im Jahr.",
           a: ["längste"],
           ru: "21 июня — самый длинный день в году.",
-          why: "lang → längste: умлаут, и после der → -e." },
+          why: "lang → längste: умлаут, и после der окончание -e." },
 
         { type: "fill",
           q: "Herr Müller hat ein {größer} Auto als sein Bruder.",
           a: ["größeres"],
           ru: "У господина Мюллера машина больше, чем у его брата.",
-          why: "das Auto после ein — хвост от das: -es." },
+          why: "das Auto после ein, хвост от das: -es." },
 
         { type: "translate",
           articleHint: "отель: d; Германия: ∅",
           ru: "Это самый дорогой отель в Германии.",
           a: ["Das ist das teuerste Hotel in Deutschland."],
-          why: "Рекорд перед существительным — с определённым артиклем: das teuerste." },
+          why: "Рекорд перед существительным стоит с определённым артиклем: das teuerste." },
 
         { type: "translate",
           articleHint: "машина: e",
@@ -439,7 +439,7 @@ window.L21 = {
           articleHint: "игрок: d; команда: d",
           ru: "Он лучший игрок в команде.",
           a: ["Er ist der beste Spieler in der Mannschaft.", "Er ist der beste Spieler im Team.", "Er ist der beste Spieler der Mannschaft."],
-          why: "der beste Spieler — рекорд с артиклем и окончанием -e." }
+          why: "der beste Spieler: рекорд с артиклем и окончанием -e." }
       ]
     },
 
@@ -452,7 +452,7 @@ window.L21 = {
           q: "Das Ulmer Münster ist 161 m hoch. Das ist der ___ Kirchturm der Welt.",
           opts: ["höchste", "hochste", "höhere"], a: 0,
           ru: "Ульмский собор высотой 161 метр. Это самая высокая колокольня в мире.",
-          why: "Рекорд: hoch → der höchste. höhere — сравнение двух, а тут весь мир." },
+          why: "Рекорд: hoch → der höchste. höhere сравнивает двоих, а тут весь мир." },
 
         { type: "choice",
           q: "Der Bodensee ist bis zu 250 m tief und damit der ___ See in Deutschland.",
@@ -476,13 +476,13 @@ window.L21 = {
           q: "Der Flughafen Frankfurt ist am {groß}.",
           a: ["größten"],
           ru: "Франкфуртский аэропорт самый большой.",
-          why: "Без существительного — am größten." },
+          why: "Без существительного нужен am größten." },
 
         { type: "choice",
           q: "Im Sommer sind die Tage ___ als im Winter.",
           opts: ["länger", "langer", "am längsten"], a: 0,
           ru: "Летом дни длиннее, чем зимой.",
-          why: "Сравниваются два сезона — Komparativ с als." },
+          why: "Сравниваются два сезона, поэтому Komparativ с als." },
 
         { type: "fill", full: true,
           q: "Am 21. Juni steht die Sonne am {hoch}.",
@@ -500,13 +500,13 @@ window.L21 = {
           q: "Im Vergleich zu anderen Tieren läuft der Mensch viel ___ .",
           opts: ["langsamer", "langsam", "am langsamsten"], a: 0,
           ru: "По сравнению с другими животными человек бегает намного медленнее.",
-          why: "viel + Komparativ — «намного медленнее»." },
+          why: "viel + Komparativ значит «намного медленнее»." },
 
         { type: "fill", full: true,
           q: "Der Gepard läuft noch {schnell} als ein Windhund.",
           a: ["schneller"],
           ru: "Гепард бегает ещё быстрее борзой.",
-          why: "noch + Komparativ — «ещё быстрее», дальше als." },
+          why: "noch + Komparativ значит «ещё быстрее», дальше идёт als." },
 
         { type: "fill", full: true,
           q: "In der Luft ist der Wanderfalke am {schnell}.",
@@ -540,7 +540,7 @@ window.L21 = {
           articleHint: "зима: d; осень: d",
           ru: "Зимой холоднее, чем осенью.",
           a: ["Im Winter ist es kälter als im Herbst.", "Es ist im Winter kälter als im Herbst."],
-          why: "kalt → kälter, разница — als." }
+          why: "kalt → kälter, для разницы нужен als." }
       ]
     }
   ],
