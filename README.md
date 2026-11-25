@@ -63,6 +63,7 @@ Node.js 18 или новее, без установки пакетов:
 ```sh
 node --test tools/test-regressions.js
 node --test tools/test-swipe-back.js
+node --test tools/test-last-route.js
 node --test tools/test-updates.js
 node --test tools/test-tutor.js
 node --test tools/test-tutor-session.js

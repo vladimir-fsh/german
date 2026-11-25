@@ -75,6 +75,7 @@
     routeId++; working = false; document.onkeydown = null;
     var h = curPath();
     var m;
+    window.LastRoute.remember(h);
     tutorContext(h, function () {
       var names = { "/": "Курс немецкого A2 → B1", "/more": "Настройки приложения", "/more/cloud": "Облако и вход", "/review": "Повторение ошибок", "/vocab": "Тренировка слов" };
       return { type: "page", title: names[h] || "Тренировка слов", note: "На экране нет отдельного слова или задания. Уточни, что объяснить." };
@@ -766,6 +767,8 @@
     if (warning) { var text = Store.storageError(); warning.hidden = !text; warning.querySelector("span").textContent = text; }
   });
 
+  var startPath = window.LastRoute.initial(curPath(), function (p) { return ROUTE_RE.test(p); });
+  if (startPath !== curPath()) history.replaceState(null, "", location.pathname + location.search + "#" + startPath);
   route();
   Store.start();
   window.AppUpdates.start();
