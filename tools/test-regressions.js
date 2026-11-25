@@ -1,4 +1,3 @@
-/* Регрессии актуального main. Запуск: node --test tools/test-regressions.js */
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const env = require("./env.js");
@@ -134,7 +133,6 @@ test("новая очередь, калибровка и старые сесси
 test("повседневные варианты сохраняют старые ключи повторения, сессии и калибровки", () => {
   const win = env.load(["data/lessons.js", "data/vocab.js"].concat(SYNC));
   const { training } = vocabulary(win);
-  // Достаточный дневной бюджет для проверки всей учебной очереди.
   win.SRS_CONFIG.maxNewPerDay = 10000; win.SRS_CONFIG.sessionNew = 10000;
   const all = vocabulary(win).training;
   const cards = all.plan();

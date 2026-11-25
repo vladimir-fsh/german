@@ -1,13 +1,4 @@
-/* Словарь для повседневного общения: основной вариант - обычное слово или
-   выражение; более формальное / книжное - только в reg на обороте.
-   f - приблизительная учебная очередь от базовой к более сложной лексике,
-   а не измеренный корпусный ранг частотности и не оценка уровня CEFR.
-   calibrate: false исключает названия и сокращения из калибровки,
-   сохраняя обычное обучение и повторение этих карточек.
-   id сохраняет прежний ключ карточки при смене основного варианта:
-   расписание, закрытые слова и незавершённые сессии продолжают работать. */
 window.VOCAB = [
-  /* Группа 1: базовые повседневные слова */
   { f: 1, de: "die Möglichkeit", ru: "возможность", ex: "Es gibt noch eine andere Möglichkeit.", exru: "Есть ещё одна возможность." },
   { f: 1, de: "der Grund", ru: "причина", ex: "Aus diesem Grund komme ich später.", exru: "По этой причине я приду позже." },
   { f: 1, de: "die Meinung", ru: "мнение", ex: "Meiner Meinung nach ist das falsch.", exru: "По моему мнению, это неверно." },
@@ -31,7 +22,6 @@ window.VOCAB = [
   { id: "der Stellenwert", f: 1, de: "wichtig sein", ru: "быть важным", ex: "Meine Familie ist mir sehr wichtig.", exru: "Моя семья для меня очень важна.", reg: "Официальнее: der Stellenwert (значимость); einen hohen Stellenwert haben (иметь большое значение).", regEx: "Meine Familie hat einen hohen Stellenwert in meinem Leben.", regExRu: "Моя семья занимает важное место в моей жизни." },
   { id: "gravierend", f: 1, de: "schlimm", ru: "плохой, серьёзный (о проблеме)", ex: "Ist der Fehler wirklich so schlimm?", exru: "Ошибка действительно настолько серьёзная?", reg: "Более формально: gravierend (серьёзный, с тяжёлыми последствиями). Сильнее, чем просто schlimm.", regEx: "Dieser Fehler hat gravierende Folgen.", regExRu: "У этой ошибки серьёзные последствия." },
 
-  /* Группа 2: повседневные ситуации */
   { f: 2, de: "die Verantwortung", ru: "ответственность", ex: "Er übernimmt die Verantwortung für das Projekt.", exru: "Он берёт на себя ответственность за проект." },
   { f: 2, de: "der Vorteil", ru: "преимущество", ex: "Das Auto hat einen großen Vorteil: es ist billig.", exru: "У этой машины большое преимущество: она дешёвая." },
   { f: 2, de: "der Nachteil", ru: "недостаток", ex: "Der Nachteil ist die lange Fahrt.", exru: "Недостаток — долгая дорога." },
@@ -51,7 +41,6 @@ window.VOCAB = [
   { id: "die Gelassenheit", f: 2, de: "ruhig bleiben", ru: "сохранять спокойствие", ex: "Bleib ruhig, wir finden eine Lösung.", exru: "Сохраняй спокойствие, мы найдём решение.", reg: "Более книжное близкое понятие: die Gelassenheit (спокойствие, невозмутимость).", regEx: "Ich bewundere deine Gelassenheit.", regExRu: "Я восхищаюсь твоим спокойствием." },
   { id: "erörtern", f: 2, de: "besprechen", ru: "обсуждать", ex: "Wir besprechen das morgen in Ruhe.", exru: "Мы спокойно обсудим это завтра.", reg: "Более формально: erörtern (подробно обсуждать, разбирать вопрос).", regEx: "Wir erörtern die Vor- und Nachteile des Plans.", regExRu: "Мы подробно обсуждаем преимущества и недостатки плана." },
 
-  /* Группа 3: мнения и последствия */
   { f: 3, de: "der Eindruck", ru: "впечатление", ex: "Sie macht einen ruhigen Eindruck.", exru: "Она производит спокойное впечатление." },
   { f: 3, de: "der Zusammenhang", ru: "взаимосвязь, контекст", ex: "Ich sehe keinen Zusammenhang zwischen den Ereignissen.", exru: "Я не вижу связи между этими событиями." },
   { f: 3, de: "die Gewohnheit", ru: "привычка", ex: "Rauchen ist eine schlechte Gewohnheit.", exru: "Курение — плохая привычка." },
@@ -63,7 +52,6 @@ window.VOCAB = [
   { id: "die Zuversicht", f: 3, de: "optimistisch sein", ru: "быть настроенным оптимистично", ex: "Trotz der Probleme bin ich optimistisch.", exru: "Несмотря на проблемы, я настроен оптимистично.", reg: "Более книжное близкое понятие: die Zuversicht (уверенность в хорошем исходе).", regEx: "Ich blicke mit Zuversicht in die Zukunft.", regExRu: "Я смотрю в будущее с уверенностью в хорошем исходе." },
   { id: "beiläufig", f: 3, de: "nebenbei", ru: "попутно, между прочим", ex: "Das hat er nur so nebenbei gesagt.", exru: "Он сказал это просто между прочим.", reg: "Более книжное в этом значении: beiläufig (вскользь, мимоходом).", regEx: "Er hat das nur beiläufig erwähnt.", regExRu: "Он упомянул об этом лишь вскользь." },
 
-  /* Группа 4: более сложные выражения */
   { f: 4, de: "die Herausforderung", ru: "вызов, трудная задача", ex: "Der neue Job ist eine große Herausforderung.", exru: "Новая работа — большой вызов." },
   { f: 4, de: "das Vorurteil", ru: "предрассудок", ex: "Viele Menschen haben Vorurteile gegen Fremde.", exru: "У многих людей есть предрассудки против чужаков." },
   { f: 4, de: "nachvollziehen", ru: "понять ход мысли, проследить", ex: "Ich kann deine Entscheidung gut nachvollziehen.", exru: "Я вполне понимаю твоё решение." },
@@ -71,14 +59,11 @@ window.VOCAB = [
   { id: "beharren auf", f: 4, de: "bestehen auf", ru: "настаивать на", ex: "Ich bestehe darauf, dass du mitkommst.", exru: "Я настаиваю на том, чтобы ты пошёл с нами.", reg: "Более книжное: beharren auf (упорно настаивать на своём). Оба глагола: auf + Dativ.", regEx: "Sie beharrt auf ihrer Meinung.", regExRu: "Она упорно настаивает на своём мнении." },
   { id: "unvermeidlich", f: 4, de: "sich nicht vermeiden lassen", ru: "быть неизбежным; нельзя избежать", ex: "Das lässt sich leider nicht vermeiden.", exru: "Этого, к сожалению, не избежать.", reg: "Более книжное: unvermeidlich (неизбежный).", regEx: "Eine kurze Wartezeit ist leider unvermeidlich.", regExRu: "Короткого ожидания, к сожалению, не избежать." },
 
-  /* Группа 5: более специальная лексика для обсуждений */
   { f: 5, de: "die Nachhaltigkeit", ru: "устойчивость, экологичность", ex: "Die Firma spricht viel über Nachhaltigkeit.", exru: "Фирма много говорит об экологичности." },
   { f: 5, de: "hinterfragen", ru: "ставить под вопрос", ex: "Man sollte alte Regeln manchmal hinterfragen.", exru: "Старые правила иногда стоит ставить под вопрос." },
   { f: 5, de: "umstritten", ru: "спорный", ex: "Das Gesetz ist sehr umstritten.", exru: "Этот закон очень спорный." },
   { f: 5, de: "anspruchsvoll", ru: "требовательный, взыскательный", ex: "Der Kurs ist anspruchsvoll, aber interessant.", exru: "Курс требовательный, но интересный." },
 
-  /* Слова с фотографий списка «Die 1000 häufigsten Wörter», страницы 65-67.
-     Соответствие исходным строкам: docs/vocab-photo-source.json. */
   {"f":1,"de":"ab","ru":"с, начиная с","ex":"Ab Montag arbeite ich wieder.","exru":"С понедельника я снова работаю."},
   {"f":1,"de":"der Abend","ru":"вечер","ex":"Am Abend lese ich.","exru":"Вечером я читаю."},
   {"f":1,"de":"aber","ru":"но","ex":"Ich komme, aber später.","exru":"Я приду, но позже."},

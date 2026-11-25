@@ -1,4 +1,3 @@
-/* Фразы используют то же расписание, но отдельные ключи и черновик, без дневного лимита. */
 window.PhraseTraining = (function () {
   "use strict";
   function create(options) {
@@ -12,7 +11,7 @@ window.PhraseTraining = (function () {
     }
     var config = {}, source = options.config || window.SRS_CONFIG;
     Object.keys(source).forEach(function (key) { config[key] = source[key]; });
-    config.maxNewPerDay = null; // без дневного лимита новых фраз
+    config.maxNewPerDay = null;
     config.sessionNew = source.phraseSession;
     return window.VocabTraining.create({ store: options.store, sessions: options.sessions,
       selectFresh: selectFresh, config: config, prefix: "P:", sessionKind: "phrases", tune: false,

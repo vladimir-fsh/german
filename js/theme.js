@@ -1,4 +1,3 @@
-/* Тема применяется до CSS и первого экрана, включая фон окна браузера. */
 window.Theme = (function () {
   "use strict";
   var root = document.documentElement, meta = document.querySelector('meta[name="theme-color"]');

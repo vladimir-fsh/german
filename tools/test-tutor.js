@@ -23,7 +23,6 @@ test('непроверенное задание не раскрывает отв
   assert.equal(data.pairs,undefined); assert.equal(data.sampleAnswer,undefined);
 });
 
-// Небольшой DOM для настоящих обработчиков чата, сетевой транспорт подставной.
 function fixture(options={}) {
   const w=env.load(['js/progress-data.js','js/srs-config.js','js/sync.js','js/word-explanations.js','js/tutor-context.js','js/tutor-request.js','js/tutor-gateway.js','js/tutor-session.js','js/tutor.js']);
   const nodes=[];

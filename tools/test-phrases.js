@@ -208,7 +208,6 @@ test('исторические 10 минут сохраняются; следу�
   h.clock.skew += 25 * 3600000;
   const again = h.training.open('repeat'); again.current(); again.answer(false);
   h.clock.skew += 13 * 3600000;
-  // Закончить локальный круг промахов, затем проверить ответ по назначенному сроку.
   again.current(); again.answer(true); again.current(); again.finish();
   const next = h.training.open('repeat'); next.current(); next.answer(true);
   schedule = h.w.Store.state().vocab[key];

@@ -1,6 +1,3 @@
-/* Общий план курса A2 → B1.
-   Источник последовательности: lehrerlenz.de, Lektionen 18-32.
-   status: 'ready' - контент написан, 'todo' - в очереди. */
 window.COURSE = {
   title: "Deutsch A2 → B1",
   pace: "30-40 минут в день, 5 дней в неделю",

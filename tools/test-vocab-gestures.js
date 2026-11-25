@@ -1,4 +1,3 @@
-/* Проверяем обработчики карточки без браузера и настоящего прогресса. */
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -127,7 +126,6 @@ test('эффект ответа использует переданное рас
   assert.equal(h.frames.at(-1),schedule);
 });
 
-/* Настоящий экран, обработчики свайпов, журнал и сохранение сессии. */
 function training(words, storage) {
   const env = require('./env.js');
   const win = env.load(['js/progress-data.js', 'js/srs-config.js', 'js/sync.js',

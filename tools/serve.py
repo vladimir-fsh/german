@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""Локальный сервер без кэша: python3 -m http.server отдаёт файлы с ETag,
-и браузер показывает старый JS. Здесь каждый ответ помечен no-store.
-
-    python3 tools/serve.py [порт]   # по умолчанию 8777
-"""
 import sys
 import argparse
 from functools import partial

@@ -1,4 +1,3 @@
-/* Экран карточек: DOM, размещение и эффекты. Очередью владеет VocabTraining. */
 window.VocabView = (function () {
   "use strict";
   function bar(ws, loading) {
@@ -66,7 +65,6 @@ window.VocabView = (function () {
     app.classList.add("tight");
     document.documentElement.classList.add("vocab-training");
 
-    /* высота ровно по окну: ни вертикальной полосы, ни прыжков адресной строки */
     function fitScreen() {
       card.style.height = "auto";
       var top = card.getBoundingClientRect().top;
@@ -98,7 +96,6 @@ window.VocabView = (function () {
       window.onresize = fitScreen; step(); syncTabs();
     }
 
-    /* На итоге тот же жест вниз; обычная прокрутка и кнопки его не запускают. */
     function bindResultUndo(result) {
       var start = null, distance = 0;
       result.addEventListener('touchstart', function (event) {
@@ -123,7 +120,6 @@ window.VocabView = (function () {
     }
 
     var finishGesture = null;
-    /* Ответ и позиция сохраняются до эффекта, следующий свайп блокируется. */
     function advance(source, ok, schedule) {
       busy = true;
       if (noteButton) noteButton.hidden = true;
@@ -216,7 +212,7 @@ window.VocabView = (function () {
       if (busy || !active()) return;
       var flip = host.querySelector(".vflip");
       if (!flip) return;
-      run.peek();   /* Подсказка сохраняется при переходах и перезагрузке. */
+      run.peek();
       flip.classList.toggle("flipped");
     }
 
@@ -281,8 +277,6 @@ window.VocabView = (function () {
     step();
     return function () { unsubscribeNotes(); if (closeNotes) closeNotes(); };
 
-    /* Итог калибровки: ступень - самая высокая, где знакомо хотя бы половину,
-       плюс одна сверху, чтобы было куда расти. */
     function finishCalib(result) {
       var lvl = result.level, known = result.known, shown = result.shown, calibStat = result.calibStat;
       syncTabs();

@@ -1,4 +1,3 @@
-/* Самопроверка фраз: сначала вспомнить, затем открыть образец и оценить ответ. */
 window.PhraseView = (function () {
   "use strict";
   function mount(host, mode, options) {

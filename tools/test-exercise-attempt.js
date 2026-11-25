@@ -6,7 +6,6 @@ function fixture() {
   const w = env.load(['js/progress-data.js', 'js/srs-config.js', 'js/sync.js', 'js/practice.js', 'js/sessions.js', 'js/review.js', 'js/exercise-attempt.js']);
   const ex = { type: 'choice', q: 'Der Mann ist …', opts: ['nett', 'nette'], a: 0, why: 'После ist без окончания.' };
   const rendered = [];
-  // Адаптер движка моделирует порядок его событий: сначала черновик, затем результат.
   const engine = { render(ex, host, done, options) {
     const api = { result: options.draft && options.draft.result || null, getDraft: () => options.draft || {},
       check() { const result = { ok: true, verdict: 'correct', usedHint: options.isHinted() }; this.result = result;

@@ -1,5 +1,3 @@
-/* Lektion 18 — Adjektivdeklination.
-   Источник тем и лексики: lehrerlenz.de/lektion_18_adjektivdeklination.html */
 window.L18 = {
   n: 18,
   title: "Adjektivdeklination",
@@ -983,7 +981,6 @@ window.L18 = {
   ],
 
 
-  /* 10 слов урока для карточек. Лексика из упражнений lehrerlenz к Lektion 18. */
   words: [
     { de: "ehrlich", ru: "честный", ex: "Ehrliche Menschen sagen immer die Wahrheit.", exru: "Честные люди всегда говорят правду." },
     { de: "zuverlässig", ru: "надёжный", ex: "Jeder braucht einen zuverlässigen Freund.", exru: "Каждому нужен надёжный друг." },
@@ -1014,8 +1011,6 @@ window.L18 = {
   ]
 };
 
-/* Точные учебные цели для безопасной смены контекста в позднем повторении.
-   Без такой разметки повторяется исходное упражнение. */
 (function () {
   var skills = { 2: "adj-ein-nom-m", 3: "adj-ein-nom-m", 4: "adj-eine-nom-f", 5: "adj-ein-nom-akk-n", 6: "adj-eine-nom-f", 7: "adj-ein-nom-m", 8: "adj-ein-nom-akk-n" };
   Object.keys(skills).forEach(function (index) { window.L18.days[0].ex[index].skill = skills[index]; });

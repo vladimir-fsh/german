@@ -1,4 +1,3 @@
-/* Учебные данные для чата. Разметка и состояние хранилища сюда не попадают. */
 window.TutorContext = (function () {
   "use strict";
   function text(html) {
@@ -48,7 +47,6 @@ window.TutorContext = (function () {
       articleHint: ex.articleHint || "", options: ex.opts || ex.words || [],
       input: draft.values || [], zeroEndings: draft.zeros || [], selectedOption: draft.choice,
       checked: !!result };
-    /* До проверки не раскрываем ключи, объяснение и порядок правильных пар. */
     if (ex.pairs) out.pairOptions = {
       left: ex.pairs.map(function (p) { return p[0]; }).sort(),
       right: ex.pairs.map(function (p) { return p[1]; }).sort()

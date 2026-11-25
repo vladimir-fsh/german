@@ -1,4 +1,3 @@
-/* Черновики учебных дней. Прогресс меняется только через Store.mutate. */
 window.Practice = (function () {
   "use strict";
   var KEY = "de-b1-days-v2", LEGACY = "de-b1-day-v1", memory = {}, dirty = false, blockedDrafts = false;
@@ -39,7 +38,7 @@ window.Practice = (function () {
         var migrated = { id: stamp(), n: n, di: di, i: old.i, legacyCorrect: old.correct, records: [], fingerprint: fingerprint(exercises), at: old.at || Date.now() };
         save(migrated); return migrated;
       }
-    } catch (e) { /* Старая запись не удаляется автоматически. */ }
+    } catch (e) {}
     return null;
   }
   function create(n, di, exercises) { return { id: stamp(), n: n, di: di, i: 0, records: [], fingerprint: fingerprint(exercises), at: Date.now() }; }

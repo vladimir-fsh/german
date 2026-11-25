@@ -1,5 +1,3 @@
-/* Lektion 19 — Nebensätze 1: weil, dass.
-   Источник тем и лексики: lehrerlenz.de/lektion_19_nebenstze_1_dass_weil.html */
 window.L19 = {
   n: 19,
   title: "Nebensätze 1: weil, dass",
@@ -238,7 +236,6 @@ window.L19 = {
     }
   ],
 
-  /* 10 слов урока для карточек. Лексика из упражнений lehrerlenz к Lektion 19. */
   words: [
     { de: "die Erziehung", ru: "воспитание", ex: "Die Erziehung der Kinder ist nicht einfach.", exru: "Воспитание детей — дело непростое." },
     { de: "versprechen", ru: "обещать", ex: "Wir versprechen Ihnen, dass wir heute lieb sind.", exru: "Мы обещаем вам, что сегодня будем вести себя хорошо." },

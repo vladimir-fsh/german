@@ -1,4 +1,3 @@
-/* Просмотр личных объяснений поверх карточки; текст не интерпретируется как HTML. */
 window.WordExplanationView = (function () {
   "use strict";
   function node(tag, cls, text) {

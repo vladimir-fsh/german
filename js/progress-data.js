@@ -1,4 +1,3 @@
-/* Проверка переносимого прогресса и календарь. Без DOM, сети и мутаций. */
 window.ProgressData = (function () {
   "use strict";
   function fail() { throw new Error("Некорректный файл прогресса. Текущие данные не изменены."); }

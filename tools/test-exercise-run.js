@@ -5,7 +5,6 @@ const env = require('./env.js');
 const FILES = ['js/progress-data.js', 'js/srs-config.js', 'js/sync.js', 'js/practice.js', 'js/sessions.js', 'js/review.js', 'js/exercise-attempt.js', 'js/exercise-run.js'];
 const exercises = [0, 1, 2, 3].map(k => ({ type: 'choice', q: 'Q' + k, opts: ['a', 'b'], a: 0, why: 'почему' }));
 
-// Движок-заглушка: check() сразу засчитывает ответ, как это делает выбор варианта.
 function engine() {
   return { render(ex, host, done, options) {
     const api = { result: options.draft && options.draft.result || null, getDraft: () => options.draft || {},

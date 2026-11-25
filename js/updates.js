@@ -1,4 +1,3 @@
-/* Проверка версии не меняет прогресс и не перезагружает тренировку. */
 window.AppUpdates = (function () {
   "use strict";
   var meta = document.querySelector('meta[name="app-version"]');

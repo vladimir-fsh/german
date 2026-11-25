@@ -1,4 +1,3 @@
-/* Личные объяснения привязаны к постоянному ключу слова, общему для обеих сторон. */
 window.WordExplanations = (function () {
   "use strict";
   function list(key) {

@@ -1,5 +1,3 @@
-/* Палитра в духе Gemini: холодный светло-синий фон, белые поверхности,
-   синий Google как акцент и фирменный градиент синий → фиолетовый → розовый. */
 :root {
   --bg: #f0f4f9;
   --surface: #ffffff;
@@ -64,7 +62,6 @@
   --btn-text: #062e6f;
 }
 
-/* Прокрутка пальцем остаётся доступной, полосы не занимают место. */
 * { box-sizing: border-box; scrollbar-width: none; }
 *::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .tutor-overlay[hidden], .tutor-panel [hidden] { display: none !important; }
@@ -183,13 +180,10 @@ main.wrap {
 main.wrap.tight { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
 button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
-/* Долгое нажатие на карточке не должно выделять слово и звать меню iOS.
-   Теория и примеры выделяются, чтобы копировать немецкий. */
 .vdeck, .vlegend, .tabbar, .progline, .btn, .opt, .chip, .pair, .day, .lesson, .row {
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
 }
 
-/* ---------- нижняя панель вкладок (как в iOS) ---------- */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
   display: flex; align-items: stretch;
@@ -213,7 +207,6 @@ button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; to
   font-size: 10.5px; font-weight: 700; font-style: normal; line-height: 17px; text-align: center;
 }
 
-/* ---------- cards ---------- */
 .card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); margin: 14px 0;
@@ -223,7 +216,6 @@ button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; to
 .muted { color: var(--text-dim); font-size: 14px; }
 .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); font-weight: 600; }
 
-/* ---------- home ---------- */
 .hero { padding: 26px 20px; }
 .hero h1 { margin: 6px 0 8px; font-size: 27px; letter-spacing: -.02em; }
 .bar { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin: 12px 0 6px; }
@@ -248,7 +240,6 @@ button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; to
 .exercise-remove[hidden] { display: none; }
 .exercise-remove select { width: 100%; margin-top: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--text); font: inherit; }
 
-/* ---------- lesson list ---------- */
 .lesson {
   display: flex; gap: 14px; align-items: flex-start; padding: 13px 16px; cursor: pointer;
   border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
@@ -265,7 +256,6 @@ button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; to
 .lesson .s { font-size: 13px; color: var(--text-dim); }
 .lesson .pct { margin-left: auto; font-size: 13px; color: var(--text-dim); flex: none; }
 
-/* ---------- days ---------- */
 .day {
   display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px;
   border: 1px solid var(--border); margin-bottom: 8px; cursor: pointer; background: var(--surface);
@@ -275,7 +265,6 @@ button, a, .lesson, .day, summary { -webkit-tap-highlight-color: transparent; to
 .day.done { border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); }
 .day.done .tag { color: var(--ok); }
 
-/* ---------- grammar ---------- */
 .gram { line-height: 1.65; }
 .gram p { margin: 10px 0; }
 .gram ul, .gram ol { margin: 10px 0; padding-left: 22px; }
@@ -294,7 +283,6 @@ table.tbl td.m { color: var(--der); } table.tbl td.f { color: var(--die); }
 table.tbl td.n { color: var(--das); } table.tbl td.p { color: var(--text-dim); }
 .scrollx { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
-/* ---------- exercises ---------- */
 .q { font-size: 18px; line-height: 1.7; margin: 6px 0 14px; }
 .q .ru { display: block; color: var(--text-dim); font-size: 14px; margin-top: 4px; }
 .prompt { font-size: 14px; color: var(--text-dim); margin-bottom: 10px; }
@@ -305,7 +293,6 @@ input.blank, input.big {
 }
 input.big { display: block; width: 100%; text-align: left; border: 1px solid var(--border);
   background: var(--surface-2); border-radius: 10px; padding: 11px 13px; font-weight: 500; margin-top: 4px; }
-/* ввод только окончания: основа текстом, узкое поле вплотную к ней */
 .stem { white-space: nowrap; }
 input.blank.end { min-width: 0; width: 2.6em; padding: 1px 2px; text-align: left; }
 input.blank.ok, input.big.ok { border-color: var(--ok); color: var(--ok); }
@@ -373,7 +360,6 @@ details.theory .gram { padding: 0 14px 14px; }
 .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
   background: var(--accent-soft); color: var(--accent); vertical-align: middle; margin-left: 6px; }
 
-/* ---------- мнемоника и хаки ---------- */
 .hack {
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
   background: var(--accent-soft); border-radius: 12px; padding: 13px 15px; margin: 14px 0;
@@ -426,7 +412,6 @@ details.theory .gram { padding: 0 14px 14px; }
   .hero h1 { font-size: 23px; }
 }
 
-/* ---------- телефон ---------- */
 
 /* на тачскрине hover остаётся после тапа, поэтому он отключён */
 @media (hover: none) {
@@ -441,7 +426,6 @@ details.theory .gram { padding: 0 14px 14px; }
 .opt:active, .chip:active, .pair:active, .btn:active, .ghost:active,
 .lesson:active, .day:active { transform: scale(.985); }
 
-/* панель «Проверить / Дальше» прилипает к низу экрана */
 @media (max-width: 700px) {
   .btnrow.sticky {
     position: sticky; bottom: 0; z-index: 5;
@@ -469,7 +453,6 @@ details.theory .gram { padding: 0 14px 14px; }
   .linklist a { padding: 12px 13px; }
   details.theory > summary { padding: 13px 14px; }
 
-  /* узкие таблицы нечитаемы, поэтому они прокручиваются целиком */
   .scrollx table.tbl { min-width: 470px; }
   .scrollx::after {
     content: "← таблица прокручивается вбок →";
@@ -487,13 +470,11 @@ details.theory .gram { padding: 0 14px 14px; }
   .stats { gap: 14px 18px; }
 }
 
-/* ---------- карточки слов ---------- */
 html.vocab-training, html.vocab-training body { overflow: hidden; overscroll-behavior: none; }
 .vocab-training main.wrap.tight { padding-bottom: 0; }
-/* Экран карточек без обёрток: одна большая карточка по центру экрана. */
 .vscreen { display: flex; flex-direction: column; margin: 10px 0 0; overflow: hidden; touch-action: none; }
 .vinterval { font-size: 12px; text-align: center; padding: 4px 0; }
-.vhost { position: relative; display: flex; flex-direction: column; margin: auto 0; }   /* карточка по центру */
+.vhost { position: relative; display: flex; flex-direction: column; margin: auto 0; }
 
 .vstage { perspective: 1100px; margin: 10px 0 6px; }
 
@@ -528,7 +509,6 @@ html.word-notes-open, .word-notes-open body { overflow: hidden; }
 .word-notes-back { flex-shrink: 0; min-height: 44px; }
 .vslot { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
 
-/* на экране карточек страница не прокручивается, поэтому жест целиком наш */
 .vdrag {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0;
   will-change: transform; touch-action: none; cursor: grab;
@@ -548,11 +528,9 @@ html.word-notes-open, .word-notes-open body { overflow: hidden; }
   display: flex; flex-direction: column; justify-content: center;
   transition: box-shadow .2s ease;
 }
-/* содержимое лица: его и двигает параллакс, поворот живёт на .vflip */
 .vinner { display: flex; flex-direction: column; justify-content: center; gap: 12px; }
 .vback { transform: rotateY(180deg); }
 
-/* у поднятой карточки тень сильнее */
 .vdrag.held .vface { box-shadow: 0 18px 40px rgba(0,0,0,.22), 0 2px 6px rgba(0,0,0,.12); }
 
 .vword { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25; }
@@ -561,7 +539,6 @@ html.word-notes-open, .word-notes-open body { overflow: hidden; }
 .vex { font-size: 16px; line-height: 1.55; }
 .vex i { display: block; font-style: normal; font-size: 14.5px; color: var(--text-dim); margin-top: 3px; }
 .vmeta { display: block; margin-top: 10px; font-size: 12px; color: var(--text-dim); }
-/* пометка регистра: слово не из бытовой речи */
 .vreg {
   align-self: center; font-size: 12px; line-height: 1.4; color: var(--accent);
   background: var(--accent-soft); border-radius: 12px; padding: 8px 12px; max-width: 100%;
@@ -569,14 +546,11 @@ html.word-notes-open, .word-notes-open body { overflow: hidden; }
 
 .vreg .vex { margin-top: 8px; color: var(--text); }
 
-/* Ранги повторения: металлическая оправа, скошенные углы и эмблема.
-   Все детали принадлежат лицу карточки и переворачиваются вместе с ним. */
 .vstage { margin-top: 18px; margin-bottom: 24px; }
 .vface.vranked {
   padding: 36px 30px; border-radius: 0; background: none; box-shadow: none;
 }
 .vdrag.held .vface.vranked { box-shadow: none; }
-/* Подложка повторяет скошенный контур SVG, не выступая за оправу. */
 .vface.vranked::before {
   content: ""; position: absolute; inset: -3px; pointer-events: none;
   clip-path: polygon(6.944% 2.5%, 93.056% 2.5%, 97.5% 6.944%, 97.5% 93.056%, 93.056% 97.5%, 6.944% 97.5%, 2.5% 93.056%, 2.5% 6.944%);
@@ -660,7 +634,6 @@ html.word-notes-open, .word-notes-open body { overflow: hidden; }
   .wordlist { grid-template-columns: 1fr; }
 }
 
-/* ---------- вкладка «Ещё» ---------- */
 .storage-warning { padding: 14px 16px; background: var(--bad-soft); color: var(--text); font-size: 14px; }
 .storage-warning[hidden] { display: none; }
 .storage-warning button { display: block; margin-top: 10px; }
@@ -682,7 +655,6 @@ html.word-notes-open, .word-notes-open body { overflow: hidden; }
 .row .val { color: var(--text-dim); font-size: 14px; min-width: 0; overflow-wrap: anywhere; }
 .row.static { cursor: default; }
 
-/* Настройки облачной синхронизации. */
 .cloud-panel { overflow-wrap: anywhere; display: flex; flex-direction: column; min-height: calc(100vh - 132px); min-height: calc(100dvh - 132px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
 .cloud-panel { transition: transform .18s ease, opacity .18s ease; }
 .cloud-panel.swiping-back { transition: none; }
@@ -690,7 +662,6 @@ html.word-notes-open, .word-notes-open body { overflow: hidden; }
 .cloud-input { width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 16px; }
 .cloud-panel [hidden] { display: none; }
 
-/* Итог по центру доступной области, без перекрытия нижних вкладок. */
 main.wrap.result-screen {
   min-height: 100vh; min-height: 100dvh;
   display: flex; flex-direction: column;
@@ -710,7 +681,6 @@ main.wrap.result-screen {
 .cloud-backup { border-top: 1px solid var(--border); padding: 12px 0; }
 .cloud-back { margin-top: 20px; }
 
-/* Фразы: длинный текст остаётся в потоке, частые действия - у нижнего края. */
 .phrase-session { min-height: calc(100svh - 110px - env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
 .phrase-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .phrase-card { margin: auto 0; padding: 24px; overflow-wrap: anywhere; }
@@ -721,7 +691,6 @@ main.wrap.result-screen {
 .phrase-actions .btn, .phrase-result .btn { min-height: 48px; width: 100%; }
 .phrase-result { display: grid; gap: 12px; }
 
-/* Числа доступны без распознавания цвета; каждое слово считается один раз. */
 .phase-progress { margin: 16px 0; }
 .phase-bar { display: flex; height: 8px; overflow: hidden; border-radius: 8px; background: var(--border); }
 .phase-bar i { height: 100%; }

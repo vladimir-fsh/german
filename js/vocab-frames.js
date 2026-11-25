@@ -1,5 +1,3 @@
-/* Рамки рангов: векторные грани остаются чёткими на экране телефона.
-   Декорация не перехватывает тап или свайп и не меняет расписание. */
 window.VocabFrames = (function () {
   "use strict";
   var sequence = 0;
@@ -73,7 +71,6 @@ window.VocabFrames = (function () {
   function isUpgrade(before, after) {
     return ranks.indexOf(rank(after)) > ranks.indexOf(rank(before));
   }
-  /* Обе стороны показывают только ранг сохранённого расписания. */
   function update(host, v) {
     var next = rank(v), faces = host.querySelectorAll(".vface");
     for (var i = 0; i < faces.length; i++) {

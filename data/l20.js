@@ -1,5 +1,3 @@
-/* Lektion 20 - Nebensätze 2: abhängige Fragesätze, wenn-Sätze, Verben mit Präposition.
-   Источник тем и лексики: lehrerlenz.de/lektion_20__nebenstze_2_abhngige_fragestze_wennstze.html */
 window.L20 = {
   n: 20,
   title: "Nebensätze 2 + Verben mit Präposition",
@@ -776,7 +774,6 @@ window.L20 = {
     }
   ],
 
-  /* 10 слов урока для карточек: глаголы с предлогом из упражнений lehrerlenz к Lektion 20. */
   words: [
     { de: "sich ärgern über", ru: "злиться на", ex: "Der Lehrer ärgert sich über den Lärm.", exru: "Учитель злится на шум." },
     { de: "sich freuen auf", ru: "радоваться (тому, что будет)", ex: "Ich freue mich auf die Ferien.", exru: "Я с нетерпением жду каникул." },

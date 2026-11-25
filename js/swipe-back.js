@@ -1,4 +1,3 @@
-/* Закрытие вложенной страницы жестом наружу от края прокрутки. */
 window.SwipeBack = (function () {
   "use strict";
   function mount(host, back, scrollHost) {

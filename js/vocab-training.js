@@ -1,5 +1,3 @@
-/* Очередь, расписание первого круга, повтор промахов и отмена тренировки.
-   Состояние прогресса принадлежит Store; черновик принадлежит Sessions. */
 window.VocabTraining = (function () {
   "use strict";
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -36,12 +34,11 @@ window.VocabTraining = (function () {
     var Store = options.store, sessions = options.sessions, clockNow = options.now || Date.now;
     var CFG = options.config || {};
     var prefix = options.prefix || "V:", sessionKind = options.sessionKind || "vocab";
-    var V_SESSION = CFG.sessionNew || 10;   /* потолок обычной сессии */
-    var V_NEW = CFG.sessionNew || 10;       /* столько новых даёт добор по кнопке */
+    var V_SESSION = CFG.sessionNew || 10;
+    var V_NEW = CFG.sessionNew || 10;
 
     var V_LEVELS = 5;
 
-    /* слова уроков (f = 0, идут первыми) плюс общий словарь A2-B1 с группами словаря */
     function vocabPool() {
       var out = [];
       (options.course.lessons || []).forEach(function (l) {
@@ -56,7 +53,6 @@ window.VocabTraining = (function () {
       return out;
     }
 
-    /* Оба вида карточек нужны для восстановления сессий. Расписание общее. */
     function vocabCards() {
       var out = [];
       vocabPool().forEach(function (it) {
@@ -66,8 +62,6 @@ window.VocabTraining = (function () {
       return out;
     }
 
-    /* новые слова: сначала лексика урока, потом общий словарь - ближе всего
-       к текущей группе словаря */
     function vocabSortFresh(fresh) {
       var S = Store.state();
       var lvl = S.vocabLevel || 1;
@@ -102,12 +96,10 @@ window.VocabTraining = (function () {
       return Store.vocabSchedule(Store.state().vocab, it.key.slice(0, -3));
     }
 
-    /* В начальную очередь попадает одна сторона слова.
-       Вторая половина длинного интервала добавляется в конец после ответа. */
     function vocabOnePerWord(items, taken) {
       var out = [];
       items.forEach(function (it) {
-        var base = it.key.slice(0, -3);   /* ключ без "|de" / "|ru" */
+        var base = it.key.slice(0, -3);
         if (taken[base]) return;
         taken[base] = true;
         out.push(it);
@@ -115,10 +107,6 @@ window.VocabTraining = (function () {
       return out;
     }
 
-    /* состав сессии: не больше десяти карточек за раз. Сначала то, что пора
-       повторить, остаток добивается новыми словами. Когда повторять нечего -
-       сессия целиком из новых, и добор идёт по кнопке.
-       mode === "new" - добор десяти новых слов по запросу, без повторений. */
     function vocabNewRemaining() {
       if (CFG.maxNewPerDay === null) return Infinity;
       var S = Store.state();
@@ -148,10 +136,6 @@ window.VocabTraining = (function () {
       return due.concat(fresh);
     }
 
-    /* Повторение: только то, чему пришёл срок. Промах уже назначил слову свой
-       интервал, поэтому отдельного списка «свежие ошибки» нет.
-       Порядок: короткий интервал вперёд, при равных - что свежее, затем что
-       просрочено дольше. Потолок сессии - 20 слов. */
     var V_REPEAT = CFG.sessionRepeat || 20;
     function vocabRepeatPlan(split) {
       var pool = (split || vocabSplit()).due.slice(), taken = {};
@@ -164,9 +148,6 @@ window.VocabTraining = (function () {
       return vocabOnePerWord(pool, taken).slice(0, V_REPEAT);
     }
 
-    /* Калибровка: по четыре незнакомых слова из каждой группы словаря.
-       Ответы не влияют на расписание - знакомое сразу закрывается, незнакомое
-       остаётся нетронутым. По долям знакомого выставляется стартовая ступень. */
     var CALIB_PER_LEVEL = 4;
 
     function vocabCalibPlan() {
@@ -175,7 +156,6 @@ window.VocabTraining = (function () {
       for (var lvl = 1; lvl <= V_LEVELS; lvl++) {
         var bucket = [];
         (options.words || []).forEach(function (w) {
-          /* Названия и сокращения остаются в обучении, но не измеряют словарный запас. */
           if (w.calibrate === false) return;
           if ((w.f || 1) !== lvl) return;
           var base = "V:" + (w.id || w.de), key = base + "|ru";
@@ -189,7 +169,7 @@ window.VocabTraining = (function () {
 
     function vocabSession(mode) {
       if (mode === "repeat") return options.shuffle(vocabRepeatPlan());
-      if (mode === "calib") return vocabCalibPlan();   /* порядок от простого к редкому */
+      if (mode === "calib") return vocabCalibPlan();
       return options.shuffle(vocabPlan(mode));
     }
 

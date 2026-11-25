@@ -1,13 +1,9 @@
-/* Прохождение серии заданий: позиция, пропуск, удаление, возобновление и итог.
-   Экран строит DOM и показывает текущее задание, правила дня и повтора ошибок
-   живут здесь. Попыткой каждого задания управляет ExerciseAttempt. */
 window.ExerciseRun = (function () {
   "use strict";
   function create(options) {
     var store = options.store, practice = options.practice, sessions = options.sessions, plan = options.review;
     var attempts = window.ExerciseAttempt.create(options);
 
-    /* alive() - экран ещё открыт. Любое действие после ухода с экрана ничего не меняет. */
     function walk(draft, rules, alive) {
       var finished = false, attempt = null, record = null;
       function open() { return !finished && alive() && draft.i < rules.count; }
@@ -27,8 +23,6 @@ window.ExerciseRun = (function () {
       }
       var run = {
         id: draft.id, finished: false, outcome: null,
-        /* Ставит на текущее задание и монтирует его в host. null - показывать нечего:
-           серия закончилась (finished) или экран закрыт. */
         show: function (host, onResult) {
           if (finished || !alive()) return null;
           while (draft.i < rules.count && rules.skips(draft.i)) draft.i++;
@@ -47,7 +41,6 @@ window.ExerciseRun = (function () {
         },
         check: function () { attempt.check(); },
         hint: function () { attempt.hint(); },
-        /* true - позиция сдвинулась, экран показывает следующее задание */
         next: function () {
           if (!(record && record.result) || !open()) return false;
           draft.i++; rules.save();
@@ -62,13 +55,11 @@ window.ExerciseRun = (function () {
           store.mutate("exerciseDelete", { id: rules.id(index), ex: rules.exercise(index), reason: reason });
           return rules.deleted(index) && omit("deleted");
         };
-        /* manual - день засчитан кнопкой, итог берётся только из сохранённых ответов */
         run.finish = finish;
       }
       return run;
     }
 
-    /* День: черновик Practice, пропуск и удаление, итог попадает в dayDone или practiceDone. */
     function day(n, di, list, alive) {
       var draft = practice.load(n, di, list) || practice.create(n, di, list);
       function id(index) { return "L" + n + "D" + di + "-" + index; }
@@ -99,7 +90,6 @@ window.ExerciseRun = (function () {
           }
           var op = { n: n, di: di, score: stats.correct, of: of, uncertain: stats.uncertain, hints: stats.hints, attemptId: draft.id, records: draft.records };
           if (manual) op.manual = true;
-          /* ответов не было - в истории нечего показывать, остаётся только отметка дня */
           if (manual && !of) { delete op.attemptId; delete op.records; }
           if (manual || of) store.mutate(!manual && stats.skipped ? "practiceDone" : "dayDone", op);
           if (of) touchStreak();
@@ -114,8 +104,6 @@ window.ExerciseRun = (function () {
       if (store.state().lastDay !== today) store.mutate("touchDay", { day: today });
     }
 
-    /* Повтор ошибок: сессия Sessions, устаревшие задания пропускаются, итог - пустая очередь.
-       due() вызывается только когда сохранённой сессии нет. */
     function review(due, alive) {
       var draft = sessions.load("review") || plan.create(due(), store.state());
       var run = walk(draft, {

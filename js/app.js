@@ -1,12 +1,8 @@
-/* Приложение: маршруты, прогресс, очередь повторения. */
 (function () {
   "use strict";
   var E = window.Engine, el = E.el, esc = E.esc;
   var app = document.getElementById("app");
 
-  /* ---------- состояние ----------
-     Состояние ведёт js/sync.js. Здесь только чтение и вызов мутаций,
-     без прямых присваиваний в S. */
   var Store = window.Store;
   var S = Store.state();
   var runs = window.ExerciseRun.create({ store: Store, engine: E,
@@ -24,15 +20,12 @@
     syncTabs();
   });
 
-  /* Неизвестный маршрут считается главной. */
   var ROUTE_RE = /^\/(vocab(\/(new|repeat|calibrate))?|phrases(\/(train|repeat))?|review|more(\/cloud)?|l\d+(\/(g|d)\d+)?)?$/;
   function curPath() {
     var h = location.hash.replace(/^#/, "");
     return ROUTE_RE.test(h) ? h : "/";
   }
 
-  /* Экран задания или карточки не пересобирается, иначе пропадёт ввод.
-     Главная и списки перерисовываются всегда, на них виден прогресс. */
   function redrawable() {
     var h = curPath();
     if (h === "/more") return !working;
@@ -51,14 +44,12 @@
     return Math.round((k / total) * 100);
   }
 
-  /* очередь повторения: id -> {box, due, ex, lesson} */
   function srsDue() {
     var now = Date.now(), out = [];
     for (var k in S.srs) if (S.srs[k].due <= now) out.push({ id: k, r: S.srs[k] });
     return out;
   }
 
-  /* ---------- маршруты ---------- */
   function go(hash) { location.hash = hash; }
   window.addEventListener("hashchange", route);
 
@@ -97,7 +88,6 @@
     viewHome();
   }
 
-  /* ---------- главная ---------- */
   function viewHome() {
     var C = window.COURSE;
     var ready = C.lessons.filter(function (l) { return l.status === "ready"; });
@@ -113,7 +103,6 @@
     var vocab = training.summary(), words = vocab.pending;
     var acc = S.totalTried ? Math.round((S.totalCorrect / S.totalTried) * 100) : 0;
 
-    /* Хранилище повреждено: прочерки вместо ложных нулей. */
     var loading = !Store.ready();
     function val(x) { return loading ? "-" : x; }
 
@@ -220,7 +209,6 @@
     return null;
   }
 
-  /* ---------- урок: список дней ---------- */
   function viewLesson(n) {
     var L = window["L" + n];
     if (!L) return go("/");
@@ -303,7 +291,6 @@
     app.appendChild(back);
   }
 
-  /* ---------- грамматика ---------- */
   function viewGrammar(n, gi) {
     var L = window["L" + n];
     var g = L && L.grammar[gi];
@@ -323,7 +310,6 @@
     app.appendChild(row);
   }
 
-  /* ---------- день: прохождение заданий ---------- */
   function viewDay(n, di) {
     var L = window["L" + n], day = L && L.days[di];
     if (!day) return go("/l" + n);
@@ -344,8 +330,6 @@
       }); head.appendChild(det); theoryDetails.push({ node: det, grammar: g });
     });
     head.appendChild(el("div", "muted", "Ответы сохраняются. В результат идёт первая попытка. Открытая теория считается подсказкой."));
-    /* Если отметка дня потерялась после сбоя, день засчитывается вручную
-       по сохранённым ответам. Второе нажатие подтверждает. */
     if (!isDayDone(n, di)) {
       var mrow = el("div", "btnrow"), mark = el("button", "btn sec", "Засчитать день"), armed = false;
       mark.onclick = function () {
@@ -447,7 +431,6 @@
     step();
   }
 
-  /* Итог по центру; длинный блок остаётся в обычном потоке страницы. */
   function showResultLayout() {
     window.onresize = null;
     app.classList.remove("tight");
@@ -455,7 +438,6 @@
     window.scrollTo(0, 0);
   }
 
-  /* ---------- повторение ---------- */
   function viewReview() {
     if (Store.blocked()) return viewMore();
     working = true;
@@ -499,7 +481,6 @@
     step();
   }
 
-  /* ---------- нижние вкладки ---------- */
   var tabs = document.querySelectorAll(".tab");
 
   Array.prototype.forEach.call(tabs, function (b) {
@@ -507,7 +488,6 @@
     b.onclick = function () { go(b.getAttribute("data-go")); };
   });
 
-  /* У вкладки чата нет маршрута, чат открывается поверх текущего экрана. */
   function syncTabs() {
     var h = curPath();
     var root = h.indexOf("/more") === 0 ? "/more" : "/";
@@ -518,7 +498,6 @@
     });
   }
 
-  /* ---------- вкладка «Ещё» ---------- */
   function viewMore() {
     working = true;
     app.innerHTML = "";
@@ -700,8 +679,6 @@
     return "через месяц";
   }
 
-  /* ---------- предупреждение о сохранении ----------
-     Вся механика в js/sync.js. Здесь только показ ошибки хранилища. */
   Store.onStatus(function () {
     var warning = document.getElementById("storage-warning");
     if (warning) { var text = Store.storageError(); warning.hidden = !text; warning.querySelector("span").textContent = text; }

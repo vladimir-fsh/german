@@ -1,4 +1,3 @@
-/* Беседа для одного экрана и аккаунта. Без DOM и без хранения API-ключа. */
 window.TutorSession = (function () {
   "use strict";
   var PROMPTS = {
@@ -94,7 +93,6 @@ window.TutorSession = (function () {
         emit();
       }
       call.timer = later(function () { call.controller.abort(); fail({ name: "AbortError" }); }, 60000);
-      // Ключ передаётся сразу адаптеру; не остаётся в состоянии или замыкании запроса.
       var promise;
       try { promise = gateway.settings(action, key, call.controller.signal); }
       catch (error) { fail(error); return; }

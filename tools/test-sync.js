@@ -1,5 +1,3 @@
-/* Тесты свёртки и загрузки состояния из localStorage. Запуск: node tools/test-sync.js
-   Зависимостей нет, окружение браузера подделывает tools/env.js. */
 var env = require("./env.js");
 
 var pass = 0, fail = 0;
@@ -11,7 +9,6 @@ function eq(name, a, b) { ok(name, a === b, "получено " + JSON.stringify
 
 var SYNC = ["js/progress-data.js", "js/srs-config.js", "js/sync.js"];
 
-/* журнал чужого устройства: один закрытый день урока */
 function log(device, lcFrom, entries) {
   var ops = entries.map(function (e, i) {
     return { type: e.type, device: device, seq: i + 1, lc: lcFrom + i + 1, t: e.t, n: e.n, di: e.di, score: e.score, of: e.of, key: e.key, ok: e.ok, day: e.day };
@@ -21,7 +18,6 @@ function log(device, lcFrom, entries) {
 
 var T0 = Date.UTC(2026, 8, 18);
 
-/* ---------- 1. снапшот и журналы с диска сворачиваются вместе ---------- */
 async function testDiskSnapshotAndLogs() {
   console.log("\nснапшот и журналы прежних версий");
   var snapshot = {
@@ -43,7 +39,6 @@ async function testDiskSnapshotAndLogs() {
   ok("день из журнала на месте", !!s.done.L18D2);
 }
 
-/* ---------- 3. офлайн: состояние берётся из localStorage ---------- */
 async function testOfflineBoot() {
   console.log("\nсостояние поднимается с диска");
   var stored = { v: 4, done: { L18D0: {}, L18D1: {} }, srs: {}, vocab: {}, vocabLevel: 1, calibrated: true, streak: 3, lastDay: "2026-09-20", totalTried: 30, totalCorrect: 25, resetAt: 0 };
@@ -52,7 +47,6 @@ async function testOfflineBoot() {
   eq("серия с диска", win.Store.state().streak, 3);
 }
 
-/* ---------- 4. своя мутация переживает перезагрузку ---------- */
 async function testLocalMutationSurvives() {
   console.log("\nсобственный ответ переживает перезагрузку");
   var storage = env.makeStorage();
@@ -62,7 +56,6 @@ async function testLocalMutationSurvives() {
   ok("свой день на месте", !!next.Store.state().done.L18D5);
 }
 
-/* ---------- 5. чистое устройство готово сразу ---------- */
 async function testReadyFresh() {
   console.log("\nчистое устройство");
   var win = env.load(SYNC, {});
@@ -70,7 +63,6 @@ async function testReadyFresh() {
   eq("дней пройдено", Object.keys(win.Store.state().done).length, 0);
 }
 
-/* ---------- 6. состояние с диска готово сразу ---------- */
 async function testReadyFromDisk() {
   console.log("\nсостояние с диска готово сразу");
   var stored = { v: 4, done: { L18D0: {} }, srs: {}, vocab: {}, vocabLevel: 1, calibrated: true, streak: 2, lastDay: "2026-09-20", totalTried: 10, totalCorrect: 9, resetAt: 0 };
@@ -78,7 +70,6 @@ async function testReadyFromDisk() {
   ok("диск поднял состояние", win.Store.ready() === true);
 }
 
-/* ---------- 9. возврат к приложению перерисовывает интерфейс ---------- */
 async function testResumeRedraws() {
   console.log("\nвозврат видимости будит интерфейс");
   var win = env.load(SYNC, {});
@@ -87,7 +78,6 @@ async function testResumeRedraws() {
   win.Store.start();
   var before = seen;
 
-  /* так ведёт себя iOS: соседняя вкладка ответила, пока приложение свёрнуто */
   win.document.hidden = true;
   win._fire("visibilitychange");
   eq("пока скрыто, слушатели не вызываются", seen, before);

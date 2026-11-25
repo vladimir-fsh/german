@@ -1,4 +1,3 @@
-/* Личный ключ загружается из Firestore только на время прямого запроса OpenAI. */
 window.TutorGateway = (function () {
   "use strict";
   var rejected = {};

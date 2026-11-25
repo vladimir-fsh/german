@@ -1,4 +1,3 @@
-/* Формат прямого запроса OpenAI: только учебный контекст и текст беседы. */
 window.TutorRequest = (function () {
   "use strict";
   function fail(code, message) { var error = new Error(message); error.code = code; throw error; }

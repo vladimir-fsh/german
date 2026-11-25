@@ -1,4 +1,3 @@
-/* Сессии слов и повторения ошибок: ввод, позиция и подсказки в одном экспорте. */
 window.Sessions = (function () {
   "use strict";
   var DATA = window.ProgressData, keys = { vocab: "de-b1-session-v1", review: "de-b1-review-v1", phrases: "de-b1-phrases-v1" };

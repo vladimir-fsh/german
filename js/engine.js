@@ -1,8 +1,6 @@
-/* Движок упражнений: рендер и проверка, без зависимостей. */
 (function (global) {
   "use strict";
 
-  /* ---------- нормализация ответа ---------- */
   function norm(s) {
     return String(s == null ? "" : s)
       .trim()
@@ -42,8 +40,6 @@
     return a;
   }
 
-  /* ---------- Exercise ---------- */
-  /* onDone(ok, result) вызывается после проверки */
   function render(ex, host, onDone, options) {
     options = options || {};
     host.innerHTML = "";
@@ -76,12 +72,6 @@
 
   var BUILD = {};
 
-  /* ---- fill: текст с пропусками {подсказка} ----
-     Если ответ равен подсказке плюс хвост (klein → kleiner, ein → einen),
-     основа печатается текстом, а вводится только окончание. Нулевое окончание (сказуемое: «ist hoch») вводится
-     пустым полем: форма поля не должна подсказывать, есть окончание или нет.
-     Если ответ меняет основу (hoch → hohes), остаётся ввод слова целиком.
-     Флаг ex.full отключает режим окончаний для всего задания. */
   function endingsOf(hint, answers, full) {
     if (full || !hint) return null;
     var h = hint.toLowerCase(), out = [];
@@ -120,7 +110,6 @@
         var zeroPicked = !!(saved.zeros || [])[idx];
         var zero;
         if (ends) {
-          /* основа текстом, поле только под окончание */
           var wrap = el("span", "stem");
           wrap.appendChild(document.createTextNode(hint));
           inp.className = "blank end";
@@ -158,7 +147,6 @@
       slots.forEach(function (sl) {
         var good;
         if (sl.ends) {
-          /* пустое поле или прочерк означают нулевое окончание */
           var typed = String(sl.inp.value).replace(/[-–—]/g, "");
           var endingVerdict = compare(typed, sl.ends); good = endingVerdict === "correct";
           if (!good) verdict = endingVerdict;
@@ -180,7 +168,6 @@
     });
   };
 
-  /* ---- choice: один правильный из нескольких ---- */
   BUILD.choice = function (ex, host, finish, api) {
     if (ex.prompt) host.appendChild(el("div", "prompt", esc(ex.prompt)));
     var q = el("div", "q", esc(ex.q));
@@ -201,12 +188,11 @@
       box.appendChild(b);
     });
     host.appendChild(box);
-    api.check = null; /* проверяется по клику */
+    api.check = null;
     api.getDraft = function () { return { choice: selected }; };
     api.restore = function () { var choice = api.draft.choice; if (choice != null && box.children[choice]) box.children[choice].onclick(); };
   };
 
-  /* ---- order: собрать предложение из слов ---- */
   BUILD.order = function (ex, host, finish, api) {
     host.appendChild(el("div", "prompt", esc(ex.prompt || "Составь предложение.")));
     if (ex.ru) {
@@ -253,10 +239,8 @@
     (api.draft.words || []).forEach(function (word) { var chips = pool.querySelectorAll(".chip"); for (var index = 0; index < chips.length; index++) if (chips[index].textContent === word && !chips[index].classList.contains("used")) { chips[index].onclick(); break; } });
   };
 
-  /* ---- translate: русский → немецкий, свободный ввод ---- */
   function articleHint(ex) {
     if (typeof ex.articleHint === "string") return ex.articleHint;
-    /* Старые сессии ошибок содержат копию задания до добавления подсказок. */
     var hint = "";
     ((global.COURSE || {}).lessons || []).some(function (meta) {
       var lesson = global["L" + meta.n];
@@ -302,7 +286,6 @@
     });
   };
 
-  /* ---- pairs: соединить пары (слово ↔ противоположность/перевод) ---- */
   BUILD.pairs = function (ex, host, finish, api) {
     host.appendChild(el("div", "prompt", esc(ex.prompt || "Соедини пары.")));
     var grid = el("div", "pairs");

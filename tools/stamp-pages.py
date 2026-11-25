@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Stamp the Pages HTML and asset URLs with the current workflow build."""
 import os
 import json
 import re
@@ -15,7 +14,6 @@ def stamp(html, run_number, attempt):
     if html.count(marker) != 1:
         raise ValueError("Expected one local app-version marker in the source HTML")
     html = html.replace(marker, '<meta name="app-version" content="%s">' % version)
-    # Give each release fresh JS/CSS URLs even when the browser cached old assets.
     html = re.sub(r'((?:src|href)="(?:js|data|css)/[^"?]+)(")',
                   lambda match: match[1] + "?v=" + version + match[2], html)
     return html, version

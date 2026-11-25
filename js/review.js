@@ -1,4 +1,3 @@
-/* План повторения: сохраняем конкретный вариант и проверяем ту же цель. */
 window.ReviewPlan = (function () {
   "use strict";
   function same(a, b) {

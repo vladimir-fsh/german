@@ -1,6 +1,3 @@
-/* Проверка данных уроков: типы заданий, количество пропусков,
-   ссылки на блоки теории, обязательное «почему».
-   Запуск: node tools/test-lessons.js */
 var env = require("./env.js");
 
 var pass = 0, fail = 0;
@@ -9,7 +6,6 @@ function ok(name, cond, extra) {
   else { fail++; console.log("  FAIL " + name + (extra ? "\n       " + extra : "")); }
 }
 
-/* файлы уроков подхватываются сами: всё, что лежит как data/lNN.js */
 var lessonFiles = require("fs").readdirSync(__dirname + "/../data")
   .filter(function (f) { return /^l\d+\.js$/.test(f); })
   .sort()
@@ -17,8 +13,6 @@ var lessonFiles = require("fs").readdirSync(__dirname + "/../data")
 var win = env.load(["data/lessons.js", "data/vocab.js"].concat(lessonFiles));
 var TYPES = { fill: 1, choice: 1, order: 1, translate: 1, pairs: 1 };
 
-/* Общий словарь и покрытие списка с фотографий. Регистр значим: sie / Sie,
-   weg / Weg и laut / Laut проверяют разные слова. */
 var wordKeys = Object.create(null);
 var wordNames = Object.create(null);
 win.VOCAB.forEach(function (w) {
@@ -76,7 +70,6 @@ win.COURSE.lessons.forEach(function (meta) {
     day.ex.forEach(function (ex, i) {
       var id = where + ", задание " + (i + 1);
       ok(id + ": тип известен", !!TYPES[ex.type], ex.type);
-      /* сборка предложения из плашек не тренирует правило, в уроках её нет */
       ok(id + ": без order", ex.type !== "order");
       kinds[ex.type] = (kinds[ex.type] || 0) + 1;
 
@@ -118,7 +111,6 @@ win.COURSE.lessons.forEach(function (meta) {
   ok("урок " + meta.n + ": ссылки на оригинал", !!L.links && L.links.length > 0);
 });
 
-/* набор слов тот же; порядок задаёт ученик, пунктуация не сверяется */
 function sameWords(a, b) {
   var norm = function (s) { return String(s).toLowerCase().replace(/[.,!?;:]/g, "").split(/\s+/).filter(Boolean).sort().join(" "); };
   return norm(a) === norm(b);

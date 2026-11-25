@@ -1,5 +1,3 @@
-/* Lektion 21 - Komparation (alt, älter, am ältesten).
-   Источник тем и лексики: lehrerlenz.de/lektion_21_komparation_alt_lter_am_ltesten.html */
 window.L21 = {
   n: 21,
   title: "Komparation",
@@ -545,7 +543,6 @@ window.L21 = {
     }
   ],
 
-  /* 10 слов урока для карточек: спорт и рекорды из упражнений lehrerlenz к Lektion 21. */
   words: [
     { de: "der Rekord", ru: "рекорд", ex: "Er hat einen neuen Rekord aufgestellt.", exru: "Он установил новый рекорд." },
     { de: "die Mannschaft", ru: "команда", ex: "Unsere Mannschaft hat gewonnen.", exru: "Наша команда выиграла." },

@@ -1,4 +1,3 @@
-/* Firebase переносит журнал, локальное состояние остаётся источником для UI. */
 window.Cloud = (function () {
   "use strict";
   var CONFIG = "de-firebase-config-v1", LINK = "de-firebase-link-v1";
@@ -94,7 +93,6 @@ window.Cloud = (function () {
             return write.then(function () { check(signal); return { configured: true }; });
           }
           if (action !== "read" && action !== "status") throw new Error("Неизвестное действие с ключом.");
-          // Только серверное чтение: ключ не сохраняется в localStorage и резервные копии.
           return ref.get({ source: "server" }).then(function (doc) {
             check(signal);
             var data = doc.exists ? doc.data() : {}, saved = data.key;
@@ -155,7 +153,6 @@ window.Cloud = (function () {
     return Promise.resolve().then(function () { return upload(generation); }).then(function () {
       if (generation !== epoch) return;
       writing = false; emit("Прогресс синхронизирован.");
-      /* Ответ во время запроса не должен остаться без отправки. */
       if (window.Store.cloudOperations().some(function (op) { return !known[op.device + ":" + op.seq]; }) || payload(aux()) !== lastAux) schedule();
     }, function (e) {
       if (generation === epoch) { writing = false; emit(friendly(e)); }

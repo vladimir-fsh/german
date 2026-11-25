@@ -75,7 +75,6 @@ test('подключение на новом устройстве обновля
   assert.equal(a.Store.state().totalTried, 2);
 });
 
-/* Подставной Firestore проверяет сам транспорт без сети и настоящих аккаунтов. */
 function fakeFirestore() {
   const docs = new Map(), watches = new Map(); let fail = false;
   function changes(prefix) {
@@ -138,7 +137,6 @@ test('вход в другой аккаунт не отправляет ему �
   const db=fakeFirestore(), a=transport(db,'alice');await a.Cloud.init();await a.Cloud.signIn();await a.Cloud.connect();await a.Cloud.signOut();
   const original=copy(a.localStorage._dump()), b=transport(db,'bob');
   Object.keys(original).filter(key=>key.startsWith('de-b1-')).forEach(key=>b.localStorage.setItem(key,original[key]));
-  /* Перезагрузка поднимает связанное состояние с диска. */
   const b2=transport(db,'bob');b2.Store.attachCloud(JSON.parse([...db.docs].find(([key])=>key==='users/alice/german/seed')[1].payload));
   await b2.Cloud.init();
   try {await assert.rejects(b2.Cloud.signIn(),/другим облачным аккаунтом/);assert.ok(![...db.docs.keys()].some(key=>key.startsWith('users/bob/')))}

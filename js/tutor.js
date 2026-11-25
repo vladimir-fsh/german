@@ -1,4 +1,3 @@
-/* Личный чат: ключ из Firebase, запросы OpenAI из браузера, беседа в памяти. */
 window.Tutor = (function () {
   "use strict";
   try { localStorage.removeItem("de-tutor-model-v1"); } catch (e) {}

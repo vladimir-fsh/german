@@ -1,6 +1,3 @@
-/* Окружение для тестов: минимальный браузер поверх node.
-   Файлы js/ грузятся как обычные скрипты, поэтому им нужны window,
-   localStorage и document. Здесь они поддельные, но с тем же поведением. */
 var fs = require("fs");
 var path = require("path");
 var vm = require("vm");
@@ -20,13 +17,11 @@ function makeStorage(seed) {
   };
 }
 
-/* Загружает скрипты проекта в общий контекст и возвращает его window. */
 function load(files, opts) {
   opts = opts || {};
   var win = {};
   win.window = win;
   win.localStorage = opts.localStorage || makeStorage(opts.storage);
-  /* обработчики событий запоминаем, чтобы тест мог их дёрнуть: win._fire("visibilitychange") */
   var handlers = {};
   function on(type, fn) { (handlers[type] = handlers[type] || []).push(fn); }
   win.document = {
@@ -41,8 +36,6 @@ function load(files, opts) {
   win._handlers = handlers;
   win.setTimeout = setTimeout;
   win.clearTimeout = clearTimeout;
-  /* часы можно сдвинуть вперёд, не дожидаясь реального времени:
-     opts.clock = { skew: 0 }, дальше skew меняется прямо в тесте */
   win.Date = opts.clock ? new Proxy(Date, {
     get: function (t, p) { return p === "now" ? function () { return Date.now() + (opts.clock.skew || 0); } : t[p]; }
   }) : Date;
@@ -56,7 +49,6 @@ function load(files, opts) {
   return win;
 }
 
-/* Ждёт, пока разберётся очередь промисов и таймеров. */
 function settle(ms) {
   return new Promise(function (res) { setTimeout(res, ms || 5); });
 }

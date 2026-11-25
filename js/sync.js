@@ -1,32 +1,17 @@
-/* Хранилище прогресса: журнал операций вместо перезаписи состояния.
-
-   Любое изменение - операция (мутация) с меткой логических часов, она
-   применяется сразу и ложится в журнал в localStorage.
-   Состояние = детерминированная свёртка снапшота и всех журналов.
-   Порядок задают часы Лампорта, ничья разрешается по идентификатору автора.
-
-   Каждый экземпляр страницы пишет собственный ключ localStorage, поэтому
-   вкладки одного браузера не заменяют записи друг друга, а видят их через
-   событие storage. Материализованное состояние - только кеш.
-   Снапшот с курсором «какие операции в него уже вошли» остался от прежних
-   версий и из резервных копий; новые операции поверх него сворачиваются. */
 window.Store = (function () {
   "use strict";
-  /* Удалённое подключение: очищаем старый ключ, не читая и не перенося его. */
-  try { localStorage.removeItem("de-openai-settings-v1"); } catch (e) { /* Повторим при следующем запуске. */ }
+  try { localStorage.removeItem("de-openai-settings-v1"); } catch (e) {}
 
   var SCHEMA = 7;
   var DATA = window.ProgressData;
-  var LS_STATE = "de-b1-progress-v1";   /* материализованное состояние, для мгновенного старта */
-  var LS_OPS = "de-b1-oplog-v1";        /* прежний общий журнал, только для чтения */
-  var LOG_PREFIX = "de-b1-oplog-v2:";    /* отдельная запись на каждого автора */
-  var LS_DEV = "de-b1-device-v1";       /* идентификатор устройства */
-  var LS_FOREIGN = "de-b1-foreign-v1"; /* журналы других авторов, записанные прежними версиями */
+  var LS_STATE = "de-b1-progress-v1";
+  var LS_OPS = "de-b1-oplog-v1";
+  var LOG_PREFIX = "de-b1-oplog-v2:";
+  var LS_DEV = "de-b1-device-v1";
+  var LS_FOREIGN = "de-b1-foreign-v1";
   var storageError = "", blocked = false, externalWarnings = {};
   function warning() { return storageError || Object.keys(externalWarnings).map(function (key) { return externalWarnings[key]; }).join(" "); }
 
-  /* Числа расписания задаются в js/srs-config.js.
-     Значения ниже нужны, если конфиг не загрузился. */
   var CFG = window.SRS_CONFIG || {};
   function cfg(name, fallback) { return CFG[name] != null ? CFG[name] : fallback; }
 
@@ -43,21 +28,17 @@ window.Store = (function () {
   var IV_LEARNED = cfg("ivLearned", 100);
   var FUZZ = cfg("fuzz", 0.05);
 
-  var LADDER = [1, 3, 7, 14, 30];       /* прежняя лестница, нужна только для переноса */
-  var SRS_LADDER = [0, 864e5, 3 * 864e5];   /* очередь ошибок в заданиях, 3 бокса */
+  var LADDER = [1, 3, 7, 14, 30];
+  var SRS_LADDER = [0, 864e5, 3 * 864e5];
 
-  /* Разброс обязан быть детерминированным: свёртка журнала выполняется на всех
-     устройствах и должна давать одинаковый результат. Берём его из хеша
-     ключа и номера операции, а не из генератора случайных чисел. */
   function fuzz(key, seq, iv) {
     if (iv < 2) return iv;
     var h = 0, str = key + ":" + seq;
     for (var i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
-    var k = ((h >>> 0) % 1000) / 1000;            /* 0..1 */
+    var k = ((h >>> 0) % 1000) / 1000;
     return Math.max(IV_MIN, Math.round(iv * (1 + (k * 2 - 1) * FUZZ)));
   }
 
-  /* ---------- состояние ---------- */
 
   function blank() {
     return {
@@ -73,13 +54,9 @@ window.Store = (function () {
     var cursor = snapshot.cursor || {}, coveredCount = 0;
     Object.keys(cursor).forEach(function (id) { coveredCount += cursor[id]; });
     mine.seq = Math.max(mine.seq, cursor[DEV] || 0);
-    /* Старые снимки не сохраняли часы. Сумма номеров покрытых журналов
-       дает консервативную границу; новые снимки хранят точные часы. */
     mine.lc = Math.max(mine.lc, snapshot.lc || 0, coveredCount);
   }
 
-  /* Перенос со схемы 3: ящик лестницы превращается в интервал в днях,
-     лёгкость у всех стартовая. Сроки и счётчик промахов сохраняются. */
   function fromBox(e) {
     var box = e.box || 0;
     return {
@@ -108,9 +85,6 @@ window.Store = (function () {
     return migrateVocabShape(next);
   }
 
-  /* Старые направления сохраняются в журнале. Для нового расписания берём
-     русский → немецкий, а если его ещё нет - прежнюю немецкую карточку.
-     Перенос выполняется при первом новом ответе, не при чтении состояния. */
   function vocabSchedule(vocab, base) {
     var ru = vocab[base + "|ru"], de = vocab[base + "|de"];
     if (!ru && !de) return null;
@@ -126,10 +100,6 @@ window.Store = (function () {
     return !!(v && !v.learned && (v.stage || (v.reps ? "review" : "learning")) === "review" && v.iv >= cfg("pairedReviewDays", 30));
   }
 
-  /* ---------- редьюсер ----------
-     Чистая функция: (состояние, операция) → состояние.
-     Время берётся из самой операции (op.t), а не из часов. Иначе повтор
-     свёртки на другом устройстве дал бы другие сроки повторения. */
   function apply(s, op) {
     var v, r, y;
     switch (op.type) {
@@ -162,7 +132,6 @@ window.Store = (function () {
       case "dayDone":
         if (op.attemptId && s.attempts.some(function (a) { return a.id === op.attemptId; })) return s;
         if (op.type === "dayDone") s.done["L" + op.n + "D" + op.di] = { at: op.t, score: op.score, of: op.of };
-        /* засчитан вручную: of - число сохранённых ответов, а не длина дня */
         if (op.manual && op.type === "dayDone") s.done["L" + op.n + "D" + op.di].manual = true;
         if (op.attemptId) {
           s.attempts.push({ id: op.attemptId, n: op.n, di: op.di, at: op.t, score: op.score, of: op.of, uncertain: op.uncertain || 0, hints: op.hints || 0, records: op.records || [] });
@@ -211,12 +180,9 @@ window.Store = (function () {
         }
         return s;
 
-      /* Исторический vocabGrade по SM-2. При «знаю» интервал умножается на лёгкость,
-         быстрый ответ даёт ещё × 1.3 и поднимает лёгкость. Новая карточка выходит
-         на сутки, при быстром ответе на четыре дня. */
       case "vocabGrade":
         v = s.vocab[op.key] || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false };
-        if (v.box != null && v.iv == null) v = fromBox(v);   /* запись старого формата */
+        if (v.box != null && v.iv == null) v = fromBox(v);
         var fast = op.fast || (op.pts || 0) >= 10;
 
         if (op.ok) {
@@ -227,10 +193,8 @@ window.Store = (function () {
           if (v.iv >= IV_LEARNED) { v.learned = true; v.due = 0; }
           else v.due = op.t + v.iv * 864e5;
         } else {
-          /* лёгкость падает только у карточек, вышедших из изучения, как в Anki */
           if (v.reps) {
             v.ease = Math.max(EASE_MIN, v.ease - EASE_LAPSE);
-            /* после срыва остаётся 0,3 прежнего интервала, но не меньше трёх суток */
             v.iv = Math.max(IV_LAPSE, Math.round(v.iv * LAPSE_KEEP));
           } else {
             v.iv = IV_MIN;
@@ -242,7 +206,6 @@ window.Store = (function () {
         s.vocab[op.key] = v;
         return s;
 
-      /* Новый график отдельной операцией: исторические vocabGrade не меняют смысл. */
       case "vocabReview":
         v = s.vocab[op.key] || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false, introducedAt: op.t, introducedDay: op.day || new Date(op.t).toISOString().slice(0, 10), stage: "learning", step: 0 };
         if (v.box != null && v.iv == null) v = fromBox(v);
@@ -264,8 +227,6 @@ window.Store = (function () {
         v.t = op.t; s.vocab[op.key] = v;
         return s;
 
-      /* Общее расписание слова: на длинном интервале два ответа = один шаг.
-         expectedDue и направление защищают от повторного ответа другой вкладки. */
       case "vocabWordReviewDaily":
       case "vocabWordReviewDeferred":
       case "vocabWordReview":
@@ -286,7 +247,6 @@ window.Store = (function () {
         }
         v.pairRu = false;
         s.vocab[base + "|ru"] = v;
-        /* Новый успех сразу завершает обучение; старые операции сохраняют короткий шаг. */
         if (op.type === "vocabWordReviewDaily" && op.ok &&
             (v.stage || (v.reps ? "review" : "learning")) === "learning") v.step = 1;
         apply(s, { type: "vocabReview", key: base + "|ru", ok: op.ok, t: op.t, seq: op.seq, day: op.day });
@@ -295,7 +255,6 @@ window.Store = (function () {
         }
         return s;
 
-      /* Отмена затрагивает только это слово, если после ответа его не меняли. */
       case "vocabUndo":
         var same = Object.keys(op.after).every(function (key) {
           var current = s.vocab[key] || null, expected = op.after[key];
@@ -331,7 +290,6 @@ window.Store = (function () {
         return s;
 
       case "wordHint":
-        /* Совместимость исторических журналов после удаления чата. */
         if (!s.wordHints) s.wordHints = {};
         if (op.text) s.wordHints[op.key] = op.text;
         else delete s.wordHints[op.key];
@@ -340,7 +298,6 @@ window.Store = (function () {
         s.vocabLevel = op.level;
         return s;
 
-      /* «уже знаю»: слово закрывается целиком, оба направления */
       case "vocabKnown":
         ["|de", "|ru"].forEach(function (dir) {
           var e = s.vocab[op.key + dir] || { iv: 0, ease: EASE_START, reps: 0, lapses: 0, due: 0, learned: false };
@@ -361,7 +318,6 @@ window.Store = (function () {
         s.resetAt = op.t;
         return s;
 
-      /* калибровка на входе: сразу ставит ступень частотности */
       case "calibrate":
         s.vocabLevel = op.level;
         s.calibrated = true;
@@ -370,7 +326,6 @@ window.Store = (function () {
     return s;
   }
 
-  /* порядок: логические часы, при ничьей устройство, затем номер операции */
   function cmp(a, b) {
     if (a.lc !== b.lc) return a.lc - b.lc;
     if (a.device !== b.device) return a.device < b.device ? -1 : 1;
@@ -385,7 +340,6 @@ window.Store = (function () {
     return s;
   }
 
-  /* ---------- локальное хранилище ---------- */
 
   function lsGet(k, fallback) {
     try {
@@ -405,13 +359,11 @@ window.Store = (function () {
     return d;
   }
 
-  /* Каждое открытие страницы - независимый автор. Общий идентификатор
-     устройства остается для переноса, но вкладки не пишут в один журнал. */
   var DEV = deviceId() + "." + Date.now().toString(36) + "." + Math.random().toString(36).slice(2, 12);
   var OWN_LOG = LOG_PREFIX + DEV;
   var mine = { device: DEV, seq: 0, lc: 0, ops: [] };
-  var snapshot = lsGet("de-b1-snapshot-v1", null);   /* последний известный снапшот */
-  var foreign = lsGet(LS_FOREIGN, {});                /* device → массив операций */
+  var snapshot = lsGet("de-b1-snapshot-v1", null);
+  var foreign = lsGet(LS_FOREIGN, {});
   var state = lsGet(LS_STATE, null);
   var listeners = [], statusListeners = [];
   var hydrated = !!state;
@@ -422,8 +374,6 @@ window.Store = (function () {
     if (snapshot) DATA.snapshot(snapshot);
   } catch (e) { blocked = true; storageError = "Структура сохраненных данных повреждена. Исходные записи сохранены для экспорта и восстановления."; mine = { device: DEV, seq: 0, lc: 0, ops: [] }; foreign = {}; snapshot = null; state = null; }
 
-  /* Миграция со схемы 2: прежнее состояние становится стартовым снапшотом,
-     журнал начинается пустым. Ничего не теряется. */
   if (!state || state.v !== SCHEMA || !snapshot) {
     if (state) {
       try { localStorage.setItem(LS_STATE + "-backup-v" + (state.v || 2), JSON.stringify(state)); } catch (e) {}
@@ -459,8 +409,6 @@ window.Store = (function () {
 
   function notify() {
     listeners.forEach(function (fn) {
-      /* Ошибка одного слушателя не останавливает остальных, но пишется в консоль,
-         иначе экран молча останется неперерисованным. */
       try { fn(state); } catch (e) { if (window.console) console.error("listener failed", e); }
     });
   }
@@ -475,7 +423,6 @@ window.Store = (function () {
     return state;
   }
 
-  /* операции, уже вошедшие в снапшот, повторно не применяем */
   function dropCovered(ops) {
     if (!snapshot || !snapshot.cursor) return ops;
     var cur = snapshot.cursor;
@@ -493,7 +440,6 @@ window.Store = (function () {
     statusListeners.forEach(function (fn) { try { fn(txt, cls); } catch (e) {} });
   }
 
-  /* ---------- мутации ---------- */
 
   function mutate(type, args) {
     if (blocked && type !== "reset" && type !== "restore") throw new Error(storageError);
@@ -568,13 +514,11 @@ window.Store = (function () {
     } catch (e) { blocked = true; storageError = "Другая вкладка сохранила поврежденные данные. Экспортируйте текущий прогресс перед восстановлением."; }
   }
   window.addEventListener("storage", function (event) {
-    /* Материализованный кеш не запускает новую запись соседней вкладки. */
     if (event.key && event.key !== LS_OPS && event.key !== LS_FOREIGN && event.key !== "de-b1-snapshot-v1" && event.key.indexOf(LOG_PREFIX) !== 0) return;
     if (!storageError) { refreshDisk(); if (!blocked) materialize(); } });
 
   if (!blocked && (hydrated || totalOps())) materialize();
 
-  /* Облако переносит общий стартовый снимок и отдельные операции, а не кеш. */
   function cloudOperations() {
     if (blocked || storageError) throw new Error(warning() || "Хранилище недоступно");
     refreshDisk();
@@ -646,7 +590,6 @@ window.Store = (function () {
     state: function () { return state; },
     vocabSchedule: vocabSchedule,
     vocabPaired: vocabPaired,
-    /* false, пока сохраненные данные повреждены */
     ready: function () { return !blocked; },
     blocked: function () { return blocked; },
     storageError: warning,
@@ -673,7 +616,6 @@ window.Store = (function () {
     onChange: function (fn) { listeners.push(fn); return function () { listeners = listeners.filter(function (listener) { return listener !== fn; }); }; },
     onStatus: function (fn) { statusListeners.push(fn); fn(warning() || "только это устройство", warning() ? "bad" : ""); },
     start: start,
-    /* для отладки и тестов */
     _debug: function () {
       return { mine: mine, foreign: foreign, snapshot: snapshot, ops: totalOps() };
     },

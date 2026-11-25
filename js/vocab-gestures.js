@@ -1,4 +1,3 @@
-/* Жесты карточки и эффект принятого ответа. */
 window.VocabGestures = (function () {
   "use strict";
   function bind(drag, flip, options) {
@@ -18,7 +17,6 @@ window.VocabGestures = (function () {
       window.VocabFrames.update(drag, schedule);
       drag.classList.remove("held");
       drag.classList.add("vcommit-" + kind);
-      /* На время эффекта остаёмся в точке отпускания, без возврата к центру. */
       if (!reduced) setTimeout(function () {
         if (!options.active()) return;
         drag.style.transition = "transform .24s ease-in, opacity .24s ease-in";

@@ -38,7 +38,6 @@ test('первый круг назначает сроки, круг промах
 test('парный шаг добавляет немецкую сторону в конец первого круга и переживает возобновление', () => {
   const h = fixture(); seed(h, { A: { iv: 30 }, B: {} });
   let run = h.training.open('repeat');
-  // Повтор сначала выбирает более короткий интервал.
   assert.equal(run.current().card.key, 'V:B|ru'); run.answer(true);
   assert.equal(run.current().card.key, 'V:A|ru'); run.answer(true);
   assert.equal(h.w.Store.state().vocab['V:A|ru'].pairRu, true);
