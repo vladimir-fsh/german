@@ -1,9 +1,9 @@
 /* Общий план курса A2 → B1.
-   Источник последовательности: lehrerlenz.de, Lektionen 18–32.
-   status: 'ready' — контент написан, 'todo' — в очереди. */
+   Источник последовательности: lehrerlenz.de, Lektionen 18-32.
+   status: 'ready' - контент написан, 'todo' - в очереди. */
 window.COURSE = {
   title: "Deutsch A2 → B1",
-  pace: "30–40 минут в день, 5 дней в неделю",
+  pace: "30-40 минут в день, 5 дней в неделю",
   base: "https://lehrerlenz.de/",
   lessons: [
     { n: 18, status: "ready", slug: "lektion_18_adjektivdeklination",
@@ -41,10 +41,10 @@ window.COURSE = {
       topic: "Körperteile, Farben, Tiere", days: 3 },
     { n: 29, status: "todo", slug: "lektion_29_das_verb_werden",
       title: 'Das Verb "werden"', ru: "werden как полнозначный и вспомогательный глагол",
-      topic: "Futur, Passiv, Konjunktiv — различать", days: 2 },
+      topic: "Futur, Passiv, Konjunktiv: как различать", days: 2 },
     { n: 30, status: "todo", slug: "lektion_30_relativstze",
       title: "Relativsätze", ru: "Определительные придаточные",
-      topic: "— (на сайте страница пустая, пишу сам)", days: 4, own: true },
+      topic: "на сайте страница пустая, урок пишется самостоятельно", days: 4, own: true },
     { n: 31, status: "todo", slug: "lektion_31_konjunktionen_konnektoren",
       title: "Konjunktionen / Konnektoren", ru: "Все союзы: обзор и порядок слов",
       topic: "kausal, konzessiv, temporal, final, modal, je–desto", days: 6 },
